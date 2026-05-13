@@ -257,13 +257,25 @@ feat: add cjk-focused style baseline
 
 ## Stage 10: CJK Edge Transition Refinement
 
-Planned deliverable:
+Deliverable:
 
 - treat level `2` as edge/anti-alias transition, not stroke thickening
 - refine where level `2` may appear around level `3` core pixels
 - search transition direction and density on CJK glyphs first
 - keep fixed right-down `(1, 1)` level `1` shadow
 - compare CJK contact sheets before changing any model code
+- command: `scripts/run_cjk_edges_baseline.py`
+- first recorded best rule: `right_n8_dx-1_dy+1`
+- first recorded CJK metrics: visual score `0.6387`, F1 `0.8295`, IoU
+  `0.7149`, precision `0.8441`, recall `0.8170`
+- first interpretation: right-only level-2 transition is cleaner than
+  right/down transition for CJK while fixed right-down level-1 shadow remains
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
 
 Commit theme:
 

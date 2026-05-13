@@ -34,6 +34,7 @@ The first milestone is intentionally small:
 │   ├── run_binary_diagnostic.py     # Quantize target to 1bpp and score masks
 │   ├── search_weight_baseline.py     # Search source weight/offset before shadow
 │   ├── run_cjk_style_baseline.py     # CJK-focused fixed-style baseline
+│   ├── run_cjk_edges_baseline.py     # CJK level-2 edge transition refinement
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -147,6 +148,7 @@ data/processed/glyphs/
 ├── stage7_binary/          # 1bpp target diagnostic
 ├── stage8_weight/          # source weight/offset search
 ├── stage9_cjk_style/       # CJK-first fixed-style baseline
+├── stage10_cjk_edges/      # CJK level-2 edge transition refinement
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -345,6 +347,27 @@ The command writes:
 - `stage9_cjk_style/cjk_style_search.json`
 - `stage9_cjk_style/cjk_style_contact.png`
 - `stage9_cjk_style/cjk_style_worst_contact.png`
+
+## Refine CJK Edge Transitions
+
+Run:
+
+```powershell
+python scripts/run_cjk_edges_baseline.py
+```
+
+This keeps level `3` as the source-derived core and level `1` as the fixed
+right-down shadow, then searches where level `2` edge/anti-alias pixels may be
+placed around the core. Candidate edge pixels are constrained by nearby core
+neighbor count so dense CJK glyphs do not get filled in.
+
+The command writes:
+
+- `stage10_cjk_edges/baseline_cjk_edges/*.png`
+- `stage10_cjk_edges/cjk_edges_metadata.json`
+- `stage10_cjk_edges/cjk_edges_search.json`
+- `stage10_cjk_edges/cjk_edges_contact.png`
+- `stage10_cjk_edges/cjk_edges_worst_contact.png`
 
 ## Next Milestones
 

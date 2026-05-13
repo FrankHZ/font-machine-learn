@@ -19,6 +19,7 @@ from font_machine_learn.nftr import export_font_atlas, export_target_dataset, pa
 from font_machine_learn.baseline import export_shadow_baseline
 from font_machine_learn.binary_diagnostic import export_binary_diagnostic
 from font_machine_learn.char_class import classify_char, classify_glyph
+from font_machine_learn.cjk_edges import export_cjk_edges_baseline
 from font_machine_learn.cjk_style import export_cjk_style_baseline
 from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
@@ -431,6 +432,47 @@ class NFTRExportTest(unittest.TestCase):
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertIn("cjk", metadata["groups"])
             self.assertIn("non_cjk", metadata["groups"])
+            self.assertEqual(metadata["best_rule"]["name"], result.best_rule)
+
+    def test_exports_cjk_edges_baseline_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_data = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            result = export_cjk_edges_baseline(
+                source_metadata=Path(source_data.metadata_json),
+                out_dir=root / "cjk_edges",
+                metadata_json=root / "cjk_edges_metadata.json",
+                search_json=root / "cjk_edges_search.json",
+                contact_sheet=root / "cjk_edges_contact.png",
+                worst_contact_sheet=root / "cjk_edges_worst.png",
+                search_limit=64,
+                worst_count=24,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.search_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.worst_contact_sheet).exists())
+            self.assertEqual(len(list((root / "cjk_edges").glob("*.png"))), 1814)
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertIn("edge_transition", metadata["style_constraints"])
             self.assertEqual(metadata["best_rule"]["name"], result.best_rule)
 
 

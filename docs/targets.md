@@ -339,16 +339,44 @@ dilation while improving CJK foreground recall.
 Goal: improve the placement of level `2` as an edge/anti-alias transition layer
 rather than using it as generic stroke thickening.
 
-Planned constraints:
+Command:
+
+```powershell
+python scripts/run_cjk_edges_baseline.py
+```
+
+Constraints:
 
 - level `3`: source-derived main stroke core
 - level `2`: constrained edge transition next to level `3`
 - level `1`: fixed right-down `(1, 1)` shadow
 - ranking remains CJK-first
 
-Planned outputs:
+Search space:
+
+- edge offset sets: `none`, `right`, `down`, `right_down`, `horizontal`,
+  `vertical`, `cardinal`
+- core-neighbor limits: `1`, `2`, `3`, `8`
+- offsets: `dx/dy` in `-1..1`
+
+Outputs:
 
 - `stage10_cjk_edges/baseline_cjk_edges/*.png`
 - `stage10_cjk_edges/cjk_edges_metadata.json`
 - `stage10_cjk_edges/cjk_edges_search.json`
 - `stage10_cjk_edges/cjk_edges_contact.png`
+- `stage10_cjk_edges/cjk_edges_worst_contact.png`
+
+Initial run:
+
+- CJK glyphs: `1528`
+- best rule: `right_n8_dx-1_dy+1`
+- CJK visual score: `0.6387`
+- CJK foreground F1/IoU: `0.8295` / `0.7149`
+- CJK precision/recall: `0.8441` / `0.8170`
+- all visual score: `0.5946`
+- non-CJK visual score: `0.3590`
+
+Interpretation: compared with Stage 9, the best rule removes the down level-2
+edge and keeps only a right-side transition plus the fixed right-down shadow.
+This slightly improves CJK visual score and precision while reducing recall.

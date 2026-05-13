@@ -33,6 +33,7 @@ transparent, shadow, edge, and main-stroke levels.
 - `scripts/run_binary_diagnostic.py`: Stage 7 1bpp target diagnostic.
 - `scripts/search_weight_baseline.py`: Stage 8 source weight/offset search.
 - `scripts/run_cjk_style_baseline.py`: Stage 9 CJK-focused fixed-style baseline.
+- `scripts/run_cjk_edges_baseline.py`: Stage 10 CJK level-2 edge refinement.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -53,7 +54,7 @@ Generated glyph artifacts must be grouped by stage under
 - `stage7_binary/`: 1bpp target diagnostic.
 - `stage8_weight/`: source weight/offset search.
 - `stage9_cjk_style/`: CJK-focused fixed-style baseline.
-- planned `stage10_cjk_edges/`: CJK-focused level-2 edge transition refinement.
+- `stage10_cjk_edges/`: CJK-focused level-2 edge transition refinement.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -98,6 +99,7 @@ python scripts/build_review_report.py
 python scripts/run_binary_diagnostic.py
 python scripts/search_weight_baseline.py
 python scripts/run_cjk_style_baseline.py
+python scripts/run_cjk_edges_baseline.py
 python -m unittest discover
 python scripts/check_env.py
 ```
@@ -116,6 +118,7 @@ Expected result:
 - `data/processed/glyphs/stage7_binary/binary_diagnostic_metadata.json` exists after Stage 7.
 - `data/processed/glyphs/stage8_weight/weight_search_metadata.json` exists after Stage 8.
 - `data/processed/glyphs/stage9_cjk_style/cjk_style_metadata.json` exists after Stage 9.
+- `data/processed/glyphs/stage10_cjk_edges/cjk_edges_metadata.json` exists after Stage 10.
 - unittest passes and confirms the source NFTR shape.
 
 ## Documentation Rules
