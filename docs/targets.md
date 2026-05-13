@@ -176,3 +176,31 @@ Initial run:
 
 This stage keeps rules explainable. The point is to rank shadow behavior by
 visual resemblance before trying a heavier model again.
+
+## Target 6: Human Review Artifacts
+
+Goal: make visual review repeatable before changing model architecture.
+
+Command:
+
+```powershell
+python scripts/build_review_report.py
+```
+
+Outputs:
+
+- `review_report.json`
+- `review_worst_cases.json`
+- `review_contact.png`
+
+The contact sheet uses a fixed horizontal order: source, rule shadow, tuned
+shadow, MLP, target. Rows are selected from the worst visual-score cases so
+failures are easy to inspect first.
+
+Initial report:
+
+- shadow visual score: `0.4659`
+- tuned visual score: `0.4919`
+- MLP visual score: `0.5288`
+- note: the score still ranks MLP higher than human review does, so the review
+  contact sheet remains the authority while the metric is refined.

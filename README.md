@@ -30,6 +30,7 @@ The first milestone is intentionally small:
 │   ├── run_shadow_baseline.py      # Rule-based source-to-shadow baseline
 │   ├── train_mlp_baseline.py       # Small trainable pixel-level MLP baseline
 │   ├── tune_shadow_baseline.py      # Visual-score-oriented shadow rule search
+│   ├── build_review_report.py       # Side-by-side baseline review artifacts
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -239,11 +240,30 @@ The command writes:
 - `baseline_tuned_shadow_search.json`
 - `baseline_tuned_shadow_contact.png`
 
+## Build Review Artifacts
+
+Run:
+
+```powershell
+python scripts/build_review_report.py
+```
+
+The review sheet stacks each selected glyph horizontally in this order:
+source, rule shadow, tuned shadow, MLP, target. The selected rows are the worst
+cases by visual score, so they are useful for human inspection before changing
+the next model.
+
+The command writes:
+
+- `review_report.json`
+- `review_worst_cases.json`
+- `review_contact.png`
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Flag fallback-box glyphs and decide whether to reuse original NFTR glyphs.
-2. Improve the trainable baseline with visual metrics or introduce a pinned PyTorch/ONNX stack.
-3. Compare generated glyphs against the original NFTR levels and in-game previews.
+2. Search small source-glyph offsets/alignment before applying shadow rules.
+3. Improve the trainable baseline with visual metrics or introduce a pinned PyTorch/ONNX stack.

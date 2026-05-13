@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
 
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
 from font_machine_learn.baseline import export_shadow_baseline
+from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.trainable_baseline import export_mlp_baseline
@@ -233,6 +234,62 @@ class NFTRExportTest(unittest.TestCase):
             search = json.loads(Path(result.search_json).read_text(encoding="utf-8"))
             self.assertGreaterEqual(len(search["rules"]), 4)
             self.assertEqual(search["rules"][0]["name"], result.best_rule)
+
+    def test_builds_baseline_review_report_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_data = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            shadow = export_shadow_baseline(
+                source_metadata=Path(source_data.metadata_json),
+                out_dir=root / "shadow",
+                metadata_json=root / "shadow_metadata.json",
+                contact_sheet=root / "shadow_contact.png",
+            )
+            tuned = export_tuned_shadow_baseline(
+                source_metadata=Path(source_data.metadata_json),
+                out_dir=root / "tuned",
+                metadata_json=root / "tuned_metadata.json",
+                search_json=root / "tuned_search.json",
+                contact_sheet=root / "tuned_contact.png",
+                search_limit=64,
+            )
+            review = export_review_report(
+                source_metadata=Path(source_data.metadata_json),
+                baselines=[
+                    ReviewBaseline("shadow", Path(shadow.metadata_json)),
+                    ReviewBaseline("tuned", Path(tuned.metadata_json)),
+                ],
+                review_json=root / "review.json",
+                worst_cases_json=root / "worst.json",
+                contact_sheet=root / "review.png",
+                worst_count=24,
+                columns=4,
+            )
+            self.assertEqual(review.glyph_count, 1814)
+            self.assertEqual(review.selected_count, 24)
+            self.assertEqual(review.baselines, ["shadow", "tuned"])
+            self.assertTrue(Path(review.review_json).exists())
+            self.assertTrue(Path(review.worst_cases_json).exists())
+            self.assertTrue(Path(review.contact_sheet).exists())
+
+            report = json.loads(Path(review.review_json).read_text(encoding="utf-8"))
+            self.assertEqual(report["image_order"], ["source", "shadow", "tuned", "target"])
+            self.assertIn("visual_score", report["summaries"]["shadow"])
 
 
 if __name__ == "__main__":

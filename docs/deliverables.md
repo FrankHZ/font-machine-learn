@@ -146,3 +146,27 @@ Commit theme:
 ```text
 feat: add visual shadow tuning
 ```
+
+## Stage 6: Review Artifacts
+
+Deliverable:
+
+- build a side-by-side contact sheet for human review
+- compare source, rule shadow, tuned shadow, MLP, and target in a fixed order
+- write a summary JSON for baseline-level visual metrics
+- write a worst-case JSON sorted by weakest visual score
+- command: `scripts/build_review_report.py`
+- first report visual scores: shadow `0.4659`, tuned `0.4919`, MLP `0.5288`
+- known caveat: the visual score still overrates MLP compared with human review
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: add baseline review artifacts
+```
