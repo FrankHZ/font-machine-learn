@@ -26,6 +26,7 @@ The first milestone is intentionally small:
 ├── scripts/
 │   ├── check_env.py               # Python/package environment check
 │   ├── extract_target_glyphs.py    # Split NFTR into per-glyph target dataset
+│   ├── render_source_glyphs.py     # Render WQY Sharp source glyph dataset
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -139,12 +140,36 @@ The metadata is the important contract for later stages: glyph index, Shift-JIS
 codes, decoded characters where possible, width metrics, and per-level 2bpp
 histograms.
 
+## Render WQY Source Glyphs
+
+Run:
+
+```powershell
+python scripts/render_source_glyphs.py
+```
+
+Default settings match the previous visual research:
+
+- font: `wqy-zenhei.ttc`
+- face: `WenQuanYi Zen Hei Sharp`, TTC index `2`
+- size: `13`
+- cell: `15x15`
+
+The command writes disposable paired-source artifacts under
+`data/processed/glyphs/`:
+
+- `source/*.png`
+- `source_metadata.json`
+- `source_target_contact.png`
+
+Most rendered CJK ink boxes should land around `12-13px` wide, which keeps them
+close to the original NFTR cells.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Render matching source glyphs from `wqy-zenhei.ttc`.
-2. Pair source monochrome bitmap fonts with target shaded glyphs.
-3. Train a small image-to-image model or rule-assisted model for 15 x 15 glyphs.
-4. Compare generated glyphs against the original NFTR levels and in-game previews.
+1. Pair source monochrome bitmap fonts with target shaded glyphs.
+2. Train a small image-to-image model or rule-assisted model for 15 x 15 glyphs.
+3. Compare generated glyphs against the original NFTR levels and in-game previews.

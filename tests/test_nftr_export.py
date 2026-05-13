@@ -14,6 +14,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
+from font_machine_learn.source_font import export_source_dataset
 
 
 class NFTRExportTest(unittest.TestCase):
@@ -79,6 +80,39 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(zero["codes"], [0x0030])
             self.assertEqual(zero["chars"], ["0"])
             self.assertEqual(sum(zero["histogram"].values()), 15 * 15)
+
+    def test_exports_wqy_source_dataset(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            result = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            self.assertEqual(result.font_name, ("WenQuanYi Zen Hei Sharp", "Regular"))
+            self.assertEqual(result.font_index, 2)
+            self.assertEqual(result.font_size, 13)
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertEqual(result.rendered_count, 1814)
+            self.assertEqual(len(list((root / "source").glob("*.png"))), 1814)
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            widths = [glyph["ink_width"] for glyph in metadata["glyphs"] if glyph["ink_width"]]
+            self.assertGreater(sum(1 for width in widths if 12 <= width <= 13), 1000)
+            zero = metadata["glyphs"][5]
+            self.assertEqual(zero["chars"], ["0"])
+            self.assertGreater(zero["ink_width"], 0)
 
 
 if __name__ == "__main__":

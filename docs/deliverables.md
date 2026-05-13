@@ -55,11 +55,19 @@ Deliverable:
 - use WQY Sharp face index `2`, size `13`, cell `15x15`
 - write paired source/target metadata
 - produce source/target comparison contact sheets
+- command: `scripts/render_source_glyphs.py`
+- note fallback-box glyphs separately before training
 
 Verification:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: render wqy source glyph dataset
 ```
 
 ## Stage 3: Baseline Transform

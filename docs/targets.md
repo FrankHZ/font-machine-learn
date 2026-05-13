@@ -51,6 +51,19 @@ Expected outputs:
 - paired source/target metadata for training
 - preview contact sheets showing source, target, and simple baseline transforms
 
+Command:
+
+```powershell
+python scripts/render_source_glyphs.py
+```
+
+Expected shape:
+
+- TTC index `2` resolves to `WenQuanYi Zen Hei Sharp`
+- current source render has `1293 / 1812` non-empty glyphs at `12-13px` ink width
+- symbols not covered by WQY Sharp may render as fallback boxes and should be
+  flagged or reused from the original NFTR in later pairing work
+
 ## Target 3: First Learning Baseline
 
 Goal: test whether a small model can transform WQY Sharp bitmap glyphs into the
