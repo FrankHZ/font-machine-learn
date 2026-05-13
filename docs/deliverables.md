@@ -77,11 +77,22 @@ Deliverable:
 - first non-deep-learning or tiny-model baseline
 - output predicted 2bpp glyphs
 - compare predictions to target glyphs with pixel metrics and contact sheets
+- command: `scripts/run_shadow_baseline.py`
+- baseline rule: source ink is level `3`; right/down pixels are level `2`;
+  down-right shadow is level `1`
+- first recorded metrics: pixel accuracy `0.5396`, MAE `0.8592`,
+  foreground IoU `0.5461`
 
 Verification:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: add rule-based shadow baseline
 ```
 
 ## Stage 4: Deep Learning Stack

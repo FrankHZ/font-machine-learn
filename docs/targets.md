@@ -74,3 +74,27 @@ Keep the first baseline modest:
 - no heavy dependency stack until Target 1 and Target 2 are stable
 - preserve 2bpp target levels as class labels where practical
 - compare model output against original glyphs by both pixels and contact sheets
+
+Current baseline:
+
+```powershell
+python scripts/run_shadow_baseline.py
+```
+
+Rule:
+
+- source ink: level `3`
+- right/down neighbors: level `2`
+- down-right shadow: level `1`
+
+Metrics:
+
+- per-glyph pixel accuracy
+- per-glyph mean absolute level error
+- per-glyph foreground IoU
+
+Initial run:
+
+- mean pixel accuracy: `0.5396`
+- mean absolute level error: `0.8592`
+- mean foreground IoU: `0.5461`

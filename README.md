@@ -27,6 +27,7 @@ The first milestone is intentionally small:
 │   ├── check_env.py               # Python/package environment check
 │   ├── extract_target_glyphs.py    # Split NFTR into per-glyph target dataset
 │   ├── render_source_glyphs.py     # Render WQY Sharp source glyph dataset
+│   ├── run_shadow_baseline.py      # Rule-based source-to-shadow baseline
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -165,11 +166,35 @@ The command writes disposable paired-source artifacts under
 Most rendered CJK ink boxes should land around `12-13px` wide, which keeps them
 close to the original NFTR cells.
 
+## Run the Shadow Baseline
+
+Run:
+
+```powershell
+python scripts/run_shadow_baseline.py
+```
+
+This creates a simple, explainable baseline from the WQY source glyphs:
+
+- source ink becomes level `3`;
+- right and down neighbors become level `2`;
+- down-right shadow becomes level `1`.
+
+The command writes:
+
+- `baseline_shadow/*.png`
+- `baseline_shadow_metadata.json`
+- `baseline_shadow_contact.png`
+
+The contact sheet stacks source, baseline prediction, and target glyphs. Metadata
+includes pixel accuracy, mean absolute error, and foreground IoU per glyph plus
+dataset means.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Pair source monochrome bitmap fonts with target shaded glyphs.
-2. Train a small image-to-image model or rule-assisted model for 15 x 15 glyphs.
+1. Flag fallback-box glyphs and decide whether to reuse original NFTR glyphs.
+2. Train a small image-to-image model or improve the rule-assisted baseline.
 3. Compare generated glyphs against the original NFTR levels and in-game previews.

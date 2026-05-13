@@ -14,6 +14,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
+from font_machine_learn.baseline import export_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
 
 
@@ -113,6 +114,44 @@ class NFTRExportTest(unittest.TestCase):
             zero = metadata["glyphs"][5]
             self.assertEqual(zero["chars"], ["0"])
             self.assertGreater(zero["ink_width"], 0)
+
+    def test_exports_rule_based_shadow_baseline(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_data = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            baseline = export_shadow_baseline(
+                source_metadata=Path(source_data.metadata_json),
+                out_dir=root / "baseline",
+                metadata_json=root / "baseline_metadata.json",
+                contact_sheet=root / "baseline_contact.png",
+            )
+            self.assertEqual(baseline.glyph_count, 1814)
+            self.assertTrue(Path(baseline.metadata_json).exists())
+            self.assertTrue(Path(baseline.contact_sheet).exists())
+            self.assertEqual(len(list((root / "baseline").glob("*.png"))), 1814)
+            self.assertGreater(baseline.mean_pixel_accuracy, 0.40)
+            self.assertGreater(baseline.mean_foreground_iou, 0.20)
+
+            metadata = json.loads(Path(baseline.metadata_json).read_text(encoding="utf-8"))
+            zero = metadata["glyphs"][5]
+            self.assertEqual(zero["chars"], ["0"])
+            self.assertGreaterEqual(zero["pixel_accuracy"], 0.0)
+            self.assertLessEqual(zero["pixel_accuracy"], 1.0)
 
 
 if __name__ == "__main__":
