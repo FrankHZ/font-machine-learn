@@ -53,6 +53,53 @@ class ExportConfig:
     markers_found: list[str]
 
 
+@dataclass(frozen=True)
+class WidthMetrics:
+    left: int
+    glyph_width: int
+    advance: int
+
+
+@dataclass(frozen=True)
+class GlyphRecord:
+    index: int
+    codes: list[int]
+    chars: list[str]
+    width: WidthMetrics
+    histogram: dict[str, int]
+    png: str
+
+
+@dataclass(frozen=True)
+class RTFNFont:
+    source: str
+    cell_width: int
+    cell_height: int
+    cell_size: int
+    baseline: int
+    max_width: int
+    bpp: int
+    glyph_count: int
+    glyph_offset: int
+    widths: list[WidthMetrics]
+    index_to_codes: dict[int, list[int]]
+    data: bytes
+
+
+@dataclass(frozen=True)
+class DatasetExport:
+    source: str
+    out_dir: str
+    metadata_json: str
+    contact_sheet: str
+    glyph_count: int
+    mapped_glyph_count: int
+    code_count: int
+    cell_width: int
+    cell_height: int
+    bpp: int
+
+
 def find_nitro_markers(data: bytes) -> list[str]:
     return [marker.decode("ascii") for marker in NITRO_MARKERS if marker in data]
 
@@ -76,6 +123,96 @@ def parse_sections(data: bytes) -> list[tuple[int, bytes, int]]:
         sections.append((off, magic, size))
         off += size
     return sections
+
+
+def decode_shift_jis_code(code: int) -> str | None:
+    try:
+        if code <= 0xFF:
+            return bytes([code]).decode("shift_jis")
+        return bytes([code >> 8, code & 0xFF]).decode("shift_jis")
+    except UnicodeDecodeError:
+        return None
+
+
+def parse_cmap(data: bytes, sections: list[tuple[int, bytes, int]]) -> dict[int, list[int]]:
+    index_to_codes: dict[int, list[int]] = {}
+    for off, magic, _size in sections:
+        if magic != SECTION_CMAP:
+            continue
+
+        first, last, cmap_type, _unknown, _next_body = struct.unpack_from("<HHHHI", data, off + 8)
+        pos = off + 20
+        if cmap_type == 0:
+            first_index = struct.unpack_from("<H", data, pos)[0]
+            for code in range(first, last + 1):
+                index = first_index + code - first
+                index_to_codes.setdefault(index, []).append(code)
+        elif cmap_type == 1:
+            for code in range(first, last + 1):
+                index = struct.unpack_from("<H", data, pos)[0]
+                pos += 2
+                if index != 0xFFFF:
+                    index_to_codes.setdefault(index, []).append(code)
+        elif cmap_type == 2:
+            count = struct.unpack_from("<H", data, pos)[0]
+            pos += 2
+            for _ in range(count):
+                code, index = struct.unpack_from("<HH", data, pos)
+                pos += 4
+                index_to_codes.setdefault(index, []).append(code)
+        else:
+            raise ValueError(f"unsupported PAMC/CMAP type {cmap_type} at 0x{off:X}")
+
+    return {index: sorted(codes) for index, codes in sorted(index_to_codes.items())}
+
+
+def parse_rtfn_font(source: Path) -> RTFNFont:
+    data = source.read_bytes()
+    if not data.startswith(b"RTFN"):
+        raise ValueError(f"{source} is not a reversed-tag RTFN font")
+
+    sections = parse_sections(data)
+    tglp = next(((off, size) for off, magic, size in sections if magic == SECTION_TGLP), None)
+    cwdh = next(((off, size) for off, magic, size in sections if magic == SECTION_CWDH), None)
+    if tglp is None:
+        raise ValueError(f"{source} has no PLGC glyph section")
+    if cwdh is None:
+        raise ValueError(f"{source} has no HDWC width section")
+
+    tglp_off, tglp_size = tglp
+    cell_width, cell_height, cell_size, baseline, max_width, bpp, _rot = struct.unpack_from(
+        "<BBHBBBB", data, tglp_off + 8
+    )
+    glyph_count = (tglp_size - 16) // cell_size
+    glyph_offset = tglp_off + 16
+
+    cwdh_off, cwdh_size = cwdh
+    first_index, last_index, _next_body = struct.unpack_from("<HHI", data, cwdh_off + 8)
+    width_count = last_index - first_index + 1
+    if width_count > glyph_count:
+        raise ValueError(f"HDWC width count {width_count} exceeds glyph count {glyph_count}")
+
+    widths = [WidthMetrics(0, max_width, max_width) for _ in range(glyph_count)]
+    pos = cwdh_off + 16
+    for index in range(first_index, last_index + 1):
+        left, glyph_width, advance = struct.unpack_from("bbb", data, pos)
+        pos += 3
+        widths[index] = WidthMetrics(left, glyph_width, advance)
+
+    return RTFNFont(
+        source=str(source),
+        cell_width=cell_width,
+        cell_height=cell_height,
+        cell_size=cell_size,
+        baseline=baseline,
+        max_width=max_width,
+        bpp=bpp,
+        glyph_count=glyph_count,
+        glyph_offset=glyph_offset,
+        widths=widths,
+        index_to_codes=parse_cmap(data, sections),
+        data=data,
+    )
 
 
 def choose_auto_offset(file_size: int, glyph_size: int) -> int:
@@ -110,6 +247,21 @@ def decode_linear_2bpp(payload: bytes, width: int, height: int) -> list[int]:
     for byte in payload:
         pixels.extend(((byte >> 6) & 0x03, (byte >> 4) & 0x03, (byte >> 2) & 0x03, byte & 0x03))
     return pixels[: width * height]
+
+
+def decode_glyph_values(
+    payload: bytes,
+    width: int,
+    height: int,
+    bpp: int,
+    layout: Layout = "linear",
+    nibble_order: NibbleOrder = "high",
+) -> list[int]:
+    if bpp == 2:
+        return decode_linear_2bpp(payload, width, height)
+    if layout == "tiled8":
+        return decode_tiled8_4bpp(payload, width, height, nibble_order)
+    return decode_linear_4bpp(payload, width, height, nibble_order)
 
 
 def decode_tiled8_4bpp(
@@ -174,12 +326,7 @@ def glyph_image(
     nibble_order: NibbleOrder,
     scale: int,
 ) -> Image.Image:
-    if bpp == 2:
-        values = decode_linear_2bpp(payload, width, height)
-    elif layout == "tiled8":
-        values = decode_tiled8_4bpp(payload, width, height, nibble_order)
-    else:
-        values = decode_linear_4bpp(payload, width, height, nibble_order)
+    values = decode_glyph_values(payload, width, height, bpp, layout, nibble_order)
 
     image = Image.new("RGBA", (width, height))
     image.putdata([palette_rgba(value) for value in values])
@@ -197,6 +344,105 @@ def checkerboard(size: tuple[int, int], block: int) -> Image.Image:
             if (x // block + y // block) % 2:
                 draw.rectangle((x, y, x + block - 1, y + block - 1), fill=alt)
     return image
+
+
+def glyph_payload(font: RTFNFont, index: int) -> bytes:
+    start = font.glyph_offset + index * font.cell_size
+    return font.data[start : start + font.cell_size]
+
+
+def glyph_histogram(values: list[int]) -> dict[str, int]:
+    return {str(level): values.count(level) for level in range(max(values, default=0) + 1)}
+
+
+def code_filename_part(codes: list[int]) -> str:
+    if not codes:
+        return "unmapped"
+    return "sjis" + "-".join(f"{code:04X}" for code in codes[:3])
+
+
+def export_target_dataset(
+    source: Path,
+    out_dir: Path = Path("data/processed/glyphs/target"),
+    *,
+    contact_sheet: Path | None = None,
+    metadata_json: Path | None = None,
+    scale: int = 4,
+    columns: int = 32,
+    pad: int = 1,
+) -> DatasetExport:
+    font = parse_rtfn_font(source)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    metadata_path = metadata_json or out_dir.parent / "target_metadata.json"
+    contact_path = contact_sheet or out_dir.parent / "target_contact.png"
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    contact_path.parent.mkdir(parents=True, exist_ok=True)
+
+    records: list[GlyphRecord] = []
+    tile_w = font.cell_width * scale
+    tile_h = font.cell_height * scale
+    rows = math.ceil(font.glyph_count / columns)
+    sheet = checkerboard(
+        (columns * tile_w + (columns + 1) * pad, rows * tile_h + (rows + 1) * pad),
+        max(2, scale * 2),
+    )
+
+    for index in range(font.glyph_count):
+        payload = glyph_payload(font, index)
+        values = decode_glyph_values(payload, font.cell_width, font.cell_height, font.bpp)
+        codes = font.index_to_codes.get(index, [])
+        chars = [char for code in codes if (char := decode_shift_jis_code(code)) is not None]
+        filename = f"glyph_{index:04d}_{code_filename_part(codes)}.png"
+        glyph_path = out_dir / filename
+        image = glyph_image(payload, font.cell_width, font.cell_height, font.bpp, "linear", "high", 1)
+        image.save(glyph_path)
+
+        scaled = image.resize((tile_w, tile_h), Image.Resampling.NEAREST)
+        x = pad + (index % columns) * (tile_w + pad)
+        y = pad + (index // columns) * (tile_h + pad)
+        sheet.alpha_composite(scaled, (x, y))
+
+        records.append(
+            GlyphRecord(
+                index=index,
+                codes=codes,
+                chars=chars,
+                width=font.widths[index],
+                histogram=glyph_histogram(values),
+                png=str(glyph_path),
+            )
+        )
+
+    sheet.save(contact_path)
+    payload = {
+        "source": str(source),
+        "cell_width": font.cell_width,
+        "cell_height": font.cell_height,
+        "cell_size": font.cell_size,
+        "baseline": font.baseline,
+        "max_width": font.max_width,
+        "bpp": font.bpp,
+        "glyph_count": font.glyph_count,
+        "mapped_glyph_count": sum(1 for record in records if record.codes),
+        "code_count": sum(len(record.codes) for record in records),
+        "glyph_dir": str(out_dir),
+        "contact_sheet": str(contact_path),
+        "glyphs": [asdict(record) for record in records],
+    }
+    metadata_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    return DatasetExport(
+        source=str(source),
+        out_dir=str(out_dir),
+        metadata_json=str(metadata_path),
+        contact_sheet=str(contact_path),
+        glyph_count=font.glyph_count,
+        mapped_glyph_count=payload["mapped_glyph_count"],
+        code_count=payload["code_count"],
+        cell_width=font.cell_width,
+        cell_height=font.cell_height,
+        bpp=font.bpp,
+    )
 
 
 def export_raw_atlas(

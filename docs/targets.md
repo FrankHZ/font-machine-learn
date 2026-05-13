@@ -25,6 +25,12 @@ Expected outputs:
   possible, width metrics, and pixel-level histogram
 - a small contact sheet for quick visual review
 
+Command:
+
+```powershell
+python scripts/extract_target_glyphs.py a.NFTR
+```
+
 Key detail: labels should come from `PAMC` mappings, not only atlas position.
 
 ## Target 2: Source Bitmap Rendering

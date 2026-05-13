@@ -33,11 +33,18 @@ Deliverable:
 - write metadata with glyph index, Shift-JIS code, decoded char when possible,
   width metrics, and 2bpp level histogram
 - produce a contact sheet for review
+- command: `scripts/extract_target_glyphs.py`
 
 Verification:
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: export target glyph dataset
 ```
 
 ## Stage 2: WQY Source Glyph Dataset

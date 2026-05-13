@@ -25,6 +25,7 @@ The first milestone is intentionally small:
 ├── requirements-ml.txt            # CPU-friendly ML/data dependencies
 ├── scripts/
 │   ├── check_env.py               # Python/package environment check
+│   ├── extract_target_glyphs.py    # Split NFTR into per-glyph target dataset
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -120,12 +121,30 @@ extracted or compressed files:
 python scripts/export_nftr.py some.raw --cell-width 15 --cell-height 15 --bpp 2 --offset 0
 ```
 
+## Extract Target Glyphs
+
+Run:
+
+```powershell
+python scripts/extract_target_glyphs.py a.NFTR
+```
+
+The command writes disposable dataset artifacts under `data/processed/glyphs/`:
+
+- `target/*.png`
+- `target_metadata.json`
+- `target_contact.png`
+
+The metadata is the important contract for later stages: glyph index, Shift-JIS
+codes, decoded characters where possible, width metrics, and per-level 2bpp
+histograms.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Extract individual glyph PNGs plus labels/codepoints from `PAMC` mappings.
+1. Render matching source glyphs from `wqy-zenhei.ttc`.
 2. Pair source monochrome bitmap fonts with target shaded glyphs.
 3. Train a small image-to-image model or rule-assisted model for 15 x 15 glyphs.
 4. Compare generated glyphs against the original NFTR levels and in-game previews.

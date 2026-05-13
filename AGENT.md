@@ -24,6 +24,7 @@ transparent, shadow, edge, and main-stroke levels.
 - `docs/targets.md`: target split and expected outputs.
 - `docs/deliverables.md`: stage deliverables, verification, and commit rhythm.
 - `scripts/export_nftr.py`: main smoke-test command.
+- `scripts/extract_target_glyphs.py`: Stage 1 target glyph dataset command.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -48,6 +49,7 @@ Run this after changes:
 
 ```powershell
 python scripts/export_nftr.py a.NFTR --out data/processed/a_atlas.png
+python scripts/extract_target_glyphs.py a.NFTR
 python -m unittest discover
 python scripts/check_env.py
 ```
@@ -57,6 +59,7 @@ Expected result:
 - command exits successfully;
 - `data/processed/a_atlas.png` exists;
 - `data/processed/a_atlas.json` exists and records the detected/export mode.
+- `data/processed/glyphs/target_metadata.json` exists after Stage 1 extraction.
 - unittest passes and confirms the source NFTR shape.
 
 ## Documentation Rules

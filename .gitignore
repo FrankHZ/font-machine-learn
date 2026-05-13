@@ -6,3 +6,7 @@ __pycache__/
 .tmp/
 data/processed/*.png
 data/processed/*.json
+data/processed/**/*.png
+data/processed/**/*.json
+data/processed/**/*.jsonl
+data/processed/**/*.csv
