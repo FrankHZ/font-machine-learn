@@ -12,6 +12,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.binary_diagnostic import export_binary_diagnostic
+from font_machine_learn.paths import BINARY_DIAGNOSTIC_CONTACT, BINARY_DIAGNOSTIC_METADATA, SOURCE_METADATA, TARGET_1BPP_DIR
 
 
 def baseline_spec(value: str) -> tuple[str, Path]:
@@ -23,11 +24,11 @@ def baseline_spec(value: str) -> tuple[str, Path]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Quantize target glyphs to 1bpp and score baselines.")
-    parser.add_argument("--source-metadata", type=Path, default=Path("data/processed/glyphs/source_metadata.json"))
+    parser.add_argument("--source-metadata", type=Path, default=SOURCE_METADATA)
     parser.add_argument("--baseline", action="append", type=baseline_spec, default=None)
-    parser.add_argument("--out-dir", type=Path, default=Path("data/processed/glyphs/target_1bpp"))
-    parser.add_argument("--metadata", type=Path, default=Path("data/processed/glyphs/binary_diagnostic_metadata.json"))
-    parser.add_argument("--contact-sheet", type=Path, default=Path("data/processed/glyphs/binary_diagnostic_contact.png"))
+    parser.add_argument("--out-dir", type=Path, default=TARGET_1BPP_DIR)
+    parser.add_argument("--metadata", type=Path, default=BINARY_DIAGNOSTIC_METADATA)
+    parser.add_argument("--contact-sheet", type=Path, default=BINARY_DIAGNOSTIC_CONTACT)
     parser.add_argument("--worst-count", type=int, default=160)
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=8)

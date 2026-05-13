@@ -43,7 +43,8 @@ The first milestone is intentionally small:
 └── data/
     ├── raw/                       # Put original extracted assets here later
     ├── interim/                   # Parsed glyph metadata, debug artifacts
-    └── processed/                 # Atlases and training-ready outputs
+    └── processed/
+        └── glyphs/                # Stage-sorted generated glyph artifacts
 ```
 
 `a.NFTR` is kept at the repository root for now because it is the only real
@@ -128,6 +129,28 @@ extracted or compressed files:
 python scripts/export_nftr.py some.raw --cell-width 15 --cell-height 15 --bpp 2 --offset 0
 ```
 
+## Glyph Output Layout
+
+Generated glyph artifacts are grouped by stage under `data/processed/glyphs/`.
+Keep the root of `glyphs/` for stage folders only; old flat outputs may be moved
+under `legacy_flat/`.
+
+```text
+data/processed/glyphs/
+├── stage1_target/          # target PNGs, metadata, contact sheet
+├── stage2_source/          # WQY source PNGs and source/target contact sheet
+├── stage3_shadow/          # first rule-based shadow baseline
+├── stage4_mlp/             # trainable MLP baseline
+├── stage5_tuned_shadow/    # visual-score shadow search
+├── stage6_review/          # side-by-side human review artifacts
+├── stage7_binary/          # 1bpp target diagnostic
+├── stage8_weight/          # source weight/offset search
+└── legacy_flat/            # archived outputs from the old flat layout
+```
+
+When adding a new stage, add a `stageN_name/` directory and put that stage's
+PNG directories, metadata, search reports, and contact sheets inside it.
+
 ## Extract Target Glyphs
 
 Run:
@@ -136,7 +159,8 @@ Run:
 python scripts/extract_target_glyphs.py a.NFTR
 ```
 
-The command writes disposable dataset artifacts under `data/processed/glyphs/`:
+The command writes disposable dataset artifacts under
+`data/processed/glyphs/stage1_target/`:
 
 - `target/*.png`
 - `target_metadata.json`
@@ -162,7 +186,7 @@ Default settings match the previous visual research:
 - cell: `15x15`
 
 The command writes disposable paired-source artifacts under
-`data/processed/glyphs/`:
+`data/processed/glyphs/stage2_source/`:
 
 - `source/*.png`
 - `source_metadata.json`

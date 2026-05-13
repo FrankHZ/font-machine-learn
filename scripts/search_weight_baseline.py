@@ -12,16 +12,24 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.weight_search import export_weight_search
+from font_machine_learn.paths import (
+    BASELINE_WEIGHTED_SHADOW_CONTACT,
+    BASELINE_WEIGHTED_SHADOW_DIR,
+    SOURCE_METADATA,
+    SOURCE_WEIGHTED_DIR,
+    WEIGHT_SEARCH_JSON,
+    WEIGHT_SEARCH_METADATA,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Search source glyph weight/offset before shadowing.")
-    parser.add_argument("--source-metadata", type=Path, default=Path("data/processed/glyphs/source_metadata.json"))
-    parser.add_argument("--source-out-dir", type=Path, default=Path("data/processed/glyphs/source_weighted"))
-    parser.add_argument("--shadow-out-dir", type=Path, default=Path("data/processed/glyphs/baseline_weighted_shadow"))
-    parser.add_argument("--metadata", type=Path, default=Path("data/processed/glyphs/weight_search_metadata.json"))
-    parser.add_argument("--search-json", type=Path, default=Path("data/processed/glyphs/weight_search.json"))
-    parser.add_argument("--contact-sheet", type=Path, default=Path("data/processed/glyphs/baseline_weighted_shadow_contact.png"))
+    parser.add_argument("--source-metadata", type=Path, default=SOURCE_METADATA)
+    parser.add_argument("--source-out-dir", type=Path, default=SOURCE_WEIGHTED_DIR)
+    parser.add_argument("--shadow-out-dir", type=Path, default=BASELINE_WEIGHTED_SHADOW_DIR)
+    parser.add_argument("--metadata", type=Path, default=WEIGHT_SEARCH_METADATA)
+    parser.add_argument("--search-json", type=Path, default=WEIGHT_SEARCH_JSON)
+    parser.add_argument("--contact-sheet", type=Path, default=BASELINE_WEIGHTED_SHADOW_CONTACT)
     parser.add_argument("--search-limit", type=int, default=512)
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=32)

@@ -7,6 +7,7 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 from font_machine_learn.nftr import checkerboard, export_target_dataset
+from font_machine_learn.paths import SOURCE_DIR, SOURCE_METADATA, SOURCE_TARGET_CONTACT, TARGET_METADATA
 
 
 @dataclass(frozen=True)
@@ -112,7 +113,7 @@ def make_pair_contact_sheet(
 def export_source_dataset(
     nftr_source: Path = Path("a.NFTR"),
     font_path: Path = Path("wqy-zenhei.ttc"),
-    out_dir: Path = Path("data/processed/glyphs/source"),
+    out_dir: Path = SOURCE_DIR,
     *,
     target_metadata: Path | None = None,
     font_index: int = 2,
@@ -120,13 +121,13 @@ def export_source_dataset(
     cell_width: int = 15,
     cell_height: int = 15,
     threshold: int = 96,
-    metadata_json: Path | None = None,
-    contact_sheet: Path | None = None,
+    metadata_json: Path | None = SOURCE_METADATA,
+    contact_sheet: Path | None = SOURCE_TARGET_CONTACT,
     scale: int = 4,
     columns: int = 32,
     pad: int = 1,
 ) -> SourceDatasetExport:
-    target_metadata_path = target_metadata or Path("data/processed/glyphs/target_metadata.json")
+    target_metadata_path = target_metadata or TARGET_METADATA
     if not target_metadata_path.exists():
         export_target_dataset(nftr_source)
 

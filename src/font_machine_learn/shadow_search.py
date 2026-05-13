@@ -13,6 +13,13 @@ from font_machine_learn.baseline import (
     make_baseline_contact_sheet,
     source_image_to_levels,
 )
+from font_machine_learn.paths import (
+    BASELINE_TUNED_SHADOW_CONTACT,
+    BASELINE_TUNED_SHADOW_DIR,
+    BASELINE_TUNED_SHADOW_METADATA,
+    BASELINE_TUNED_SHADOW_SEARCH,
+    SOURCE_METADATA,
+)
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.visual_metrics import LevelGrid, VisualMetrics, compare_visual
 
@@ -133,12 +140,12 @@ def score_rule(source_glyphs: list[dict], rule: ShadowRule, *, limit: int | None
 
 
 def export_tuned_shadow_baseline(
-    source_metadata: Path = Path("data/processed/glyphs/source_metadata.json"),
-    out_dir: Path = Path("data/processed/glyphs/baseline_tuned_shadow"),
+    source_metadata: Path = SOURCE_METADATA,
+    out_dir: Path = BASELINE_TUNED_SHADOW_DIR,
     *,
-    metadata_json: Path | None = None,
-    search_json: Path | None = None,
-    contact_sheet: Path | None = None,
+    metadata_json: Path | None = BASELINE_TUNED_SHADOW_METADATA,
+    search_json: Path | None = BASELINE_TUNED_SHADOW_SEARCH,
+    contact_sheet: Path | None = BASELINE_TUNED_SHADOW_CONTACT,
     search_limit: int | None = 512,
     scale: int = 4,
     columns: int = 32,

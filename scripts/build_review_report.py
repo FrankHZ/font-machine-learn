@@ -12,6 +12,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.review import ReviewBaseline, export_review_report
+from font_machine_learn.paths import REVIEW_CONTACT, REVIEW_REPORT, REVIEW_WORST_CASES, SOURCE_METADATA
 
 
 def baseline_spec(value: str) -> ReviewBaseline:
@@ -23,11 +24,11 @@ def baseline_spec(value: str) -> ReviewBaseline:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Build side-by-side baseline review artifacts.")
-    parser.add_argument("--source-metadata", type=Path, default=Path("data/processed/glyphs/source_metadata.json"))
+    parser.add_argument("--source-metadata", type=Path, default=SOURCE_METADATA)
     parser.add_argument("--baseline", action="append", type=baseline_spec, default=None)
-    parser.add_argument("--review-json", type=Path, default=Path("data/processed/glyphs/review_report.json"))
-    parser.add_argument("--worst-cases-json", type=Path, default=Path("data/processed/glyphs/review_worst_cases.json"))
-    parser.add_argument("--contact-sheet", type=Path, default=Path("data/processed/glyphs/review_contact.png"))
+    parser.add_argument("--review-json", type=Path, default=REVIEW_REPORT)
+    parser.add_argument("--worst-cases-json", type=Path, default=REVIEW_WORST_CASES)
+    parser.add_argument("--contact-sheet", type=Path, default=REVIEW_CONTACT)
     parser.add_argument("--worst-count", type=int, default=160)
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=8)

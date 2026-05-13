@@ -10,6 +10,8 @@ from typing import Literal
 
 from PIL import Image, ImageDraw
 
+from font_machine_learn.paths import TARGET_CONTACT, TARGET_DIR, TARGET_METADATA
+
 Layout = Literal["tiled8", "linear"]
 NibbleOrder = Literal["high", "low"]
 
@@ -363,10 +365,10 @@ def code_filename_part(codes: list[int]) -> str:
 
 def export_target_dataset(
     source: Path,
-    out_dir: Path = Path("data/processed/glyphs/target"),
+    out_dir: Path = TARGET_DIR,
     *,
-    contact_sheet: Path | None = None,
-    metadata_json: Path | None = None,
+    contact_sheet: Path | None = TARGET_CONTACT,
+    metadata_json: Path | None = TARGET_METADATA,
     scale: int = 4,
     columns: int = 32,
     pad: int = 1,

@@ -7,6 +7,7 @@ from pathlib import Path
 from PIL import Image
 
 from font_machine_learn.nftr import checkerboard, palette_rgba
+from font_machine_learn.paths import BASELINE_SHADOW_CONTACT, BASELINE_SHADOW_DIR, BASELINE_SHADOW_METADATA, SOURCE_METADATA
 from font_machine_learn.source_font import export_source_dataset
 
 
@@ -142,11 +143,11 @@ def make_baseline_contact_sheet(
 
 
 def export_shadow_baseline(
-    source_metadata: Path = Path("data/processed/glyphs/source_metadata.json"),
-    out_dir: Path = Path("data/processed/glyphs/baseline_shadow"),
+    source_metadata: Path = SOURCE_METADATA,
+    out_dir: Path = BASELINE_SHADOW_DIR,
     *,
-    metadata_json: Path | None = None,
-    contact_sheet: Path | None = None,
+    metadata_json: Path | None = BASELINE_SHADOW_METADATA,
+    contact_sheet: Path | None = BASELINE_SHADOW_CONTACT,
     scale: int = 4,
     columns: int = 32,
     pad: int = 1,

@@ -20,7 +20,7 @@ Goal: split the source NFTR into labeled per-glyph records.
 
 Expected outputs:
 
-- target glyph PNGs under `data/processed/glyphs/target/`
+- target glyph PNGs under `data/processed/glyphs/stage1_target/target/`
 - machine-readable metadata with glyph index, code, decoded character when
   possible, width metrics, and pixel-level histogram
 - a small contact sheet for quick visual review
@@ -47,7 +47,7 @@ Known preferred settings from previous work:
 
 Expected outputs:
 
-- source glyph PNGs under `data/processed/glyphs/source/`
+- source glyph PNGs under `data/processed/glyphs/stage2_source/source/`
 - paired source/target metadata for training
 - preview contact sheets showing source, target, and simple baseline transforms
 

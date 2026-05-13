@@ -12,14 +12,15 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.baseline import export_shadow_baseline
+from font_machine_learn.paths import BASELINE_SHADOW_CONTACT, BASELINE_SHADOW_DIR, BASELINE_SHADOW_METADATA, SOURCE_METADATA
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the rule-based WQY-to-shadow baseline.")
-    parser.add_argument("--source-metadata", type=Path, default=Path("data/processed/glyphs/source_metadata.json"))
-    parser.add_argument("--out-dir", type=Path, default=Path("data/processed/glyphs/baseline_shadow"))
-    parser.add_argument("--metadata", type=Path, default=None)
-    parser.add_argument("--contact-sheet", type=Path, default=None)
+    parser.add_argument("--source-metadata", type=Path, default=SOURCE_METADATA)
+    parser.add_argument("--out-dir", type=Path, default=BASELINE_SHADOW_DIR)
+    parser.add_argument("--metadata", type=Path, default=BASELINE_SHADOW_METADATA)
+    parser.add_argument("--contact-sheet", type=Path, default=BASELINE_SHADOW_CONTACT)
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=32)
     return parser

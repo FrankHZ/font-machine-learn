@@ -8,6 +8,15 @@ from PIL import Image
 
 from font_machine_learn.baseline import image_to_target_levels
 from font_machine_learn.nftr import checkerboard
+from font_machine_learn.paths import (
+    BASELINE_MLP_METADATA,
+    BASELINE_SHADOW_METADATA,
+    BASELINE_TUNED_SHADOW_METADATA,
+    BINARY_DIAGNOSTIC_CONTACT,
+    BINARY_DIAGNOSTIC_METADATA,
+    SOURCE_METADATA,
+    TARGET_1BPP_DIR,
+)
 
 
 @dataclass(frozen=True)
@@ -143,12 +152,12 @@ def _make_contact_sheet(
 
 
 def export_binary_diagnostic(
-    source_metadata: Path = Path("data/processed/glyphs/source_metadata.json"),
+    source_metadata: Path = SOURCE_METADATA,
     *,
     baseline_metadata: dict[str, Path] | None = None,
-    out_dir: Path = Path("data/processed/glyphs/target_1bpp"),
-    metadata_json: Path = Path("data/processed/glyphs/binary_diagnostic_metadata.json"),
-    contact_sheet: Path = Path("data/processed/glyphs/binary_diagnostic_contact.png"),
+    out_dir: Path = TARGET_1BPP_DIR,
+    metadata_json: Path = BINARY_DIAGNOSTIC_METADATA,
+    contact_sheet: Path = BINARY_DIAGNOSTIC_CONTACT,
     worst_count: int = 160,
     scale: int = 4,
     columns: int = 8,
@@ -160,9 +169,9 @@ def export_binary_diagnostic(
     cell_height = int(source["cell_height"])
     baselines = baseline_metadata or {
         "source": source_metadata,
-        "shadow": Path("data/processed/glyphs/baseline_shadow_metadata.json"),
-        "tuned": Path("data/processed/glyphs/baseline_tuned_shadow_metadata.json"),
-        "mlp": Path("data/processed/glyphs/baseline_mlp_metadata.json"),
+        "shadow": BASELINE_SHADOW_METADATA,
+        "tuned": BASELINE_TUNED_SHADOW_METADATA,
+        "mlp": BASELINE_MLP_METADATA,
     }
     loaded_baselines = {
         name: None if path == source_metadata else _load_baseline(path)

@@ -14,6 +14,14 @@ from font_machine_learn.baseline import (
     source_image_to_levels,
 )
 from font_machine_learn.binary_diagnostic import BinaryMetrics, compare_masks, image_to_mask, mask_to_image
+from font_machine_learn.paths import (
+    BASELINE_WEIGHTED_SHADOW_CONTACT,
+    BASELINE_WEIGHTED_SHADOW_DIR,
+    SOURCE_METADATA,
+    SOURCE_WEIGHTED_DIR,
+    WEIGHT_SEARCH_JSON,
+    WEIGHT_SEARCH_METADATA,
+)
 from font_machine_learn.shadow_search import ShadowRule, apply_shadow_rule
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.visual_metrics import compare_visual
@@ -155,13 +163,13 @@ def score_weight_rule(glyphs: list[dict], rule: WeightRule, *, limit: int | None
 
 
 def export_weight_search(
-    source_metadata: Path = Path("data/processed/glyphs/source_metadata.json"),
+    source_metadata: Path = SOURCE_METADATA,
     *,
-    source_out_dir: Path = Path("data/processed/glyphs/source_weighted"),
-    shadow_out_dir: Path = Path("data/processed/glyphs/baseline_weighted_shadow"),
-    metadata_json: Path = Path("data/processed/glyphs/weight_search_metadata.json"),
-    search_json: Path = Path("data/processed/glyphs/weight_search.json"),
-    contact_sheet: Path = Path("data/processed/glyphs/baseline_weighted_shadow_contact.png"),
+    source_out_dir: Path = SOURCE_WEIGHTED_DIR,
+    shadow_out_dir: Path = BASELINE_WEIGHTED_SHADOW_DIR,
+    metadata_json: Path = WEIGHT_SEARCH_METADATA,
+    search_json: Path = WEIGHT_SEARCH_JSON,
+    contact_sheet: Path = BASELINE_WEIGHTED_SHADOW_CONTACT,
     search_limit: int | None = 512,
     scale: int = 4,
     columns: int = 32,

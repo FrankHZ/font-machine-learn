@@ -12,6 +12,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.source_font import export_source_dataset
+from font_machine_learn.paths import SOURCE_DIR, SOURCE_METADATA, SOURCE_TARGET_CONTACT, TARGET_METADATA
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -20,10 +21,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--font", type=Path, default=Path("wqy-zenhei.ttc"))
     parser.add_argument("--font-index", type=int, default=2)
     parser.add_argument("--font-size", type=int, default=13)
-    parser.add_argument("--out-dir", type=Path, default=Path("data/processed/glyphs/source"))
-    parser.add_argument("--target-metadata", type=Path, default=None)
-    parser.add_argument("--metadata", type=Path, default=None)
-    parser.add_argument("--contact-sheet", type=Path, default=None)
+    parser.add_argument("--out-dir", type=Path, default=SOURCE_DIR)
+    parser.add_argument("--target-metadata", type=Path, default=TARGET_METADATA)
+    parser.add_argument("--metadata", type=Path, default=SOURCE_METADATA)
+    parser.add_argument("--contact-sheet", type=Path, default=SOURCE_TARGET_CONTACT)
     parser.add_argument("--threshold", type=int, default=96)
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=32)

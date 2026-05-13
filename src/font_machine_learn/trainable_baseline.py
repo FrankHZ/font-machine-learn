@@ -17,6 +17,7 @@ from font_machine_learn.baseline import (
     make_baseline_contact_sheet,
     source_image_to_levels,
 )
+from font_machine_learn.paths import BASELINE_MLP_CONTACT, BASELINE_MLP_DIR, BASELINE_MLP_METADATA, SOURCE_METADATA
 from font_machine_learn.source_font import export_source_dataset
 
 
@@ -77,11 +78,11 @@ def mean_metric(records: list[BaselineGlyphMetrics], attr: str) -> float:
 
 
 def export_mlp_baseline(
-    source_metadata: Path = Path("data/processed/glyphs/source_metadata.json"),
-    out_dir: Path = Path("data/processed/glyphs/baseline_mlp"),
+    source_metadata: Path = SOURCE_METADATA,
+    out_dir: Path = BASELINE_MLP_DIR,
     *,
-    metadata_json: Path | None = None,
-    contact_sheet: Path | None = None,
+    metadata_json: Path | None = BASELINE_MLP_METADATA,
+    contact_sheet: Path | None = BASELINE_MLP_CONTACT,
     max_train_glyphs: int = 512,
     hidden_units: int = 48,
     max_iter: int = 80,

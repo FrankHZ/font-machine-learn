@@ -8,6 +8,15 @@ from PIL import Image
 
 from font_machine_learn.baseline import image_to_target_levels
 from font_machine_learn.nftr import checkerboard
+from font_machine_learn.paths import (
+    BASELINE_MLP_METADATA,
+    BASELINE_SHADOW_METADATA,
+    BASELINE_TUNED_SHADOW_METADATA,
+    REVIEW_CONTACT,
+    REVIEW_REPORT,
+    REVIEW_WORST_CASES,
+    SOURCE_METADATA,
+)
 from font_machine_learn.visual_metrics import VisualMetrics, compare_visual
 
 
@@ -86,12 +95,12 @@ def _make_review_contact_sheet(
 
 
 def export_review_report(
-    source_metadata: Path = Path("data/processed/glyphs/source_metadata.json"),
+    source_metadata: Path = SOURCE_METADATA,
     baselines: list[ReviewBaseline] | None = None,
     *,
-    review_json: Path = Path("data/processed/glyphs/review_report.json"),
-    worst_cases_json: Path = Path("data/processed/glyphs/review_worst_cases.json"),
-    contact_sheet: Path = Path("data/processed/glyphs/review_contact.png"),
+    review_json: Path = REVIEW_REPORT,
+    worst_cases_json: Path = REVIEW_WORST_CASES,
+    contact_sheet: Path = REVIEW_CONTACT,
     worst_count: int = 160,
     scale: int = 4,
     columns: int = 8,
@@ -102,9 +111,9 @@ def export_review_report(
     cell_width = int(source["cell_width"])
     cell_height = int(source["cell_height"])
     baseline_specs = baselines or [
-        ReviewBaseline("shadow", Path("data/processed/glyphs/baseline_shadow_metadata.json")),
-        ReviewBaseline("tuned", Path("data/processed/glyphs/baseline_tuned_shadow_metadata.json")),
-        ReviewBaseline("mlp", Path("data/processed/glyphs/baseline_mlp_metadata.json")),
+        ReviewBaseline("shadow", BASELINE_SHADOW_METADATA),
+        ReviewBaseline("tuned", BASELINE_TUNED_SHADOW_METADATA),
+        ReviewBaseline("mlp", BASELINE_MLP_METADATA),
     ]
 
     loaded = {spec.name: _load_baseline_glyphs(spec) for spec in baseline_specs}

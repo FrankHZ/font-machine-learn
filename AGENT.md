@@ -36,6 +36,27 @@ transparent, shadow, edge, and main-stroke levels.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
 - `data/processed/`: default place for generated PNG/JSON outputs.
+- `src/font_machine_learn/paths.py`: canonical generated-output paths.
+
+## Glyph Output Layout
+
+Generated glyph artifacts must be grouped by stage under
+`data/processed/glyphs/`.
+
+- `stage1_target/`: NFTR target glyphs, metadata, contact sheet.
+- `stage2_source/`: WQY source glyphs and source/target contact sheet.
+- `stage3_shadow/`: first rule-based shadow baseline.
+- `stage4_mlp/`: trainable MLP baseline.
+- `stage5_tuned_shadow/`: visual-score shadow search.
+- `stage6_review/`: side-by-side human review artifacts.
+- `stage7_binary/`: 1bpp target diagnostic.
+- `stage8_weight/`: source weight/offset search.
+- `legacy_flat/`: archived outputs from the old flat layout.
+
+Do not add new generated PNG/JSON artifacts directly under the glyph root.
+For a new stage, add constants to `src/font_machine_learn/paths.py`, make script
+defaults use those constants, and document the stage directory here and in
+README.
 
 ## Target Split
 
@@ -73,14 +94,14 @@ Expected result:
 - command exits successfully;
 - `data/processed/a_atlas.png` exists;
 - `data/processed/a_atlas.json` exists and records the detected/export mode.
-- `data/processed/glyphs/target_metadata.json` exists after Stage 1 extraction.
-- `data/processed/glyphs/source_metadata.json` exists after Stage 2 rendering.
-- `data/processed/glyphs/baseline_shadow_metadata.json` exists after Stage 3.
-- `data/processed/glyphs/baseline_mlp_metadata.json` exists after Stage 4.
-- `data/processed/glyphs/baseline_tuned_shadow_metadata.json` exists after Stage 5.
-- `data/processed/glyphs/review_report.json` exists after Stage 6.
-- `data/processed/glyphs/binary_diagnostic_metadata.json` exists after Stage 7.
-- `data/processed/glyphs/weight_search_metadata.json` exists after Stage 8.
+- `data/processed/glyphs/stage1_target/target_metadata.json` exists after Stage 1.
+- `data/processed/glyphs/stage2_source/source_metadata.json` exists after Stage 2.
+- `data/processed/glyphs/stage3_shadow/baseline_shadow_metadata.json` exists after Stage 3.
+- `data/processed/glyphs/stage4_mlp/baseline_mlp_metadata.json` exists after Stage 4.
+- `data/processed/glyphs/stage5_tuned_shadow/baseline_tuned_shadow_metadata.json` exists after Stage 5.
+- `data/processed/glyphs/stage6_review/review_report.json` exists after Stage 6.
+- `data/processed/glyphs/stage7_binary/binary_diagnostic_metadata.json` exists after Stage 7.
+- `data/processed/glyphs/stage8_weight/weight_search_metadata.json` exists after Stage 8.
 - unittest passes and confirms the source NFTR shape.
 
 ## Documentation Rules

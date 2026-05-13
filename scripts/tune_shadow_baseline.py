@@ -12,15 +12,22 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
+from font_machine_learn.paths import (
+    BASELINE_TUNED_SHADOW_CONTACT,
+    BASELINE_TUNED_SHADOW_DIR,
+    BASELINE_TUNED_SHADOW_METADATA,
+    BASELINE_TUNED_SHADOW_SEARCH,
+    SOURCE_METADATA,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Search visual-quality-oriented shadow baseline rules.")
-    parser.add_argument("--source-metadata", type=Path, default=Path("data/processed/glyphs/source_metadata.json"))
-    parser.add_argument("--out-dir", type=Path, default=Path("data/processed/glyphs/baseline_tuned_shadow"))
-    parser.add_argument("--metadata", type=Path, default=None)
-    parser.add_argument("--search-json", type=Path, default=None)
-    parser.add_argument("--contact-sheet", type=Path, default=None)
+    parser.add_argument("--source-metadata", type=Path, default=SOURCE_METADATA)
+    parser.add_argument("--out-dir", type=Path, default=BASELINE_TUNED_SHADOW_DIR)
+    parser.add_argument("--metadata", type=Path, default=BASELINE_TUNED_SHADOW_METADATA)
+    parser.add_argument("--search-json", type=Path, default=BASELINE_TUNED_SHADOW_SEARCH)
+    parser.add_argument("--contact-sheet", type=Path, default=BASELINE_TUNED_SHADOW_CONTACT)
     parser.add_argument("--search-limit", type=int, default=512)
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=32)
