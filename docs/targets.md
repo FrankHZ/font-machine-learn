@@ -248,3 +248,41 @@ Interpretation: MLP is conservative and misses foreground; tuned shadow better
 matches the 1bpp target mask. The target mask is visibly heavier than the WQY
 source, so Stage 8 should test source dilation/weight matching before another
 model pass.
+
+## Target 8: Source Weight Search
+
+Goal: determine whether a simple global source dilation/offset improves the
+foreground mask before 2bpp shadow synthesis.
+
+Command:
+
+```powershell
+python scripts/search_weight_baseline.py
+```
+
+Search space:
+
+- dilation kernels: `none`, `right_down`, `cardinal`, `box`
+- offsets: `dx/dy` in `-1..1`
+- score: 1bpp foreground F1, then foreground IoU
+
+Outputs:
+
+- `source_weighted/*.png`
+- `baseline_weighted_shadow/*.png`
+- `weight_search.json`
+- `weight_search_metadata.json`
+- `baseline_weighted_shadow_contact.png`
+
+Initial run:
+
+- best search rule: `box_dx-1_dy+1`
+- weighted source F1/IoU: `0.7850` / `0.6490`
+- weighted shadow visual score: `0.4559`
+- weighted shadow foreground IoU: `0.6255`
+- weighted shadow pixel accuracy: `0.5105`
+- weighted shadow MAE: `1.1038`
+
+Interpretation: global box dilation helps the 1bpp foreground mask but makes the
+2bpp shadow output too heavy. The next pass should try a gentler or adaptive
+weight rule rather than applying full dilation everywhere.

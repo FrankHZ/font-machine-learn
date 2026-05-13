@@ -197,3 +197,31 @@ Commit theme:
 ```text
 feat: add binary target diagnostics
 ```
+
+## Stage 8: Source Weight Search
+
+Deliverable:
+
+- search a small global grid of source glyph offsets and dilation kernels
+- choose the best source transformation by 1bpp foreground F1/IoU
+- export weighted source glyphs
+- apply the tuned shadow rule to the weighted source and export a contact sheet
+- command: `scripts/search_weight_baseline.py`
+- first recorded best rule: `box_dx-1_dy+1`
+- first recorded weighted source F1/IoU: `0.7850` / `0.6490`
+- first recorded weighted shadow visual score: `0.4559`, foreground IoU
+  `0.6255`, pixel accuracy `0.5105`, MAE `1.1038`
+- first interpretation: global box dilation improves binary mask recall but is
+  visually too heavy for 2bpp shadow output
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: add source weight search
+```

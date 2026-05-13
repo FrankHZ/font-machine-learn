@@ -32,6 +32,7 @@ The first milestone is intentionally small:
 │   ├── tune_shadow_baseline.py      # Visual-score-oriented shadow rule search
 │   ├── build_review_report.py       # Side-by-side baseline review artifacts
 │   ├── run_binary_diagnostic.py     # Quantize target to 1bpp and score masks
+│   ├── search_weight_baseline.py     # Search source weight/offset before shadow
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -278,11 +279,30 @@ The command writes:
 - `binary_diagnostic_metadata.json`
 - `binary_diagnostic_contact.png`
 
+## Search Source Weight
+
+Run:
+
+```powershell
+python scripts/search_weight_baseline.py
+```
+
+This searches small source-glyph offsets and dilation kernels against the 1bpp
+target mask, then applies the tuned shadow rule to the best weighted source.
+
+The command writes:
+
+- `source_weighted/*.png`
+- `baseline_weighted_shadow/*.png`
+- `weight_search.json`
+- `weight_search_metadata.json`
+- `baseline_weighted_shadow_contact.png`
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Flag fallback-box glyphs and decide whether to reuse original NFTR glyphs.
-2. Search small source-glyph offsets/alignment before applying shadow rules.
+2. Refine source weight/alignment per glyph class instead of one global rule.
 3. Improve the trainable baseline with 1bpp/2bpp-aware metrics or introduce a pinned PyTorch/ONNX stack.
