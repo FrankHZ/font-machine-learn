@@ -53,12 +53,22 @@ Generated glyph artifacts must be grouped by stage under
 - `stage7_binary/`: 1bpp target diagnostic.
 - `stage8_weight/`: source weight/offset search.
 - `stage9_cjk_style/`: CJK-focused fixed-style baseline.
+- planned `stage10_cjk_edges/`: CJK-focused level-2 edge transition refinement.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
 For a new stage, add constants to `src/font_machine_learn/paths.py`, make script
 defaults use those constants, and document the stage directory here and in
 README.
+
+Level semantics for style work:
+
+- `3`: source-derived main stroke core.
+- `2`: edge/anti-alias transition around the core, not generic stroke
+  thickening.
+- `1`: fixed right-down shadow unless a later stage explicitly changes the
+  style constraint.
+- `0`: transparent/background.
 
 ## Target Split
 

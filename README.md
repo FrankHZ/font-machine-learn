@@ -335,7 +335,7 @@ python scripts/run_cjk_style_baseline.py
 This stage focuses ranking on CJK glyphs. The style rule is constrained:
 
 - source core pixels are level `3`
-- gentle source-weight additions are level `2`
+- source-adjacent edge transition pixels are level `2`
 - right-down `(1, 1)` shadow pixels are level `1`
 
 The command writes:

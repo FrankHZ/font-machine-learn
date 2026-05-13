@@ -301,7 +301,7 @@ python scripts/run_cjk_style_baseline.py
 Style constraints:
 
 - source core: level `3`
-- gentle weight additions: level `2`
+- source-adjacent edge/anti-alias transition: level `2`
 - right-down `(1, 1)` shadow from source core: level `1`
 
 Search and reporting:
@@ -330,6 +330,25 @@ Initial run:
 - all visual score: `0.5936`
 - non-CJK visual score: `0.3682`
 
-Interpretation: CJK-focused ranking selects a right/down gentle weight rule with
-the expected right-down level-1 shadow. It avoids Stage 8's over-heavy box
+Interpretation: CJK-focused ranking selects a right/down edge transition rule
+with the expected right-down level-1 shadow. It avoids Stage 8's over-heavy box
 dilation while improving CJK foreground recall.
+
+## Target 10: CJK Edge Transition Refinement
+
+Goal: improve the placement of level `2` as an edge/anti-alias transition layer
+rather than using it as generic stroke thickening.
+
+Planned constraints:
+
+- level `3`: source-derived main stroke core
+- level `2`: constrained edge transition next to level `3`
+- level `1`: fixed right-down `(1, 1)` shadow
+- ranking remains CJK-first
+
+Planned outputs:
+
+- `stage10_cjk_edges/baseline_cjk_edges/*.png`
+- `stage10_cjk_edges/cjk_edges_metadata.json`
+- `stage10_cjk_edges/cjk_edges_search.json`
+- `stage10_cjk_edges/cjk_edges_contact.png`

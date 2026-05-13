@@ -23,7 +23,7 @@ from font_machine_learn.paths import (
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Run the CJK-focused fixed-style baseline.")
+    parser = argparse.ArgumentParser(description="Run the CJK-focused edge-transition style baseline.")
     parser.add_argument("--source-metadata", type=Path, default=SOURCE_METADATA)
     parser.add_argument("--out-dir", type=Path, default=CJK_STYLE_DIR)
     parser.add_argument("--metadata", type=Path, default=CJK_STYLE_METADATA)

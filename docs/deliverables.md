@@ -234,8 +234,8 @@ Deliverable:
   `unmapped`
 - search style candidates using CJK metrics first
 - keep non-CJK metrics as regression guard summaries
-- enforce source core as level `3`, gentle weight additions as level `2`, and
-  fixed right-down `(1, 1)` shadow as level `1`
+- enforce source core as level `3`, source-adjacent edge transition pixels as
+  level `2`, and fixed right-down `(1, 1)` shadow as level `1`
 - output CJK-only and worst-CJK contact sheets
 - command: `scripts/run_cjk_style_baseline.py`
 - first recorded best rule: `right_down_dx-1_dy+1`
@@ -253,4 +253,20 @@ Commit theme:
 
 ```text
 feat: add cjk-focused style baseline
+```
+
+## Stage 10: CJK Edge Transition Refinement
+
+Planned deliverable:
+
+- treat level `2` as edge/anti-alias transition, not stroke thickening
+- refine where level `2` may appear around level `3` core pixels
+- search transition direction and density on CJK glyphs first
+- keep fixed right-down `(1, 1)` level `1` shadow
+- compare CJK contact sheets before changing any model code
+
+Commit theme:
+
+```text
+feat: refine cjk edge transitions
 ```

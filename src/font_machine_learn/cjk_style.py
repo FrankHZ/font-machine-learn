@@ -32,7 +32,7 @@ class CjkStyleRule:
     name: str
     dx: int
     dy: int
-    weight_kernel: str
+    edge_kernel: str
 
 
 @dataclass(frozen=True)
@@ -55,7 +55,7 @@ class CjkStyleRuleSummary:
     name: str
     dx: int
     dy: int
-    weight_kernel: str
+    edge_kernel: str
     groups: dict[str, dict[str, float | int]]
 
 
@@ -86,7 +86,7 @@ def default_cjk_style_rules() -> list[CjkStyleRule]:
     return rules
 
 
-def gentle_weight_mask(mask: Mask, kernel: str) -> Mask:
+def edge_transition_mask(mask: Mask, kernel: str) -> Mask:
     if kernel == "none":
         return [row[:] for row in mask]
     if kernel == "horizontal":
@@ -98,7 +98,7 @@ def gentle_weight_mask(mask: Mask, kernel: str) -> Mask:
     elif kernel == "cardinal_light":
         offsets = ((0, 0), (1, 0), (0, 1), (-1, 0), (0, -1))
     else:
-        raise ValueError(f"unknown gentle weight kernel: {kernel}")
+        raise ValueError(f"unknown edge transition kernel: {kernel}")
 
     height = len(mask)
     width = len(mask[0]) if height else 0
@@ -117,9 +117,9 @@ def gentle_weight_mask(mask: Mask, kernel: str) -> Mask:
 
 def style_levels(source_mask: Mask, rule: CjkStyleRule) -> list[list[int]]:
     shifted_core = apply_weight_rule(source_mask, WeightRule("core", rule.dx, rule.dy, "none"))
-    weighted = apply_weight_rule(
-        gentle_weight_mask(source_mask, rule.weight_kernel),
-        WeightRule("weighted", rule.dx, rule.dy, "none"),
+    edge = apply_weight_rule(
+        edge_transition_mask(source_mask, rule.edge_kernel),
+        WeightRule("edge", rule.dx, rule.dy, "none"),
     )
     height = len(source_mask)
     width = len(source_mask[0]) if height else 0
@@ -127,7 +127,7 @@ def style_levels(source_mask: Mask, rule: CjkStyleRule) -> list[list[int]]:
 
     for y in range(height):
         for x in range(width):
-            if weighted[y][x]:
+            if edge[y][x]:
                 levels[y][x] = 2
             if shifted_core[y][x]:
                 levels[y][x] = 3
@@ -197,7 +197,7 @@ def score_rule(glyphs: list[dict], rule: CjkStyleRule, *, limit: int | None = No
         name=rule.name,
         dx=rule.dx,
         dy=rule.dy,
-        weight_kernel=rule.weight_kernel,
+        edge_kernel=rule.edge_kernel,
         groups={
             name: asdict(summarize_group(binary_by_group[name], visual_by_group[name]))
             for name in ("all", "cjk", "non_cjk")
@@ -361,7 +361,7 @@ def export_cjk_style_baseline(
         "best_rule": asdict(summaries[0]),
         "style_constraints": {
             "core": "shifted source ink level 3",
-            "gentle_weight": "dilated source additions level 2",
+            "edge_transition": "source-adjacent edge/anti-alias transition pixels level 2",
             "shadow": "fixed right-down (1,1) level 1 from shifted source core",
         },
         "groups": groups,
