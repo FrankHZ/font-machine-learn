@@ -4,6 +4,16 @@ Each stage should end with a runnable artifact, a quick verification command,
 and a commit. Generated PNG/JSON outputs are disposable unless a stage explicitly
 promotes them to documented fixtures.
 
+Core objective:
+
+```text
+complete 1bpp bitmap glyph set -> NFTR-style 2bpp layered glyphs
+```
+
+WQY Sharp stages are useful diagnostics for the future real input font, but the
+main model should learn style layering from 1bpp masks to 2bpp labels, not glyph
+shape correction.
+
 ## Stage 0: Project Harness
 
 Deliverable:
@@ -56,7 +66,7 @@ Deliverable:
 - write paired source/target metadata
 - produce source/target comparison contact sheets
 - command: `scripts/render_source_glyphs.py`
-- note fallback-box glyphs separately before training
+- note fallback-box glyphs separately before using WQY as a future real input
 
 Verification:
 
@@ -103,7 +113,8 @@ Deliverable:
 - use `scikit-learn` MLP over local source-pixel patches and pixel coordinates
 - output predicted 2bpp glyphs, metrics, and contact sheet
 - command: `scripts/train_mlp_baseline.py`
-- document PyTorch/ONNX as a later, separately pinned dependency decision
+- document PyTorch/ONNX as a later, separately pinned dependency decision after
+  the 1bpp-to-2bpp data contract is stable
 - first recorded metrics: pixel accuracy `0.6702`, MAE `0.6086`,
   foreground IoU `0.5515`; heldout pixel accuracy `0.6506`, heldout MAE
   `0.6368`, heldout foreground IoU `0.6081`
@@ -180,6 +191,8 @@ Deliverable:
 - report binary accuracy, foreground precision/recall/F1, foreground IoU, false
   positive rate, and false negative rate
 - output 1bpp target glyphs, metadata, and a worst-case contact sheet
+- establish target-derived 1bpp masks as the source side of the main style
+  learning dataset
 - command: `scripts/run_binary_diagnostic.py`
 - first recorded F1/IoU: source `0.4915`/`0.3146`, shadow `0.7028`/`0.5461`,
   tuned `0.7653`/`0.6276`, MLP `0.7065`/`0.5515`
@@ -207,6 +220,7 @@ Deliverable:
 - export weighted source glyphs
 - apply the tuned shadow rule to the weighted source and export a contact sheet
 - command: `scripts/search_weight_baseline.py`
+- treat this as a WQY input diagnostic, not the primary training objective
 - first recorded best rule: `box_dx-1_dy+1`
 - first recorded weighted source F1/IoU: `0.7850` / `0.6490`
 - first recorded weighted shadow visual score: `0.4559`, foreground IoU
@@ -281,4 +295,23 @@ Commit theme:
 
 ```text
 feat: refine cjk edge transitions
+```
+
+## Stage 11: 1bpp-to-2bpp Style Dataset
+
+Planned deliverable:
+
+- build the formal paired dataset for the real task
+- input: target-derived 1bpp glyph masks
+- label: original NFTR 2bpp glyph levels
+- include `char_class` and CJK/non-CJK grouping
+- run a rule baseline using core `3`, edge transition `2`, right-down shadow `1`
+- output source masks, label references, baseline predictions, metadata, and a
+  contact sheet
+- command: `scripts/build_1bpp_style_dataset.py`
+
+Commit theme:
+
+```text
+feat: build 1bpp style dataset
 ```

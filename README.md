@@ -2,9 +2,27 @@
 
 This project is an experiment for learning the visual style of a Nintendo DS
 bitmap font: small 15 x 15 px glyphs with 2bpp levels for transparent,
-shadow, edge, and main stroke pixels.
+shadow, edge transition, and main stroke pixels.
 
-The first milestone is intentionally small:
+The core task is **not** to invent or correct glyph shapes. The intended
+pipeline is:
+
+```text
+complete 1bpp bitmap glyph set -> NFTR-style 2bpp layered glyphs
+```
+
+The model/rules should learn style layering:
+
+- `3`: main stroke core
+- `2`: edge/anti-alias transition around the core
+- `1`: right-down shadow
+- `0`: transparent/background
+
+`wqy-zenhei.ttc` is the future real input font source and a useful validation
+asset. The current `a.NFTR` target can also be quantized to 1bpp to create the
+cleanest paired training data for learning the 1bpp-to-2bpp style transform.
+
+The first milestones were intentionally small:
 
 1. read the available `a.NFTR` font asset;
 2. export a PNG atlas for visual inspection;
@@ -120,8 +138,8 @@ The pixels are not ordinary anti-aliased grayscale. Treat the four levels as
 semantic bitmap layers:
 
 - `0`: transparent/background
-- `1`: shadow
-- `2`: occasional edge/intermediate color
+- `1`: right-down shadow
+- `2`: edge/anti-alias transition around the main stroke
 - `3`: main stroke
 
 The exporter also has a raw fallback for diagnostic work with incorrectly
@@ -149,6 +167,7 @@ data/processed/glyphs/
 ├── stage8_weight/          # source weight/offset search
 ├── stage9_cjk_style/       # CJK-first fixed-style baseline
 ├── stage10_cjk_edges/      # CJK level-2 edge transition refinement
+├── stage11_1bpp_style/     # formal 1bpp-mask to 2bpp-style dataset
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -197,7 +216,10 @@ The command writes disposable paired-source artifacts under
 - `source_target_contact.png`
 
 Most rendered CJK ink boxes should land around `12-13px` wide, which keeps them
-close to the original NFTR cells.
+close to the original NFTR cells. WQY is a candidate production input font, but
+it is not the only or preferred training source. For style learning, the
+strongest paired dataset comes from target glyphs quantized to 1bpp as input and
+the original target 2bpp glyphs as labels.
 
 ## Run the Shadow Baseline
 
@@ -298,8 +320,8 @@ python scripts/run_binary_diagnostic.py
 ```
 
 This quantizes target glyphs to foreground/background and scores baselines as
-binary masks. It helps separate outline/alignment problems from 2bpp
-shadow-level problems.
+binary masks. It also provides the canonical paired input for the main learning
+task: target-derived 1bpp masks as source, original target 2bpp glyphs as label.
 
 The command writes:
 
@@ -307,7 +329,7 @@ The command writes:
 - `binary_diagnostic_metadata.json`
 - `binary_diagnostic_contact.png`
 
-## Search Source Weight
+## Search WQY Source Weight
 
 Run:
 
@@ -315,8 +337,10 @@ Run:
 python scripts/search_weight_baseline.py
 ```
 
-This searches small source-glyph offsets and dilation kernels against the 1bpp
-target mask, then applies the tuned shadow rule to the best weighted source.
+This searches small WQY source-glyph offsets and dilation kernels against the
+1bpp target mask, then applies the tuned shadow rule to the best weighted source.
+These stages are diagnostic for using WQY as a real input font; they should not
+replace the main 1bpp-to-2bpp style-learning objective.
 
 The command writes:
 
@@ -369,11 +393,32 @@ The command writes:
 - `stage10_cjk_edges/cjk_edges_contact.png`
 - `stage10_cjk_edges/cjk_edges_worst_contact.png`
 
+## Build the 1bpp Style Dataset
+
+Planned next command:
+
+```powershell
+python scripts/build_1bpp_style_dataset.py
+```
+
+This is the formal training direction. It uses target-derived 1bpp masks as the
+input side and the original NFTR 2bpp glyphs as labels. Later, any complete 1bpp
+font, including WQY Sharp, should be able to pass through the same style
+pipeline.
+
+Planned outputs:
+
+- `stage11_1bpp_style/input_1bpp/*.png`
+- `stage11_1bpp_style/baseline_2bpp/*.png`
+- `stage11_1bpp_style/style_pairs_metadata.json`
+- `stage11_1bpp_style/style_baseline_contact.png`
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Flag fallback-box glyphs and decide whether to reuse original NFTR glyphs.
-2. Refine source weight/alignment per glyph class instead of one global rule.
-3. Improve the trainable baseline with 1bpp/2bpp-aware metrics or introduce a pinned PyTorch/ONNX stack.
+1. Build `stage11_1bpp_style/`: target-derived 1bpp input masks paired with
+   original 2bpp labels.
+2. Run a 1bpp-to-2bpp rule baseline using core/edge/shadow layer semantics.
+3. Train the next model on 1bpp masks as input and 2bpp target levels as labels.

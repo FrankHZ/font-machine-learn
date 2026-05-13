@@ -3,6 +3,24 @@
 This file keeps the project split into concrete targets so future work does not
 drift into format guessing or premature ML work.
 
+Main objective:
+
+```text
+complete 1bpp bitmap glyph set -> NFTR-style 2bpp layered glyphs
+```
+
+The project is not primarily about changing glyph shapes. WQY Sharp is a future
+real input font and a useful diagnostic source. The cleanest paired learning
+setup is target-derived 1bpp masks as input and original NFTR 2bpp glyphs as
+labels.
+
+Layer semantics:
+
+- `0`: transparent/background
+- `1`: fixed right-down shadow
+- `2`: edge/anti-alias transition around the main stroke
+- `3`: main stroke core from the input 1bpp mask
+
 ## Target 0: Source Font Export
 
 Status: working.
@@ -36,7 +54,7 @@ Key detail: labels should come from `PAMC` mappings, not only atlas position.
 ## Target 2: Source Bitmap Rendering
 
 Goal: render the full source character set from `wqy-zenhei.ttc`, using the
-WQY Sharp face as the source bitmap font to be transformed.
+WQY Sharp face as the future real 1bpp input font to validate the style pipeline.
 
 Known preferred settings from previous work:
 
@@ -64,10 +82,11 @@ Expected shape:
 - symbols not covered by WQY Sharp may render as fallback boxes and should be
   flagged or reused from the original NFTR in later pairing work
 
-## Target 3: First Learning Baselines
+## Target 3: First WQY-Shaped Baselines
 
-Goal: test whether a small model can transform WQY Sharp bitmap glyphs into the
-NFTR shadow style.
+Goal: test whether simple rules can apply NFTR-like style layers to WQY-shaped
+1bpp input. This is diagnostic for the future real input font, not the final
+training formulation.
 
 Keep the first baseline modest:
 
@@ -99,10 +118,11 @@ Initial run:
 - mean absolute level error: `0.8592`
 - mean foreground IoU: `0.5461`
 
-## Target 4: Trainable Pixel MLP
+## Target 4: Trainable Pixel MLP Diagnostic
 
 Goal: make the first trainable baseline without pulling in a heavy deep-learning
-framework.
+framework. This stage proved the training harness worked, but it used WQY-shaped
+input and should not define the final model objective.
 
 Command:
 
@@ -134,8 +154,8 @@ Initial run:
 - heldout mean absolute level error: `0.6368`
 - heldout mean foreground IoU: `0.6081`
 
-PyTorch or ONNX training should be added as a separate dependency decision once
-this small trainable baseline is understood.
+PyTorch or ONNX training should be added only after the main 1bpp-to-2bpp data
+contract is stable.
 
 ## Target 5: Visual Quality Scoring
 
@@ -207,8 +227,9 @@ Initial report:
 
 ## Target 7: 1bpp Target Diagnostic
 
-Goal: answer whether current failures are mostly outline/alignment problems or
-2bpp shade-level problems.
+Goal: quantize target glyphs into foreground/background. This began as a
+diagnostic, but it also creates the correct source side for the main paired
+learning setup.
 
 Command:
 
@@ -245,14 +266,14 @@ Initial run:
 - tuned precision/recall: `0.7396` / `0.7646`
 
 Interpretation: MLP is conservative and misses foreground; tuned shadow better
-matches the 1bpp target mask. The target mask is visibly heavier than the WQY
-source, so Stage 8 should test source dilation/weight matching before another
-model pass.
+matches the 1bpp target mask. More importantly, target-derived 1bpp masks should
+become the canonical source representation for learning 2bpp style layering.
 
 ## Target 8: Source Weight Search
 
 Goal: determine whether a simple global source dilation/offset improves the
-foreground mask before 2bpp shadow synthesis.
+foreground mask before 2bpp shadow synthesis. This remains a WQY diagnostic for
+future production input, not the primary training target.
 
 Command:
 
@@ -290,7 +311,8 @@ weight rule rather than applying full dilation everywhere.
 ## Target 9: CJK-Focused Style Baseline
 
 Goal: optimize the style baseline for CJK glyphs, with non-CJK glyphs acting as
-regression guards instead of driving the search.
+regression guards instead of driving the search. This still uses WQY-shaped
+input and should be treated as style-rule exploration.
 
 Command:
 
@@ -337,7 +359,8 @@ dilation while improving CJK foreground recall.
 ## Target 10: CJK Edge Transition Refinement
 
 Goal: improve the placement of level `2` as an edge/anti-alias transition layer
-rather than using it as generic stroke thickening.
+rather than using it as generic stroke thickening. This stage clarifies the
+style semantics that the main 1bpp-to-2bpp model should learn.
 
 Command:
 
@@ -380,3 +403,37 @@ Initial run:
 Interpretation: compared with Stage 9, the best rule removes the down level-2
 edge and keeps only a right-side transition plus the fixed right-down shadow.
 This slightly improves CJK visual score and precision while reducing recall.
+
+## Target 11: 1bpp-to-2bpp Style Dataset
+
+Goal: pivot the main pipeline to the real learning problem: given a complete
+1bpp glyph mask, generate the NFTR-style 2bpp layer assignment.
+
+Inputs and labels:
+
+- input: target-derived `1bpp` mask, later replaceable by any complete 1bpp font
+- label: original NFTR target glyph with levels `0..3`
+- primary subset: CJK
+- guard subsets: kana, latin, digit, punctuation, symbol
+
+Command:
+
+```powershell
+python scripts/build_1bpp_style_dataset.py
+```
+
+Planned outputs:
+
+- `stage11_1bpp_style/input_1bpp/*.png`
+- `stage11_1bpp_style/label_2bpp/*.png` or label references to stage1 target
+- `stage11_1bpp_style/baseline_2bpp/*.png`
+- `stage11_1bpp_style/style_pairs_metadata.json`
+- `stage11_1bpp_style/style_baseline_contact.png`
+
+Baseline rule:
+
+- 1bpp source mask core: level `3`
+- constrained edge transition near core: level `2`
+- fixed right-down `(1, 1)` shadow: level `1`
+
+This stage should become the reference dataset for later machine learning.

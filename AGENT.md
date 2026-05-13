@@ -1,8 +1,18 @@
 # Agent Notes
 
 This repository is for experimenting with machine learning over tiny bitmap
-fonts. The source target style is a 15x15, 2bpp Nintendo DS font with separate
-transparent, shadow, edge, and main-stroke levels.
+fonts. The target style is a 15x15, 2bpp Nintendo DS font with separate
+transparent, right-down shadow, edge-transition, and main-stroke levels.
+
+The core project goal is:
+
+```text
+complete 1bpp bitmap glyph set -> NFTR-style 2bpp layered glyphs
+```
+
+Do not frame the main task as glyph-shape correction. WQY Sharp is a future real
+input font and a useful validation source, but the central learning problem is
+style layering from a 1bpp mask into 2bpp levels.
 
 ## Working Style
 
@@ -19,8 +29,8 @@ transparent, shadow, edge, and main-stroke levels.
 ## Important Files
 
 - `a.NFTR`: decompressed target/source-style NFTR.
-- `wqy-zenhei.ttc`: source bitmap font family; WQY Sharp face index `2` is the
-  intended input font after the ML pipeline exists.
+- `wqy-zenhei.ttc`: source bitmap font family; WQY Sharp face index `2` is a
+  future real input font for the 1bpp-to-2bpp style pipeline.
 - `docs/targets.md`: target split and expected outputs.
 - `docs/deliverables.md`: stage deliverables, verification, and commit rhythm.
 - `scripts/export_nftr.py`: main smoke-test command.
@@ -52,9 +62,12 @@ Generated glyph artifacts must be grouped by stage under
 - `stage5_tuned_shadow/`: visual-score shadow search.
 - `stage6_review/`: side-by-side human review artifacts.
 - `stage7_binary/`: 1bpp target diagnostic.
-- `stage8_weight/`: source weight/offset search.
-- `stage9_cjk_style/`: CJK-focused fixed-style baseline.
-- `stage10_cjk_edges/`: CJK-focused level-2 edge transition refinement.
+- `stage8_weight/`: WQY source weight/offset diagnostic.
+- `stage9_cjk_style/`: CJK-focused style baseline over WQY-shaped input.
+- `stage10_cjk_edges/`: CJK-focused level-2 edge transition refinement over
+  WQY-shaped input.
+- planned `stage11_1bpp_style/`: target-derived 1bpp masks paired with original
+  2bpp labels; this is the main training direction.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -64,7 +77,7 @@ README.
 
 Level semantics for style work:
 
-- `3`: source-derived main stroke core.
+- `3`: 1bpp-mask-derived main stroke core.
 - `2`: edge/anti-alias transition around the core, not generic stroke
   thickening.
 - `1`: fixed right-down shadow unless a later stage explicitly changes the
@@ -77,12 +90,11 @@ Level semantics for style work:
 - Target 1: split NFTR glyphs into labeled per-glyph target records using
   `PAMC`, `HDWC`, and glyph indexes.
 - Target 2: render matching source glyphs from `wqy-zenhei.ttc`, face index `2`,
-  into `15x15` cells.
-- Target 3: train/evaluate the first transform from WQY Sharp bitmap glyphs to
-  the NFTR 2bpp shadow style.
-
-Do not start Target 3 until Target 1 and Target 2 have repeatable metadata and
-contact sheets.
+  into `15x15` cells for validation against the future real input font.
+- Target 3 and later early baselines explored WQY-shaped inputs and visual
+  metrics. Treat those as diagnostics, not as the final learning formulation.
+- Target 11 should pivot the main dataset to target-derived `1bpp` masks as
+  input and original NFTR `2bpp` glyphs as labels.
 
 ## Smoke Test
 
@@ -119,6 +131,8 @@ Expected result:
 - `data/processed/glyphs/stage8_weight/weight_search_metadata.json` exists after Stage 8.
 - `data/processed/glyphs/stage9_cjk_style/cjk_style_metadata.json` exists after Stage 9.
 - `data/processed/glyphs/stage10_cjk_edges/cjk_edges_metadata.json` exists after Stage 10.
+- planned `data/processed/glyphs/stage11_1bpp_style/style_pairs_metadata.json`
+  should exist after Stage 11.
 - unittest passes and confirms the source NFTR shape.
 
 ## Documentation Rules
@@ -127,6 +141,8 @@ Expected result:
 - Update `docs/deliverables.md` when stage deliverables or verification changes.
 - Update README commands when the runnable harness changes.
 - Record guessed format details as metadata fields and CLI options.
+- When adding Stage 11, keep the wording focused on `1bpp mask -> 2bpp style
+  layers`; do not describe it as WQY glyph-shape correction.
 
 ## Design Constraints
 
