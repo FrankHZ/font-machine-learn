@@ -119,3 +119,30 @@ Commit theme:
 ```text
 feat: add trainable mlp baseline
 ```
+
+## Stage 5: Visual Quality Scoring
+
+Deliverable:
+
+- add metrics that do not let background pixels dominate the score
+- measure level-3 ink F1, level-1/2 shadow F1, foreground IoU, weighted
+  similarity, and isolated foreground noise
+- search a small set of explainable shadow rules with the visual score
+- output tuned glyphs, a search report, metrics, and a contact sheet
+- command: `scripts/tune_shadow_baseline.py`
+- first recorded best rule: `left_down_strong_diag_light`
+- first recorded full-run metrics: visual score `0.4919`, ink F1 `0.3506`,
+  shadow F1 `0.3509`, foreground IoU `0.6276`, pixel accuracy `0.5339`,
+  MAE `0.7577`
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: add visual shadow tuning
+```

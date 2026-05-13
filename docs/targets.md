@@ -136,3 +136,43 @@ Initial run:
 
 PyTorch or ONNX training should be added as a separate dependency decision once
 this small trainable baseline is understood.
+
+## Target 5: Visual Quality Scoring
+
+Goal: make the harness care about the same things human review catches in the
+contact sheets.
+
+Command:
+
+```powershell
+python scripts/tune_shadow_baseline.py
+```
+
+Visual score inputs:
+
+- level-3 ink F1
+- level-1/2 shadow F1
+- foreground IoU
+- target-weighted level similarity
+- isolated foreground noise penalty
+
+Outputs:
+
+- `baseline_tuned_shadow/*.png`
+- `baseline_tuned_shadow_metadata.json`
+- `baseline_tuned_shadow_search.json`
+- `baseline_tuned_shadow_contact.png`
+
+Initial run:
+
+- best rule: `left_down_strong_diag_light`
+- search-limit visual score: `0.4202`
+- full mean visual score: `0.4919`
+- full mean ink F1: `0.3506`
+- full mean shadow F1: `0.3509`
+- full mean foreground IoU: `0.6276`
+- full mean pixel accuracy: `0.5339`
+- full mean absolute level error: `0.7577`
+
+This stage keeps rules explainable. The point is to rank shadow behavior by
+visual resemblance before trying a heavier model again.

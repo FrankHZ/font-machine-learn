@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
 
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
 from font_machine_learn.baseline import export_shadow_baseline
+from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.trainable_baseline import export_mlp_baseline
 
@@ -193,6 +194,45 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(len(list((root / "mlp").glob("*.png"))), 1814)
             self.assertGreaterEqual(result.mean_pixel_accuracy, 0.0)
             self.assertLessEqual(result.mean_pixel_accuracy, 1.0)
+
+    def test_exports_tuned_shadow_baseline_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_data = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            result = export_tuned_shadow_baseline(
+                source_metadata=Path(source_data.metadata_json),
+                out_dir=root / "tuned",
+                metadata_json=root / "tuned_metadata.json",
+                search_json=root / "tuned_search.json",
+                contact_sheet=root / "tuned_contact.png",
+                search_limit=64,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.search_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertEqual(len(list((root / "tuned").glob("*.png"))), 1814)
+            self.assertGreaterEqual(result.mean_visual_score, 0.0)
+            self.assertLessEqual(result.mean_visual_score, 1.0)
+
+            search = json.loads(Path(result.search_json).read_text(encoding="utf-8"))
+            self.assertGreaterEqual(len(search["rules"]), 4)
+            self.assertEqual(search["rules"][0]["name"], result.best_rule)
 
 
 if __name__ == "__main__":

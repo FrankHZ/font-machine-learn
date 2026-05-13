@@ -29,6 +29,7 @@ The first milestone is intentionally small:
 │   ├── render_source_glyphs.py     # Render WQY Sharp source glyph dataset
 │   ├── run_shadow_baseline.py      # Rule-based source-to-shadow baseline
 │   ├── train_mlp_baseline.py       # Small trainable pixel-level MLP baseline
+│   ├── tune_shadow_baseline.py      # Visual-score-oriented shadow rule search
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -213,11 +214,36 @@ The command writes:
 - `baseline_mlp_metadata.json`
 - `baseline_mlp_contact.png`
 
+## Tune Visual Shadow Rules
+
+Run:
+
+```powershell
+python scripts/tune_shadow_baseline.py
+```
+
+The MLP baseline is useful as a training harness, but plain pixel accuracy can
+reward bland background predictions. The tuned shadow baseline scores rules with
+more visual terms:
+
+- level-3 ink F1
+- level-1/2 shadow F1
+- foreground IoU
+- target-weighted level similarity
+- isolated foreground noise
+
+The command writes:
+
+- `baseline_tuned_shadow/*.png`
+- `baseline_tuned_shadow_metadata.json`
+- `baseline_tuned_shadow_search.json`
+- `baseline_tuned_shadow_contact.png`
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Flag fallback-box glyphs and decide whether to reuse original NFTR glyphs.
-2. Improve the trainable baseline or introduce a pinned PyTorch/ONNX stack.
+2. Improve the trainable baseline with visual metrics or introduce a pinned PyTorch/ONNX stack.
 3. Compare generated glyphs against the original NFTR levels and in-game previews.
