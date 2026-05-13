@@ -95,11 +95,27 @@ Commit theme:
 feat: add rule-based shadow baseline
 ```
 
-## Stage 4: Deep Learning Stack
+## Stage 4: Trainable Baseline Stack
 
 Deliverable:
 
-- choose and document the framework separately, likely PyTorch or ONNX-friendly
-  tooling
-- pin install instructions for the actual local Python/CUDA/CPU target
-- add a small train/eval smoke test before committing heavy model code
+- train a small pixel-level model without adding a heavy framework yet
+- use `scikit-learn` MLP over local source-pixel patches and pixel coordinates
+- output predicted 2bpp glyphs, metrics, and contact sheet
+- command: `scripts/train_mlp_baseline.py`
+- document PyTorch/ONNX as a later, separately pinned dependency decision
+- first recorded metrics: pixel accuracy `0.6702`, MAE `0.6086`,
+  foreground IoU `0.5515`; heldout pixel accuracy `0.6506`, heldout MAE
+  `0.6368`, heldout foreground IoU `0.6081`
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: add trainable mlp baseline
+```

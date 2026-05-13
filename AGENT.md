@@ -27,6 +27,7 @@ transparent, shadow, edge, and main-stroke levels.
 - `scripts/extract_target_glyphs.py`: Stage 1 target glyph dataset command.
 - `scripts/render_source_glyphs.py`: Stage 2 WQY Sharp source glyph command.
 - `scripts/run_shadow_baseline.py`: Stage 3 rule-based transform command.
+- `scripts/train_mlp_baseline.py`: Stage 4 trainable pixel-level MLP baseline.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -54,6 +55,7 @@ python scripts/export_nftr.py a.NFTR --out data/processed/a_atlas.png
 python scripts/extract_target_glyphs.py a.NFTR
 python scripts/render_source_glyphs.py
 python scripts/run_shadow_baseline.py
+python scripts/train_mlp_baseline.py
 python -m unittest discover
 python scripts/check_env.py
 ```
@@ -66,6 +68,7 @@ Expected result:
 - `data/processed/glyphs/target_metadata.json` exists after Stage 1 extraction.
 - `data/processed/glyphs/source_metadata.json` exists after Stage 2 rendering.
 - `data/processed/glyphs/baseline_shadow_metadata.json` exists after Stage 3.
+- `data/processed/glyphs/baseline_mlp_metadata.json` exists after Stage 4.
 - unittest passes and confirms the source NFTR shape.
 
 ## Documentation Rules

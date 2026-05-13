@@ -4,9 +4,11 @@ import json
 import sys
 import tempfile
 import unittest
+import warnings
 from pathlib import Path
 
 from PIL import Image
+from sklearn.exceptions import ConvergenceWarning
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
@@ -16,6 +18,7 @@ if str(SRC) not in sys.path:
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
 from font_machine_learn.baseline import export_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
+from font_machine_learn.trainable_baseline import export_mlp_baseline
 
 
 class NFTRExportTest(unittest.TestCase):
@@ -152,6 +155,44 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(zero["chars"], ["0"])
             self.assertGreaterEqual(zero["pixel_accuracy"], 0.0)
             self.assertLessEqual(zero["pixel_accuracy"], 1.0)
+
+    def test_exports_trainable_mlp_baseline_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_data = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", ConvergenceWarning)
+                result = export_mlp_baseline(
+                    source_metadata=Path(source_data.metadata_json),
+                    out_dir=root / "mlp",
+                    metadata_json=root / "mlp_metadata.json",
+                    contact_sheet=root / "mlp_contact.png",
+                    max_train_glyphs=32,
+                    hidden_units=12,
+                    max_iter=4,
+                )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertEqual(result.train_glyph_count, 32)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertEqual(len(list((root / "mlp").glob("*.png"))), 1814)
+            self.assertGreaterEqual(result.mean_pixel_accuracy, 0.0)
+            self.assertLessEqual(result.mean_pixel_accuracy, 1.0)
 
 
 if __name__ == "__main__":

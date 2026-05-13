@@ -64,7 +64,7 @@ Expected shape:
 - symbols not covered by WQY Sharp may render as fallback boxes and should be
   flagged or reused from the original NFTR in later pairing work
 
-## Target 3: First Learning Baseline
+## Target 3: First Learning Baselines
 
 Goal: test whether a small model can transform WQY Sharp bitmap glyphs into the
 NFTR shadow style.
@@ -98,3 +98,41 @@ Initial run:
 - mean pixel accuracy: `0.5396`
 - mean absolute level error: `0.8592`
 - mean foreground IoU: `0.5461`
+
+## Target 4: Trainable Pixel MLP
+
+Goal: make the first trainable baseline without pulling in a heavy deep-learning
+framework.
+
+Command:
+
+```powershell
+python scripts/train_mlp_baseline.py
+```
+
+Model:
+
+- framework: `scikit-learn`
+- estimator: `MLPClassifier`
+- features: `3x3` source patch, normalized `x/y`, and edge distance hints
+- labels: target 2bpp level `0..3`
+
+Outputs:
+
+- `baseline_mlp/*.png`
+- `baseline_mlp_metadata.json`
+- `baseline_mlp_contact.png`
+
+Initial run:
+
+- train glyphs: `512`
+- heldout glyphs: `1302`
+- mean pixel accuracy: `0.6702`
+- mean absolute level error: `0.6086`
+- mean foreground IoU: `0.5515`
+- heldout mean pixel accuracy: `0.6506`
+- heldout mean absolute level error: `0.6368`
+- heldout mean foreground IoU: `0.6081`
+
+PyTorch or ONNX training should be added as a separate dependency decision once
+this small trainable baseline is understood.

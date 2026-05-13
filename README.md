@@ -28,6 +28,7 @@ The first milestone is intentionally small:
 │   ├── extract_target_glyphs.py    # Split NFTR into per-glyph target dataset
 │   ├── render_source_glyphs.py     # Render WQY Sharp source glyph dataset
 │   ├── run_shadow_baseline.py      # Rule-based source-to-shadow baseline
+│   ├── train_mlp_baseline.py       # Small trainable pixel-level MLP baseline
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -190,11 +191,33 @@ The contact sheet stacks source, baseline prediction, and target glyphs. Metadat
 includes pixel accuracy, mean absolute error, and foreground IoU per glyph plus
 dataset means.
 
+## Train the MLP Baseline
+
+Run:
+
+```powershell
+python scripts/train_mlp_baseline.py
+```
+
+This keeps the dependency stack light by using `scikit-learn` instead of a heavy
+deep-learning framework. It trains a small pixel-level MLP classifier:
+
+- features: `3x3` source patch, normalized pixel coordinates, and edge distance
+  hints;
+- label: target 2bpp level `0..3`;
+- prediction: full 1814-glyph baseline output.
+
+The command writes:
+
+- `baseline_mlp/*.png`
+- `baseline_mlp_metadata.json`
+- `baseline_mlp_contact.png`
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Flag fallback-box glyphs and decide whether to reuse original NFTR glyphs.
-2. Train a small image-to-image model or improve the rule-assisted baseline.
+2. Improve the trainable baseline or introduce a pinned PyTorch/ONNX stack.
 3. Compare generated glyphs against the original NFTR levels and in-game previews.
