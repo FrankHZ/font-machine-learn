@@ -48,4 +48,11 @@ WEIGHT_SEARCH_METADATA = STAGE8_WEIGHT / "weight_search_metadata.json"
 WEIGHT_SEARCH_JSON = STAGE8_WEIGHT / "weight_search.json"
 BASELINE_WEIGHTED_SHADOW_CONTACT = STAGE8_WEIGHT / "baseline_weighted_shadow_contact.png"
 
+STAGE9_CJK_STYLE = GLYPH_ROOT / "stage9_cjk_style"
+CJK_STYLE_DIR = STAGE9_CJK_STYLE / "baseline_cjk_style"
+CJK_STYLE_METADATA = STAGE9_CJK_STYLE / "cjk_style_metadata.json"
+CJK_STYLE_SEARCH = STAGE9_CJK_STYLE / "cjk_style_search.json"
+CJK_STYLE_CONTACT = STAGE9_CJK_STYLE / "cjk_style_contact.png"
+CJK_STYLE_WORST_CONTACT = STAGE9_CJK_STYLE / "cjk_style_worst_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

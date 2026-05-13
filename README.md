@@ -33,6 +33,7 @@ The first milestone is intentionally small:
 │   ├── build_review_report.py       # Side-by-side baseline review artifacts
 │   ├── run_binary_diagnostic.py     # Quantize target to 1bpp and score masks
 │   ├── search_weight_baseline.py     # Search source weight/offset before shadow
+│   ├── run_cjk_style_baseline.py     # CJK-focused fixed-style baseline
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -145,6 +146,7 @@ data/processed/glyphs/
 ├── stage6_review/          # side-by-side human review artifacts
 ├── stage7_binary/          # 1bpp target diagnostic
 ├── stage8_weight/          # source weight/offset search
+├── stage9_cjk_style/       # CJK-first fixed-style baseline
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -321,6 +323,28 @@ The command writes:
 - `weight_search.json`
 - `weight_search_metadata.json`
 - `baseline_weighted_shadow_contact.png`
+
+## Run the CJK Style Baseline
+
+Run:
+
+```powershell
+python scripts/run_cjk_style_baseline.py
+```
+
+This stage focuses ranking on CJK glyphs. The style rule is constrained:
+
+- source core pixels are level `3`
+- gentle source-weight additions are level `2`
+- right-down `(1, 1)` shadow pixels are level `1`
+
+The command writes:
+
+- `stage9_cjk_style/baseline_cjk_style/*.png`
+- `stage9_cjk_style/cjk_style_metadata.json`
+- `stage9_cjk_style/cjk_style_search.json`
+- `stage9_cjk_style/cjk_style_contact.png`
+- `stage9_cjk_style/cjk_style_worst_contact.png`
 
 ## Next Milestones
 

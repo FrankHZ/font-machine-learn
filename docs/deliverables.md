@@ -225,3 +225,32 @@ Commit theme:
 ```text
 feat: add source weight search
 ```
+
+## Stage 9: CJK-Focused Style Baseline
+
+Deliverable:
+
+- classify glyphs into `cjk`, `kana`, `latin`, `digit`, `punct`, `symbol`, or
+  `unmapped`
+- search style candidates using CJK metrics first
+- keep non-CJK metrics as regression guard summaries
+- enforce source core as level `3`, gentle weight additions as level `2`, and
+  fixed right-down `(1, 1)` shadow as level `1`
+- output CJK-only and worst-CJK contact sheets
+- command: `scripts/run_cjk_style_baseline.py`
+- first recorded best rule: `right_down_dx-1_dy+1`
+- first recorded CJK metrics: visual score `0.6357`, F1 `0.8272`, IoU
+  `0.7112`, precision `0.8140`, recall `0.8424`
+- first recorded guard metrics: all visual `0.5936`, non-CJK visual `0.3682`
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: add cjk-focused style baseline
+```

@@ -286,3 +286,50 @@ Initial run:
 Interpretation: global box dilation helps the 1bpp foreground mask but makes the
 2bpp shadow output too heavy. The next pass should try a gentler or adaptive
 weight rule rather than applying full dilation everywhere.
+
+## Target 9: CJK-Focused Style Baseline
+
+Goal: optimize the style baseline for CJK glyphs, with non-CJK glyphs acting as
+regression guards instead of driving the search.
+
+Command:
+
+```powershell
+python scripts/run_cjk_style_baseline.py
+```
+
+Style constraints:
+
+- source core: level `3`
+- gentle weight additions: level `2`
+- right-down `(1, 1)` shadow from source core: level `1`
+
+Search and reporting:
+
+- classify each glyph as `cjk`, `kana`, `latin`, `digit`, `punct`, `symbol`, or
+  `unmapped`
+- rank rules by CJK visual score, then CJK foreground F1/IoU
+- report grouped metrics for `all`, `cjk`, and `non_cjk`
+- generate a CJK-only contact sheet and a worst-CJK contact sheet
+
+Outputs:
+
+- `stage9_cjk_style/baseline_cjk_style/*.png`
+- `stage9_cjk_style/cjk_style_metadata.json`
+- `stage9_cjk_style/cjk_style_search.json`
+- `stage9_cjk_style/cjk_style_contact.png`
+- `stage9_cjk_style/cjk_style_worst_contact.png`
+
+Initial run:
+
+- CJK glyphs: `1528`
+- best rule: `right_down_dx-1_dy+1`
+- CJK visual score: `0.6357`
+- CJK foreground F1/IoU: `0.8272` / `0.7112`
+- CJK precision/recall: `0.8140` / `0.8424`
+- all visual score: `0.5936`
+- non-CJK visual score: `0.3682`
+
+Interpretation: CJK-focused ranking selects a right/down gentle weight rule with
+the expected right-down level-1 shadow. It avoids Stage 8's over-heavy box
+dilation while improving CJK foreground recall.

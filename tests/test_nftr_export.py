@@ -18,6 +18,8 @@ if str(SRC) not in sys.path:
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
 from font_machine_learn.baseline import export_shadow_baseline
 from font_machine_learn.binary_diagnostic import export_binary_diagnostic
+from font_machine_learn.char_class import classify_char, classify_glyph
+from font_machine_learn.cjk_style import export_cjk_style_baseline
 from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
@@ -26,6 +28,15 @@ from font_machine_learn.weight_search import export_weight_search
 
 
 class NFTRExportTest(unittest.TestCase):
+    def test_classifies_glyph_characters(self) -> None:
+        self.assertEqual(classify_char("漢"), "cjk")
+        self.assertEqual(classify_char("あ"), "kana")
+        self.assertEqual(classify_char("A"), "latin")
+        self.assertEqual(classify_char("7"), "digit")
+        self.assertEqual(classify_char("。"), "punct")
+        self.assertEqual(classify_glyph(["漢"]), "cjk")
+        self.assertEqual(classify_glyph([]), "unmapped")
+
     def test_parses_source_nftr_metrics_and_mapping(self) -> None:
         font = parse_rtfn_font(ROOT / "a.NFTR")
         self.assertEqual(font.cell_width, 15)
@@ -377,6 +388,50 @@ class NFTRExportTest(unittest.TestCase):
             search = json.loads(Path(result.search_json).read_text(encoding="utf-8"))
             self.assertGreaterEqual(len(search["rules"]), 9)
             self.assertEqual(search["rules"][0]["name"], result.best_rule)
+
+    def test_exports_cjk_style_baseline_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_data = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            result = export_cjk_style_baseline(
+                source_metadata=Path(source_data.metadata_json),
+                out_dir=root / "cjk_style",
+                metadata_json=root / "cjk_style_metadata.json",
+                search_json=root / "cjk_style_search.json",
+                contact_sheet=root / "cjk_style_contact.png",
+                worst_contact_sheet=root / "cjk_style_worst.png",
+                search_limit=256,
+                worst_count=24,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.search_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.worst_contact_sheet).exists())
+            self.assertEqual(len(list((root / "cjk_style").glob("*.png"))), 1814)
+            self.assertGreaterEqual(result.cjk_visual_score, 0.0)
+            self.assertLessEqual(result.cjk_visual_score, 1.0)
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertIn("cjk", metadata["groups"])
+            self.assertIn("non_cjk", metadata["groups"])
+            self.assertEqual(metadata["best_rule"]["name"], result.best_rule)
 
 
 if __name__ == "__main__":
