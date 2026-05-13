@@ -17,6 +17,7 @@ if str(SRC) not in sys.path:
 
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
 from font_machine_learn.baseline import export_shadow_baseline
+from font_machine_learn.binary_diagnostic import export_binary_diagnostic
 from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
@@ -290,6 +291,50 @@ class NFTRExportTest(unittest.TestCase):
             report = json.loads(Path(review.review_json).read_text(encoding="utf-8"))
             self.assertEqual(report["image_order"], ["source", "shadow", "tuned", "target"])
             self.assertIn("visual_score", report["summaries"]["shadow"])
+
+    def test_exports_binary_diagnostic_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_data = export_source_dataset(
+                nftr_source=source,
+                font_path=font,
+                out_dir=root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_target_contact.png",
+            )
+            shadow = export_shadow_baseline(
+                source_metadata=Path(source_data.metadata_json),
+                out_dir=root / "shadow",
+                metadata_json=root / "shadow_metadata.json",
+                contact_sheet=root / "shadow_contact.png",
+            )
+            result = export_binary_diagnostic(
+                source_metadata=Path(source_data.metadata_json),
+                baseline_metadata={"source": Path(source_data.metadata_json), "shadow": Path(shadow.metadata_json)},
+                out_dir=root / "target_1bpp",
+                metadata_json=root / "binary_metadata.json",
+                contact_sheet=root / "binary_contact.png",
+                worst_count=24,
+                columns=4,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertEqual(result.baselines, ["source", "shadow"])
+            self.assertEqual(len(list((root / "target_1bpp").glob("*.png"))), 1814)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["image_order"], ["source", "shadow", "target_1bpp"])
+            self.assertIn("foreground_f1", metadata["summaries"]["source"])
 
 
 if __name__ == "__main__":

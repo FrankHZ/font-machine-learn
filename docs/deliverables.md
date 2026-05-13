@@ -170,3 +170,30 @@ Commit theme:
 ```text
 feat: add baseline review artifacts
 ```
+
+## Stage 7: 1bpp Target Diagnostic
+
+Deliverable:
+
+- quantize NFTR target glyphs to foreground/background
+- score source, rule shadow, tuned shadow, and MLP as binary masks
+- report binary accuracy, foreground precision/recall/F1, foreground IoU, false
+  positive rate, and false negative rate
+- output 1bpp target glyphs, metadata, and a worst-case contact sheet
+- command: `scripts/run_binary_diagnostic.py`
+- first recorded F1/IoU: source `0.4915`/`0.3146`, shadow `0.7028`/`0.5461`,
+  tuned `0.7653`/`0.6276`, MLP `0.7065`/`0.5515`
+- first interpretation: MLP is high-precision but low-recall; tuned shadow
+  better matches target foreground, and source glyphs likely need weight/dilation
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+feat: add binary target diagnostics
+```

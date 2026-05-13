@@ -30,6 +30,7 @@ transparent, shadow, edge, and main-stroke levels.
 - `scripts/train_mlp_baseline.py`: Stage 4 trainable pixel-level MLP baseline.
 - `scripts/tune_shadow_baseline.py`: Stage 5 visual shadow rule search.
 - `scripts/build_review_report.py`: Stage 6 side-by-side review artifacts.
+- `scripts/run_binary_diagnostic.py`: Stage 7 1bpp target diagnostic.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -60,6 +61,7 @@ python scripts/run_shadow_baseline.py
 python scripts/train_mlp_baseline.py
 python scripts/tune_shadow_baseline.py
 python scripts/build_review_report.py
+python scripts/run_binary_diagnostic.py
 python -m unittest discover
 python scripts/check_env.py
 ```
@@ -75,6 +77,7 @@ Expected result:
 - `data/processed/glyphs/baseline_mlp_metadata.json` exists after Stage 4.
 - `data/processed/glyphs/baseline_tuned_shadow_metadata.json` exists after Stage 5.
 - `data/processed/glyphs/review_report.json` exists after Stage 6.
+- `data/processed/glyphs/binary_diagnostic_metadata.json` exists after Stage 7.
 - unittest passes and confirms the source NFTR shape.
 
 ## Documentation Rules

@@ -204,3 +204,47 @@ Initial report:
 - MLP visual score: `0.5288`
 - note: the score still ranks MLP higher than human review does, so the review
   contact sheet remains the authority while the metric is refined.
+
+## Target 7: 1bpp Target Diagnostic
+
+Goal: answer whether current failures are mostly outline/alignment problems or
+2bpp shade-level problems.
+
+Command:
+
+```powershell
+python scripts/run_binary_diagnostic.py
+```
+
+Outputs:
+
+- `target_1bpp/*.png`
+- `binary_diagnostic_metadata.json`
+- `binary_diagnostic_contact.png`
+
+Metrics:
+
+- binary pixel accuracy
+- foreground precision
+- foreground recall
+- foreground F1
+- foreground IoU
+- false positive rate
+- false negative rate
+
+Use foreground F1 and foreground IoU as the main diagnostic values; binary pixel
+accuracy is background-heavy and only supporting evidence.
+
+Initial run:
+
+- source F1/IoU: `0.4915` / `0.3146`
+- shadow F1/IoU: `0.7028` / `0.5461`
+- tuned F1/IoU: `0.7653` / `0.6276`
+- MLP F1/IoU: `0.7065` / `0.5515`
+- MLP precision/recall: `0.8164` / `0.6036`
+- tuned precision/recall: `0.7396` / `0.7646`
+
+Interpretation: MLP is conservative and misses foreground; tuned shadow better
+matches the 1bpp target mask. The target mask is visibly heavier than the WQY
+source, so Stage 8 should test source dilation/weight matching before another
+model pass.

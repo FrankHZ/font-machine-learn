@@ -31,6 +31,7 @@ The first milestone is intentionally small:
 │   ├── train_mlp_baseline.py       # Small trainable pixel-level MLP baseline
 │   ├── tune_shadow_baseline.py      # Visual-score-oriented shadow rule search
 │   ├── build_review_report.py       # Side-by-side baseline review artifacts
+│   ├── run_binary_diagnostic.py     # Quantize target to 1bpp and score masks
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -259,6 +260,24 @@ The command writes:
 - `review_worst_cases.json`
 - `review_contact.png`
 
+## Run 1bpp Diagnostics
+
+Run:
+
+```powershell
+python scripts/run_binary_diagnostic.py
+```
+
+This quantizes target glyphs to foreground/background and scores baselines as
+binary masks. It helps separate outline/alignment problems from 2bpp
+shadow-level problems.
+
+The command writes:
+
+- `target_1bpp/*.png`
+- `binary_diagnostic_metadata.json`
+- `binary_diagnostic_contact.png`
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
@@ -266,4 +285,4 @@ See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Flag fallback-box glyphs and decide whether to reuse original NFTR glyphs.
 2. Search small source-glyph offsets/alignment before applying shadow rules.
-3. Improve the trainable baseline with visual metrics or introduce a pinned PyTorch/ONNX stack.
+3. Improve the trainable baseline with 1bpp/2bpp-aware metrics or introduce a pinned PyTorch/ONNX stack.
