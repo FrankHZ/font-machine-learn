@@ -871,3 +871,51 @@ alignment over centered rendering.
 Rendering note: use `--font-mode L` for WenQuanYi Bitmap Song 13px with
 `--font-size 15 --threshold 96 --x-offset -1 --y-offset 1`. Because this is a
 bitmap strike, threshold is not a useful tuning axis for the current baseline.
+
+## Target 22: Song13 Source-Mask Adapter
+
+Goal: test whether a learned source adapter can move the fixed Song13 1bpp mask
+toward the target `ge2` structure before the Stage20 style heads assign levels.
+
+Command:
+
+```powershell
+python scripts/train_song13_adapter.py
+```
+
+Setup:
+
+- source: WenQuanYi Bitmap Song 13px rendered with the Target 21 settings
+- adapter input: local Song13 source-mask patch plus normalized coordinates
+- adapter label: target `ge2` mask, meaning NFTR levels `2` and `3`
+- style model: Stage20 two-head patch model trained on target-derived `ge2`
+- ranking: CJK visual score after the style heads
+
+Outputs:
+
+- `stage22_song13_adapter/adapter_logistic_balanced/adapted_ge2/*.png`
+- `stage22_song13_adapter/adapter_logistic_balanced/predicted_2bpp/*.png`
+- `stage22_song13_adapter/adapter_patch_mlp/adapted_ge2/*.png`
+- `stage22_song13_adapter/adapter_patch_mlp/predicted_2bpp/*.png`
+- `stage22_song13_adapter/song13_adapter_metadata.json`
+- `stage22_song13_adapter/song13_adapter_contact.png`
+- `stage22_song13_adapter/song13_adapter_error_contact.png`
+
+Initial CJK run:
+
+- raw Song13 source mask vs target ge2 F1/IoU: `0.5953` / `0.4442`
+- adapted mask vs target ge2 F1/IoU: `0.6844` / `0.5304`
+- best adapter: `adapter_patch_mlp`
+- final visual score: `0.6809`
+- final ink F1: `0.6371`
+- final shadow F1: `0.5615`
+- final foreground IoU: `0.7481`
+- final pixel accuracy: `0.6987`
+- final MAE: `0.5277`
+
+Interpretation: Stage22 confirms that source adaptation improves transfer from
+Song13 into the current style model. The remaining contact-sheet failures are
+mostly local shape failures: over-connected strokes, lost small counters, and
+some dense CJK glyphs becoming too dark. The next target should add constraints
+or a richer glyph-level adapter objective before increasing the 2bpp style
+model itself.

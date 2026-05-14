@@ -58,6 +58,8 @@ style layering from a 1bpp mask into 2bpp levels.
 - `scripts/eval_external_sources.py`: Stage 21 transfer evaluation on the
   current Song13 source baseline; pass explicit `--source` values for old
   comparisons.
+- `scripts/train_song13_adapter.py`: Stage 22 source-mask adapter before the
+  Stage20 two-head style model.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -107,6 +109,9 @@ Generated glyph artifacts must be grouped by stage under
   `--font-size 15 --font-mode L --threshold 96 --x-offset -1 --y-offset 1`.
   This is a Song/Ming-style face with serifs, not a Gothic/Hei face; keep that
   as the baseline and avoid broad font comparisons unless explicitly requested.
+- `stage22_song13_adapter/`: current source-adaptation experiment. It learns a
+  Song13 source mask to target `ge2` adapter, then feeds the adapted mask into
+  the Stage20 core/edge and shadow heads.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -132,6 +137,17 @@ For tiny bitmap fonts, do not use dilation/boldening as a default adaptation
 strategy. Check native strike size and placement first. WQY Sharp size `14` is a
 current diagnostic candidate in the `15x15` cell; size `13` was the earlier
 baseline.
+
+Current external-source direction:
+
+- Use WenQuanYi Bitmap Song 13px as the default baseline source.
+- Render it as `font-size 15`, `font-mode L`, `threshold 96`, `x-offset -1`,
+  `y-offset +1`.
+- Treat serif feet as expected source shape, not a rendering error.
+- Stage 22 improved CJK raw Song13 ge2 F1 from `0.5953` to adapted F1 `0.6844`
+  and final visual score from `0.6320` to `0.6809`.
+- The remaining visible failure is local over-connection/counter loss in dense
+  CJK glyphs, so favor adapter constraints before larger style heads.
 
 ## Target Split
 
@@ -182,6 +198,7 @@ python scripts/build_patch_readiness.py
 python scripts/train_patch_classifier.py
 python scripts/train_shadow_classifier.py
 python scripts/eval_external_sources.py
+python scripts/train_song13_adapter.py
 python -m unittest discover
 ```
 
@@ -210,6 +227,7 @@ Expected result:
 - `data/processed/glyphs/stage19_patch_classifier/patch_classifier_metadata.json` exists after Stage 19.
 - `data/processed/glyphs/stage20_shadow_classifier/shadow_classifier_metadata.json` exists after Stage 20.
 - `data/processed/glyphs/stage21_external_eval/external_eval_metadata.json` exists after Stage 21.
+- `data/processed/glyphs/stage22_song13_adapter/song13_adapter_metadata.json` exists after Stage 22.
 - default unittest passes quickly and confirms the source NFTR shape.
 - slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 

@@ -741,3 +741,57 @@ Commit theme:
 ```text
 feat: evaluate external source transfer
 ```
+
+## Stage 22: Song13 Source-Mask Adapter
+
+Deliverable:
+
+- keep the current WenQuanYi Bitmap Song 13px render fixed
+- train a small adapter from Song13 1bpp source mask to target `ge2`
+- feed the adapted mask into the existing Stage20 core/edge and shadow heads
+- compare raw source-mask alignment, adapted-mask alignment, and final visual
+  metrics
+- export adapted masks, 2bpp predictions, best-model contact sheet,
+  worst-case contact sheet, and metadata
+- command: `scripts/train_song13_adapter.py`
+- output root: `data/processed/glyphs/stage22_song13_adapter/`
+
+Current CJK metrics:
+
+- raw Song13 source mask vs target ge2 F1/IoU: `0.5953` / `0.4442`
+- adapted mask vs target ge2 F1/IoU: `0.6844` / `0.5304`
+- best adapter: `adapter_patch_mlp`
+- visual score after style heads: `0.6809`
+- ink F1 after style heads: `0.6371`
+- shadow F1 after style heads: `0.5615`
+- foreground IoU / pixel accuracy / MAE: `0.7481` / `0.6987` / `0.5277`
+
+Interpretation:
+
+- source adaptation is the right next axis; it improves both mask alignment and
+  final visual score over Stage 21
+- the adapter can over-connect dense Song-style strokes and lose small counters,
+  so the next improvement should constrain shape/topology rather than just
+  increasing model capacity
+- Stage20 remains the controlled style reference; Stage22 tests the real-source
+  bridge into that style model
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_song13_adapter.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_song13_adapter_smoke
+```
+
+Commit theme:
+
+```text
+feat: adapt song13 source masks
+```

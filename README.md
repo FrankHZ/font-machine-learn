@@ -63,6 +63,7 @@ The first milestones were intentionally small:
 │   ├── train_patch_classifier.py # Stage 19 patch-only ge2 2/3 classifiers
 │   ├── train_shadow_classifier.py # Stage 20 learned 0/1 shadow classifier
 │   ├── eval_external_sources.py  # Stage 21 external source-mask transfer eval
+│   ├── train_song13_adapter.py   # Stage 22 source-mask adapter experiment
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -196,6 +197,7 @@ data/processed/glyphs/
 ├── stage19_patch_classifier/ # patch-only ge2 level-2/3 classifier outputs
 ├── stage20_shadow_classifier/ # learned shadow + patch MLP combined output
 ├── stage21_external_eval/ # Stage20 two-head model on external source masks
+├── stage22_song13_adapter/ # Song13 mask adapter feeding Stage20 style heads
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -732,14 +734,41 @@ with target `ge2` structure for the style model to shine. Down-left alignment
 improves Song13 substantially compared with centered rendering. Historical
 WQY/Song12 comparisons should be run only with explicit `--source` arguments.
 
+## Train the Song13 Source Adapter
+
+Run:
+
+```powershell
+python scripts/train_song13_adapter.py
+```
+
+This keeps the current Song13 render fixed and trains a small adapter that maps
+the Song13 1bpp source mask toward target `ge2` before applying the existing
+Stage20 two-head style model.
+
+Current CJK result:
+
+- raw Song13 mask vs target ge2 F1/IoU: `0.5953` / `0.4442`
+- adapted mask vs target ge2 F1/IoU: `0.6844` / `0.5304`
+- best adapter: `adapter_patch_mlp`
+- visual score after Stage20 style heads: `0.6809`
+- ink F1 / shadow F1: `0.6371` / `0.5615`
+- foreground IoU / pixel accuracy / MAE: `0.7481` / `0.6987` / `0.5277`
+
+Interpretation: source adaptation helps, but the contact sheets still show
+local over-connection and lost small counters in complex Song-style CJK glyphs.
+The next useful direction is to constrain or regularize the adapter so it
+improves alignment without collapsing tiny white spaces.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Keep Stage 20 as the current controlled best baseline.
-2. Work on source adaptation for WQY masks before increasing style-model
-   capacity.
-3. Keep CJK as the primary split and non-CJK as a guard split.
-4. Compare model outputs by contact sheet first, then by level-aware visual
+1. Keep Stage 20 as the controlled best style baseline.
+2. Keep Song13 as the default external source and avoid broad font comparisons.
+3. Improve the Stage22 source adapter with topology/shape constraints before
+   increasing style-model capacity.
+4. Keep CJK as the primary split and non-CJK as a guard split.
+5. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.
