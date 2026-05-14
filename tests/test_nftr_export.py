@@ -34,6 +34,7 @@ from font_machine_learn.shadow_classifier import export_shadow_classifier
 from font_machine_learn.song13_adapter import export_song13_adapter
 from font_machine_learn.song13_add_only import export_song13_add_only
 from font_machine_learn.song13_calibrated import export_song13_calibrated
+from font_machine_learn.song13_layer_mlp import export_song13_layer_mlp
 from font_machine_learn.song13_source_locked import export_song13_source_locked
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
@@ -1101,6 +1102,66 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(
                 metadata["task"],
                 "source-locked Song13 1bpp mask -> NFTR-style 2bpp layer assignment",
+            )
+            self.assertEqual(
+                metadata["contact_sheet_order"],
+                ["original_source", "source_ge2", "predicted_2bpp", "target_2bpp"],
+            )
+
+    @slow_test
+    def test_exports_song13_layer_mlp_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            target_metadata = json.loads(Path(target.metadata_json).read_text(encoding="utf-8"))
+            fake_source = {
+                "cell_width": target_metadata["cell_width"],
+                "cell_height": target_metadata["cell_height"],
+                "glyphs": [
+                    {
+                        **glyph,
+                        "source_png": glyph["png"],
+                        "target_png": glyph["png"],
+                    }
+                    for glyph in target_metadata["glyphs"]
+                ],
+            }
+            fake_source_json = root / "fake_source.json"
+            fake_source_json.write_text(json.dumps(fake_source, ensure_ascii=False), encoding="utf-8")
+            result = export_song13_layer_mlp(
+                target_metadata=Path(target.metadata_json),
+                source_metadata=fake_source_json,
+                out_dir=root / "song13_layer_mlp",
+                metadata_json=root / "song13_layer_mlp.json",
+                contact_sheet=root / "song13_layer_mlp.png",
+                error_contact_sheet=root / "song13_layer_mlp_errors.png",
+                core_thresholds=[0.50],
+                shadow_thresholds=[0.50],
+                max_train_glyphs=12,
+                core_hidden_units=10,
+                shadow_hidden_units=10,
+                max_iter=4,
+                worst_count=12,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertGreater(result.core_edge_train_pixel_count, 0)
+            self.assertGreater(result.shadow_train_pixel_count, 0)
+            self.assertEqual(result.best_source_deleted_ratio, 0.0)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.error_contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(
+                metadata["task"],
+                "source-locked Song13 1bpp mask -> learned NFTR-style 2bpp layer assignment",
             )
             self.assertEqual(
                 metadata["contact_sheet_order"],

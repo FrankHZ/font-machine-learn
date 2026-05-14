@@ -1092,3 +1092,57 @@ work. It preserves source glyph shape and accepts that target-shaped metrics
 will be imperfect. Its output is more mechanical than learned adapters, but it
 does not erase source strokes. Future learned models should be trained/evaluated
 under this source-locked contract.
+
+## Target 26: Source-Locked Song13 Layer MLP
+
+Goal: learn NFTR layer assignment while keeping the Stage25 source-lock
+contract.
+
+Command:
+
+```powershell
+python scripts/train_song13_layer_mlp.py
+```
+
+Setup:
+
+- training source: target-derived `ge2` mask, used only as a controlled source
+  for learning layer semantics
+- core/edge head: source pixels learn target level `2` versus `3`
+- shadow head: outside-source pixels learn target level `0` versus `1`
+- inference source: WenQuanYi Bitmap Song 13px rendered with the Target 21
+  settings
+- hard contract: Song13 source pixels are never deleted; source pixels can only
+  be `2/3`, and outside pixels can only be `0/1`
+
+Outputs:
+
+- `stage26_song13_layer_mlp/*/source_ge2/*.png`
+- `stage26_song13_layer_mlp/*/predicted_2bpp/*.png`
+- `stage26_song13_layer_mlp/song13_layer_mlp_metadata.json`
+- `stage26_song13_layer_mlp/song13_layer_mlp_contact.png`
+- `stage26_song13_layer_mlp/song13_layer_mlp_error_contact.png`
+
+Contact sheet order:
+
+- original Song13 source
+- source `ge2`, visualized as level `2` gray
+- predicted `2bpp`
+- target `2bpp`
+
+Current CJK run:
+
+- best candidate: `core_patch_mlp_shadow_logistic_balanced_c055_s045`
+- source deleted ratio: `0.0000`
+- source level-2 ratio: `0.1179`
+- source level-3 ratio: `0.8821`
+- visual score: `0.6339`
+- ink F1: `0.5759`
+- shadow F1: `0.5315`
+
+Interpretation: Stage26 is the first learned successor to Stage25. It should be
+judged against Stage25 by contact sheet first, then by visual/ink/shadow metrics
+as supporting evidence. It is not allowed to learn a replacement Song13 shape.
+This first learned version does not beat Stage25's rule baseline (`0.6409`
+visual); keep Stage25 as the quality reference while Stage26 remains the learned
+harness to improve.

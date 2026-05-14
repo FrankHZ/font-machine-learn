@@ -969,3 +969,63 @@ Commit theme:
 ```text
 feat: lock song13 source shape
 ```
+
+## Stage 26: Source-Locked Song13 Layer MLP
+
+Deliverable:
+
+- train learned core/edge and shadow heads on target-derived `ge2` masks
+- apply the learned heads to the fixed Song13 source mask
+- preserve every Song13 source pixel
+- assign source pixels only to level `2` or `3`
+- assign outside-source pixels only to level `0` or `1`
+- export predictions, metadata, best-candidate contact sheet, and worst-case
+  contact sheet
+- command: `scripts/train_song13_layer_mlp.py`
+- output root: `data/processed/glyphs/stage26_song13_layer_mlp/`
+
+Interpretation:
+
+- Stage26 is the learned successor to Stage25, not a source adapter
+- target `ge2` is used to teach layer semantics under a controlled source, not
+  to reshape Song13
+- compare the contact sheet against Stage25 first; target-shaped metrics remain
+  supporting diagnostics because Song13 and the target NFTR glyph shapes differ
+
+Current CJK metrics:
+
+- best candidate: `core_patch_mlp_shadow_logistic_balanced_c055_s045`
+- source deleted ratio: `0.0000`
+- source level-2 ratio: `0.1179`
+- source level-3 ratio: `0.8821`
+- visual score: `0.6339`
+- ink F1: `0.5759`
+- shadow F1: `0.5315`
+
+Current interpretation:
+
+- the Stage26 harness is now usable and runs in about a minute with the cached
+  probability/search-limit path
+- it does not beat Stage25's rule baseline (`0.6409` visual)
+- learned shadow placement is currently too conservative on Song13, so Stage25
+  remains the quality reference
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_song13_layer_mlp_smoke
+```
+
+Commit theme:
+
+```text
+feat: learn song13 locked layers
+```

@@ -67,6 +67,7 @@ The first milestones were intentionally small:
 │   ├── train_song13_calibrated.py # Stage 23 calibrated adapter threshold sweep
 │   ├── train_song13_add_only.py  # Stage 24 source-preserving add-only adapter
 │   ├── run_song13_source_locked.py # Stage 25 source-locked style rule sweep
+│   ├── train_song13_layer_mlp.py # Stage 26 source-locked learned layerer
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -204,6 +205,7 @@ data/processed/glyphs/
 ├── stage23_song13_calibrated/ # threshold-calibrated Song13 adapter sweep
 ├── stage24_song13_add_only/ # source-preserving add-only Song13 adapter
 ├── stage25_song13_source_locked/ # source-locked Song13 2bpp style rules
+├── stage26_song13_layer_mlp/ # source-locked learned Song13 layer assignment
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -862,6 +864,45 @@ Interpretation: this is the clean source-preserving baseline. It is more
 mechanical than the learned stages, but it avoids the central failure of
 target-shaped adapters: erasing Song13 strokes.
 
+## Train the Source-Locked Layer MLP
+
+Run:
+
+```powershell
+python scripts/train_song13_layer_mlp.py
+```
+
+This is the first learned stage after locking the Song13 shape. It trains two
+small heads on target-derived `ge2` masks:
+
+- source/ge2 pixels learn level `2` versus level `3`;
+- outside-source pixels learn level `0` versus right-down-ish level `1`.
+
+At inference time the heads are applied to the Song13 source mask without
+changing shape: Song13 pixels are never deleted, source pixels can only become
+`2/3`, and outside pixels can only become shadow `1`.
+
+Outputs:
+
+- `stage26_song13_layer_mlp/*/source_ge2/*.png`
+- `stage26_song13_layer_mlp/*/predicted_2bpp/*.png`
+- `stage26_song13_layer_mlp/song13_layer_mlp_metadata.json`
+- `stage26_song13_layer_mlp/song13_layer_mlp_contact.png`
+- `stage26_song13_layer_mlp/song13_layer_mlp_error_contact.png`
+
+Current CJK result:
+
+- best candidate: `core_patch_mlp_shadow_logistic_balanced_c055_s045`
+- source deleted ratio: `0.0000`
+- source level-2 / level-3 ratio: `0.1179` / `0.8821`
+- visual score: `0.6339`
+- ink F1 / shadow F1: `0.5759` / `0.5315`
+
+Interpretation: Stage26 proves the source-locked learned-layer harness works,
+but it does not beat Stage25's rule baseline (`0.6409` visual). The learned
+shadow head is more conservative and scores lower by both metric and contact
+sheet, so Stage25 remains the current Song13 quality baseline.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
@@ -869,8 +910,8 @@ See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Keep Stage 20 as the controlled best style baseline.
 2. Keep Song13 as the default external source and avoid broad font comparisons.
-3. Treat Stage25 as the baseline contract for future Song13 work: preserve
-   source shape first, then learn cleaner 2/3 core-edge and 0/1 shadow layers.
+3. Treat Stage25/26 as the Song13 contract: preserve source shape first, then
+   compare rule-based and learned 2/3 core-edge plus 0/1 shadow assignment.
 4. Keep CJK as the primary split and non-CJK as a guard split.
 5. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.
