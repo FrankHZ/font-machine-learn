@@ -25,6 +25,7 @@ from font_machine_learn.binary_diagnostic import export_binary_diagnostic
 from font_machine_learn.char_class import classify_char, classify_glyph
 from font_machine_learn.cjk_edges import export_cjk_edges_baseline
 from font_machine_learn.cjk_style import export_cjk_style_baseline
+from font_machine_learn.patch_readiness import export_patch_readiness
 from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
@@ -709,6 +710,40 @@ class NFTRExportTest(unittest.TestCase):
 
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertEqual(metadata["task"], "explain ge2 source pixels as level 2 vs level 3 boundary")
+
+    @slow_test
+    def test_exports_patch_readiness_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            result = export_patch_readiness(
+                target_metadata=Path(target.metadata_json),
+                mlp_pred_dir=root / "missing_mlp_predictions",
+                metadata_json=root / "patch_readiness.json",
+                patches_jsonl=root / "patches.jsonl",
+                contact_sheet=root / "patches.png",
+                examples_per_category=4,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertGreater(result.patch_record_count, 0)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.patches_jsonl).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(
+                metadata["task"],
+                "patch-readiness analysis for ge2 1bpp source -> NFTR 2bpp level assignment",
+            )
+            self.assertEqual(metadata["mlp_prediction_available_glyphs"], 0)
+            self.assertEqual(metadata["contact_sheet_order"][0], "source_ge2_patch")
 
 
 if __name__ == "__main__":

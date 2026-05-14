@@ -97,4 +97,9 @@ BOUNDARY_RULE_SEARCH = STAGE17_BOUNDARY_RULES / "boundary_rule_search.json"
 BOUNDARY_RULE_CONTACT = STAGE17_BOUNDARY_RULES / "boundary_rule_contact.png"
 BOUNDARY_RULE_WORST_CONTACT = STAGE17_BOUNDARY_RULES / "boundary_rule_worst_contact.png"
 
+STAGE18_PATCH_READINESS = GLYPH_ROOT / "stage18_patch_readiness"
+PATCH_READINESS_METADATA = STAGE18_PATCH_READINESS / "patch_readiness_metadata.json"
+PATCH_READINESS_PATCHES = STAGE18_PATCH_READINESS / "patch_readiness_patches.jsonl"
+PATCH_READINESS_CONTACT = STAGE18_PATCH_READINESS / "patch_readiness_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

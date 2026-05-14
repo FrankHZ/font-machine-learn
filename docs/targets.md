@@ -701,3 +701,51 @@ Interpretation: level `2` is almost always a boundary pixel in the `ge2` mask,
 but that condition is not sufficient because most level `3` pixels are also
 near the boundary in 15x15 CJK glyphs. A simple neighbor-count rule is
 explainable and decent, but the MLP's extra gain comes from richer local context.
+
+## Target 18: Patch Model Readiness
+
+Goal: decide whether the next model should use local patches by comparing where
+the controlled `ge2` MLP beats the explainable boundary rule.
+
+Command:
+
+```powershell
+python scripts/build_patch_readiness.py
+```
+
+Dataset:
+
+- source mask: target-derived `ge2`, because it is the best controlled 1bpp
+  source for the current objective
+- split focus: CJK only
+- included pixels: target level `2` and `3`
+- patch: compact 9x9 binary source patch centered on each included pixel
+- labels: target level, Stage 15 MLP prediction, Stage 17 rule prediction, and
+  category
+
+Output:
+
+- `stage18_patch_readiness/patch_readiness_metadata.json`
+- `stage18_patch_readiness/patch_readiness_patches.jsonl`
+- `stage18_patch_readiness/patch_readiness_contact.png`
+
+Initial run:
+
+- CJK ge2 records: `98954`
+- MLP level-2/3 pixel accuracy: `0.9380`
+- boundary-rule level-2/3 pixel accuracy: `0.8905`
+- `rule_wrong_mlp_right`: `6177`
+- `mlp_wrong_rule_right`: `1474`
+- `both_wrong`: `4660`
+
+By target level:
+
+- target level `2`: `5315` rule-wrong/MLP-right, `271` MLP-wrong/rule-right,
+  `3489` both-wrong
+- target level `3`: `862` rule-wrong/MLP-right, `1203` MLP-wrong/rule-right,
+  `1171` both-wrong
+
+Interpretation: the MLP's extra value is concentrated on subtle level-2 edge
+pixels, which supports a patch-aware next stage. The contact sheet should be
+read as four rows per example: source `ge2` patch, target patch, MLP patch, rule
+patch.

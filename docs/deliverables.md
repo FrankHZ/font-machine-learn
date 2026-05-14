@@ -536,3 +536,50 @@ Commit theme:
 ```text
 feat: explain ge2 boundary rules
 ```
+
+## Stage 18: Patch Model Readiness
+
+Deliverable:
+
+- compare Stage 15 `ge2` MLP predictions against the Stage 17 boundary rule
+- export a CJK-only `ge2` level-2/3 pixel patch index with 9x9 source patches
+- export metadata, JSONL patch records, and a contact sheet ordered by error
+  category
+- command: `scripts/build_patch_readiness.py`
+- output root: `data/processed/glyphs/stage18_patch_readiness/`
+
+First recorded metrics:
+
+- CJK patch records: `98954`
+- MLP ge2 level-2/3 pixel accuracy: `0.9380`
+- boundary-rule ge2 level-2/3 pixel accuracy: `0.8905`
+- `rule_wrong_mlp_right`: `6177`
+- `mlp_wrong_rule_right`: `1474`
+- `both_wrong`: `4660`
+
+Interpretation:
+
+- the MLP is not just matching the rule; it correctly handles many pixels that
+  the simple boundary rule misses
+- the largest useful bucket is level-2 edge assignment, so the next model should
+  be patch-aware before trying larger global machinery
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_patch_readiness.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_patch_readiness_smoke
+```
+
+Commit theme:
+
+```text
+feat: build patch readiness dataset
+```

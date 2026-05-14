@@ -58,6 +58,7 @@ The first milestones were intentionally small:
 │   ├── run_wqy_alignment_diagnostic.py # Search WQY alignment/weight by mask mode
 │   ├── train_style_mlp.py        # Controlled 1bpp-to-2bpp style MLP
 │   ├── run_boundary_rules.py     # Explainable ge2 level-2/3 boundary rules
+│   ├── build_patch_readiness.py  # Stage 18 patch/error dataset for next model
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -187,6 +188,7 @@ data/processed/glyphs/
 ├── stage15_style_mlp/      # controlled target-derived style-learning baseline
 ├── stage16_style_mlp_tuning/ # small capacity/feature tuning over Stage 15
 ├── stage17_boundary_rules/ # explainable ge2 level-2/3 boundary search
+├── stage18_patch_readiness/ # CJK ge2 patch/error index for next model choice
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -597,13 +599,44 @@ well below Stage 15/16 MLP scores. Level `2` is mostly a ge2 boundary pixel:
 However, many level-3 pixels are also near that boundary, so the remaining
 decision needs richer local context than a single neighbor-count rule.
 
+## Build Patch Readiness Dataset
+
+Run:
+
+```powershell
+python scripts/build_patch_readiness.py
+```
+
+This does not train a CNN yet. It compares the Stage 15 `ge2` MLP output against
+the Stage 17 explainable boundary rule and writes a CJK-focused pixel patch
+index:
+
+- `data/processed/glyphs/stage18_patch_readiness/patch_readiness_metadata.json`
+- `data/processed/glyphs/stage18_patch_readiness/patch_readiness_patches.jsonl`
+- `data/processed/glyphs/stage18_patch_readiness/patch_readiness_contact.png`
+
+Each JSONL row is a CJK target level `2` or `3` pixel with a compact 9x9
+`ge2` source patch, target label, MLP label, rule label, and error category.
+
+Current result:
+
+- CJK ge2 patch records: `98954`
+- MLP ge2 2/3 pixel accuracy: `0.9380`
+- boundary-rule ge2 2/3 pixel accuracy: `0.8905`
+- `rule_wrong_mlp_right`: `6177`
+- `mlp_wrong_rule_right`: `1474`
+- `both_wrong`: `4660`
+
+Interpretation: the MLP's improvement over the explainable rule is real and is
+mostly on level-2 edge pixels, so the next useful model should be patch-aware
+rather than just another scalar boundary rule.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Train the next model on Stage 11 pairs: 1bpp visible masks as input and 2bpp
-   target levels as labels.
+1. Use Stage 18 to decide the first patch-aware model shape.
 2. Keep CJK as the primary split and non-CJK as a guard split.
 3. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.
