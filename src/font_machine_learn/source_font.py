@@ -30,6 +30,8 @@ class SourceDatasetExport:
     font_name: tuple[str, str]
     font_index: int
     font_size: int
+    x_offset: int
+    y_offset: int
     out_dir: str
     metadata_json: str
     contact_sheet: str
@@ -45,6 +47,8 @@ def render_mask(
     cell_width: int,
     cell_height: int,
     font_mode: str = "L",
+    x_offset: int = 0,
+    y_offset: int = 0,
 ) -> tuple[Image.Image, tuple[int, int, int, int] | None]:
     canvas = Image.new("L", (cell_width * 3, cell_height * 3), 0)
     draw = ImageDraw.Draw(canvas)
@@ -55,8 +59,8 @@ def render_mask(
 
     width = bbox[2] - bbox[0]
     height = bbox[3] - bbox[1]
-    x = (cell_width - width) // 2 - bbox[0]
-    y = (cell_height - height) // 2 - bbox[1]
+    x = (cell_width - width) // 2 - bbox[0] + x_offset
+    y = (cell_height - height) // 2 - bbox[1] + y_offset
     draw.text((x, y), char, fill=255, font=font)
     return canvas.crop((0, 0, cell_width, cell_height)), bbox
 
@@ -124,6 +128,8 @@ def export_source_dataset(
     cell_height: int = 15,
     threshold: int = 96,
     font_mode: str = "L",
+    x_offset: int = 0,
+    y_offset: int = 0,
     metadata_json: Path | None = SOURCE_METADATA,
     contact_sheet: Path | None = SOURCE_TARGET_CONTACT,
     scale: int = 4,
@@ -154,7 +160,15 @@ def export_source_dataset(
         ink = None
         image = Image.new("RGBA", (cell_width, cell_height), (0, 0, 0, 0))
         if char is not None:
-            mask, bbox = render_mask(font, char, cell_width, cell_height, font_mode)
+            mask, bbox = render_mask(
+                font,
+                char,
+                cell_width,
+                cell_height,
+                font_mode,
+                x_offset=x_offset,
+                y_offset=y_offset,
+            )
             image = quantize_mask_to_1bpp(mask, threshold)
             ink = alpha_bbox(image)
         image.save(source_png)
@@ -201,6 +215,8 @@ def export_source_dataset(
         "cell_height": cell_height,
         "threshold": threshold,
         "font_mode": font_mode,
+        "x_offset": x_offset,
+        "y_offset": y_offset,
         "glyph_count": len(records),
         "rendered_count": sum(1 for record in records if record.chars),
         "glyph_dir": str(out_dir),
@@ -215,6 +231,8 @@ def export_source_dataset(
         font_name=font.getname(),
         font_index=font_index,
         font_size=font_size,
+        x_offset=x_offset,
+        y_offset=y_offset,
         out_dir=str(out_dir),
         metadata_json=str(metadata_path),
         contact_sheet=str(contact_path),

@@ -847,47 +847,27 @@ Command:
 python scripts/eval_external_sources.py
 ```
 
-Default external sources:
+Default external source:
 
-- `wqy13`: Stage 2 WQY Sharp size 13 source metadata
-- `wqy14`: Stage 14 WQY Sharp size 14 source metadata
-- `song12`: WenQuanYi Bitmap Song 12px source metadata, if rendered under
-  `stage21_external_eval_sources/song12/`
 - `song13`: WenQuanYi Bitmap Song 13px source metadata, if rendered under
   `stage21_external_eval_sources/song13/`
 
-Current fitted CJK run:
+Current Song13 CJK run:
 
-- WQY13 source mask vs target ge2 F1: `0.4056`
-- WQY13 source mask vs target ge2 IoU: `0.2666`
-- WQY13 visual score: `0.4746`
-- WQY13 ink F1: `0.3833`
-- WQY13 shadow F1: `0.3458`
-- WQY14 source mask vs target ge2 F1: `0.5576`
-- WQY14 source mask vs target ge2 IoU: `0.4093`
-- WQY14 visual score: `0.6034`
-- WQY14 ink F1: `0.5437`
-- WQY14 shadow F1: `0.4906`
-- Song12 source mask vs target ge2 F1: `0.5002`
-- Song12 source mask vs target ge2 IoU: `0.3455`
-- Song12 visual score: `0.5521`
-- Song12 ink F1: `0.4876`
-- Song12 shadow F1: `0.4311`
-- Song13 source mask vs target ge2 F1: `0.5441`
-- Song13 source mask vs target ge2 IoU: `0.3853`
-- Song13 visual score: `0.5839`
-- Song13 ink F1: `0.5205`
-- Song13 shadow F1: `0.4668`
+- source render: `--font-size 15 --font-mode L --threshold 96 --x-offset -1 --y-offset 1`
+- Song13 source mask vs target ge2 F1: `0.5953`
+- Song13 source mask vs target ge2 IoU: `0.4442`
+- Song13 visual score: `0.6320`
+- Song13 ink F1: `0.5775`
+- Song13 shadow F1: `0.5257`
 
 Interpretation: Stage20 is a strong controlled style transform, but external
-transfer is bottlenecked by the source mask. WQY14 is still materially closer
-than WQY13. Song13 at threshold `96` scores higher but is visually too dense,
-so the dense-sweep default is threshold `128`; WQY14 still has the better final
-visual score. Song12 is a useful looser comparison, and Song14 is excluded from
-the default run for now to save iteration time.
+transfer is bottlenecked by the source mask. Song13 is now the baseline source
+font; other fonts should not be compared by default. The source face is
+Song/Ming-style with serifs, so serif feet are expected. The NFTR target is
+placed more like left-bottom aligned text, and `x=-1, y=+1` improves Song13
+alignment over centered rendering.
 
-Rendering note: use `--font-mode L` for WenQuanYi Bitmap Song. Song12 currently
-uses `--font-size 15 --threshold 96`; Song13 uses
-`--font-size 16 --threshold 128`. `--font-mode 1` removes antialiasing but makes
-many CJK glyphs too sparse, and generic close/bridge morphology fills complex
-characters too aggressively.
+Rendering note: use `--font-mode L` for WenQuanYi Bitmap Song 13px with
+`--font-size 15 --threshold 96 --x-offset -1 --y-offset 1`. Because this is a
+bitmap strike, threshold is not a useful tuning axis for the current baseline.

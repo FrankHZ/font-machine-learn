@@ -55,8 +55,9 @@ style layering from a 1bpp mask into 2bpp levels.
   classifiers.
 - `scripts/train_shadow_classifier.py`: Stage 20 learned 0/1 shadow classifier
   combined with the ge2 patch MLP.
-- `scripts/eval_external_sources.py`: Stage 21 transfer evaluation on WQY13,
-  WQY14, and fitted rendered Song source masks.
+- `scripts/eval_external_sources.py`: Stage 21 transfer evaluation on the
+  current Song13 source baseline; pass explicit `--source` values for old
+  comparisons.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -98,17 +99,14 @@ Generated glyph artifacts must be grouped by stage under
   vs `3` inside the `ge2` source mask.
 - `stage20_shadow_classifier/`: separate learned shadow head combined with the
   Stage19-style patch MLP; current controlled best baseline.
-- `stage21_external_eval/`: Stage20 two-head model evaluated on external WQY
-  and Song source masks; use this to separate style learning from source
-  adaptation.
+- `stage21_external_eval/`: Stage20 two-head model evaluated on the current
+  external source baseline. The default is now Song 13px only; use explicit
+  `--source` arguments for historical WQY/Song12 comparisons.
 - `stage21_external_eval_sources/`: optional rendered source datasets for
-  extra external fonts. Current WenQuanYi Bitmap Song defaults are fitted from
-  dense sweep review rather than nominal strike size: Song 12px at
-  `--font-size 15 --font-mode L --threshold 96`, and Song 13px at
-  `--font-size 16 --font-mode L --threshold 128`. Song13 at threshold `96`
-  scores higher but is visually too dense, so do not restore it by metric alone.
-  Song 14px is intentionally excluded from the default Stage21 run for now to
-  save iteration time.
+  external fonts. Current baseline source is WenQuanYi Bitmap Song 13px:
+  `--font-size 15 --font-mode L --threshold 96 --x-offset -1 --y-offset 1`.
+  This is a Song/Ming-style face with serifs, not a Gothic/Hei face; keep that
+  as the baseline and avoid broad font comparisons unless explicitly requested.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.

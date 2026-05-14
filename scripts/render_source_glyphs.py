@@ -27,6 +27,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--contact-sheet", type=Path, default=SOURCE_TARGET_CONTACT)
     parser.add_argument("--threshold", type=int, default=96)
     parser.add_argument("--font-mode", choices=("L", "1"), default="L", help="Pillow text rasterization mode.")
+    parser.add_argument("--x-offset", type=int, default=0, help="Horizontal glyph render offset after centering.")
+    parser.add_argument("--y-offset", type=int, default=0, help="Vertical glyph render offset after centering.")
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=32)
     return parser
@@ -43,6 +45,8 @@ def main(argv: list[str] | None = None) -> int:
         font_size=args.font_size,
         threshold=args.threshold,
         font_mode=args.font_mode,
+        x_offset=args.x_offset,
+        y_offset=args.y_offset,
         metadata_json=args.metadata,
         contact_sheet=args.contact_sheet,
         scale=args.scale,

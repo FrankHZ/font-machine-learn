@@ -31,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="append",
         default=[],
         metavar="NAME=METADATA",
-        help="External source metadata to evaluate. May be repeated. Default: known WQY source metadata files.",
+        help="External source metadata to evaluate. May be repeated. Default: current Song13 baseline if available.",
     )
     return parser
 

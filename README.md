@@ -705,39 +705,32 @@ python scripts/eval_external_sources.py
 ```
 
 This retrains the Stage20 two-head patch model on target-derived `ge2` masks,
-then evaluates it on rendered external source masks. By default it uses:
+then evaluates it on the current external source baseline. By default that is
+only `song13`:
 
-- `wqy13`: `data/processed/glyphs/stage2_source/source_metadata.json`
-- `wqy14`: `data/processed/glyphs/stage14_wqy_size14/source_metadata.json`
-- `song12`: `data/processed/glyphs/stage21_external_eval_sources/song12/source_metadata.json`, if present
 - `song13`: `data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json`, if present
 
-For WenQuanYi Bitmap Song, use the dense-sweep fitted render sizes instead of
-the nominal strike size. Keep grayscale rasterization; Song12 currently uses
-threshold `96`, while Song13 uses threshold `128` to avoid overly dense strokes:
+For WenQuanYi Bitmap Song 13px, keep the real bitmap strike as the baseline and
+align it down-left to match the NFTR cells. The face is Song/Ming-style with
+serifs, so serif feet such as the one on `一` are expected:
 
 ```powershell
-python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.12px.ttf --font-index 0 --font-size 15 --font-mode L --threshold 96 --out-dir data/processed/glyphs/stage21_external_eval_sources/song12/source --metadata data/processed/glyphs/stage21_external_eval_sources/song12/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song12/source_target_contact.png
-python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.13px.ttf --font-index 0 --font-size 16 --font-mode L --threshold 128 --out-dir data/processed/glyphs/stage21_external_eval_sources/song13/source --metadata data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song13/source_target_contact.png
+python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.13px.ttf --font-index 0 --font-size 15 --font-mode L --threshold 96 --x-offset -1 --y-offset 1 --out-dir data/processed/glyphs/stage21_external_eval_sources/song13/source --metadata data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song13/source_target_contact.png
 ```
 
 Current CJK result:
 
-- WQY13 source mask vs target ge2 F1: `0.4056`
-- WQY13 visual score after style model: `0.4746`
-- WQY14 source mask vs target ge2 F1: `0.5576`
-- WQY14 visual score after style model: `0.6034`
-- Song12 fitted source mask vs target ge2 F1: `0.5002`
-- Song12 visual score after style model: `0.5521`
-- Song13 fitted source mask vs target ge2 F1: `0.5441`
-- Song13 visual score after style model: `0.5839`
+- Song13 source mask vs target ge2 F1: `0.5953`
+- Song13 source mask vs target ge2 IoU: `0.4442`
+- Song13 visual score after Stage20 style model: `0.6320`
+- Song13 ink F1 after Stage20 style model: `0.5775`
+- Song13 shadow F1 after Stage20 style model: `0.5257`
 
 Interpretation: transfer is dominated by source mask quality. Stage20 has a
 strong controlled style transform, but external source masks still need to align
-with target `ge2` structure for the style model to shine. Song13 at threshold
-`96` scores higher but is visually too dense; the default uses threshold `128`
-from dense-sweep review. WQY14 still gives the best final Stage20 visual score
-in this run. Song14 is excluded from the default Stage21 set for now.
+with target `ge2` structure for the style model to shine. Down-left alignment
+improves Song13 substantially compared with centered rendering. Historical
+WQY/Song12 comparisons should be run only with explicit `--source` arguments.
 
 ## Next Milestones
 

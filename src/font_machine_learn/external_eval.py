@@ -74,17 +74,10 @@ def summarize_binary(records: list) -> dict[str, float | int]:
 
 
 def default_external_sources() -> dict[str, Path]:
-    sources = {"wqy13": SOURCE_METADATA}
-    wqy14 = Path("data/processed/glyphs/stage14_wqy_size14/source_metadata.json")
-    if wqy14.exists():
-        sources["wqy14"] = wqy14
-    song12 = Path("data/processed/glyphs/stage21_external_eval_sources/song12/source_metadata.json")
-    if song12.exists():
-        sources["song12"] = song12
     song13 = Path("data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json")
     if song13.exists():
-        sources["song13"] = song13
-    return sources
+        return {"song13": song13}
+    return {"wqy13": SOURCE_METADATA}
 
 
 def train_two_head_models(
@@ -318,8 +311,9 @@ def export_external_eval(
         "sources": source_payloads,
         "interpretation_notes": [
             "Controlled Stage20 score measures style learning with target-derived ge2 masks.",
-            "This stage measures transfer when the input mask comes from rendered WQY or Song source glyphs.",
-            "Low WQY scores should be read primarily as source adaptation/alignment issues unless source_mask_vs_target_ge2 is already strong.",
+            "This stage measures transfer when the input mask comes from a rendered external source glyph.",
+            "The default external source is WenQuanYi Bitmap Song 13px; use --source for historical WQY or sweep comparisons.",
+            "Low external scores should be read primarily as source adaptation/alignment issues unless source_mask_vs_target_ge2 is already strong.",
         ],
     }
     metadata_json.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

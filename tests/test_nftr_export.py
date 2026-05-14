@@ -180,12 +180,16 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(result.font_name, ("WenQuanYi Zen Hei Sharp", "Regular"))
             self.assertEqual(result.font_index, 2)
             self.assertEqual(result.font_size, 13)
+            self.assertEqual(result.x_offset, 0)
+            self.assertEqual(result.y_offset, 0)
             self.assertEqual(result.glyph_count, 1814)
             self.assertEqual(result.rendered_count, 1814)
             self.assertEqual(len(list((root / "source").glob("*.png"))), 1814)
 
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertEqual(metadata["font_mode"], "L")
+            self.assertEqual(metadata["x_offset"], 0)
+            self.assertEqual(metadata["y_offset"], 0)
             widths = [glyph["ink_width"] for glyph in metadata["glyphs"] if glyph["ink_width"]]
             self.assertGreater(sum(1 for width in widths if 12 <= width <= 13), 1000)
             zero = metadata["glyphs"][5]
