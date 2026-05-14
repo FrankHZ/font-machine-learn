@@ -901,6 +901,13 @@ Outputs:
 - `stage22_song13_adapter/song13_adapter_contact.png`
 - `stage22_song13_adapter/song13_adapter_error_contact.png`
 
+Contact sheet order:
+
+- original Song13 source
+- adapted `ge2`
+- predicted `2bpp`
+- target `2bpp`
+
 Initial CJK run:
 
 - raw Song13 source mask vs target ge2 F1/IoU: `0.5953` / `0.4442`

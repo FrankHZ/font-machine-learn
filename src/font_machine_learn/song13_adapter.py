@@ -15,9 +15,9 @@ from sklearn.neural_network import MLPClassifier
 from font_machine_learn.baseline import BaselineGlyphMetrics, image_to_target_levels, levels_to_image
 from font_machine_learn.binary_diagnostic import compare_masks, image_to_mask, mask_to_image
 from font_machine_learn.char_class import classify_glyph
-from font_machine_learn.cjk_style import _make_contact_sheet, group_name
+from font_machine_learn.cjk_style import group_name
 from font_machine_learn.external_eval import summarize_binary, summarize_visual, train_two_head_models
-from font_machine_learn.nftr import export_target_dataset
+from font_machine_learn.nftr import checkerboard, export_target_dataset
 from font_machine_learn.patch_classifier import model_n_iter, patch_features
 from font_machine_learn.paths import (
     SONG13_ADAPTER_CONTACT,
@@ -163,6 +163,40 @@ def predict_adapter_mask(model: object, source_mask: Mask, *, patch_radius: int)
         for (x, y), value in zip(positions, predictions):
             predicted[y][x] = int(value) == 1
     return predicted
+
+
+def make_adapter_contact_sheet(
+    records: list[dict],
+    *,
+    out_path: Path,
+    scale: int,
+    columns: int,
+    cell_width: int,
+    cell_height: int,
+    pad: int,
+) -> None:
+    tile_w = cell_width * scale
+    tile_h = cell_height * scale
+    group_h = tile_h * 4 + pad * 3
+    rows = (len(records) + columns - 1) // columns
+    sheet = checkerboard(
+        (columns * tile_w + (columns + 1) * pad, rows * group_h + (rows + 1) * pad),
+        max(2, scale * 2),
+    )
+
+    for position, record in enumerate(records):
+        x = pad + (position % columns) * (tile_w + pad)
+        y = pad + (position // columns) * (group_h + pad)
+        images = (
+            Image.open(record["original_source_png"]).convert("RGBA"),
+            Image.open(record["source_png"]).convert("RGBA"),
+            Image.open(record["predicted_png"]).convert("RGBA"),
+            Image.open(record["target_png"]).convert("RGBA"),
+        )
+        for row, image in enumerate(images):
+            scaled = image.resize((tile_w, tile_h), Image.Resampling.NEAREST)
+            sheet.alpha_composite(scaled, (x, y + row * (tile_h + pad)))
+    sheet.save(out_path)
 
 
 def evaluate_adapter_model(
@@ -357,8 +391,13 @@ def export_song13_adapter(
 
     best_model = max(model_payloads, key=lambda name: float(model_payloads[name]["groups"]["cjk"]["visual_score"]))
     best_records = [record for record in records_by_model[best_model] if classify_glyph(record.chars) == "cjk"]
-    _make_contact_sheet(
-        best_records,
+    best_contact_records = [
+        glyph
+        for glyph in model_payloads[best_model]["glyphs"]
+        if glyph["char_class"] == "cjk"
+    ]
+    make_adapter_contact_sheet(
+        best_contact_records,
         out_path=contact_sheet,
         scale=scale,
         columns=columns,
@@ -366,8 +405,11 @@ def export_song13_adapter(
         cell_height=cell_height,
         pad=pad,
     )
-    worst_records = sorted(best_records, key=lambda record: visual_by_index_by_model[best_model][record.index])[:worst_count]
-    _make_contact_sheet(
+    worst_records = sorted(
+        best_contact_records,
+        key=lambda record: float(record["visual"]["visual_score"]),
+    )[:worst_count]
+    make_adapter_contact_sheet(
         worst_records,
         out_path=error_contact_sheet,
         scale=scale,
@@ -409,7 +451,7 @@ def export_song13_adapter(
         "contact_sheet": str(contact_sheet),
         "error_contact_sheet": str(error_contact_sheet),
         "contact_sheet_model": best_model,
-        "contact_sheet_order": ["adapted_ge2", "predicted_2bpp", "target_2bpp"],
+        "contact_sheet_order": ["original_source", "adapted_ge2", "predicted_2bpp", "target_2bpp"],
         "models": model_payloads,
         "interpretation_notes": [
             "Stage21 measured the raw Song13 mask transfer bottleneck.",

@@ -753,6 +753,8 @@ Deliverable:
   metrics
 - export adapted masks, 2bpp predictions, best-model contact sheet,
   worst-case contact sheet, and metadata
+- contact sheets are four rows per glyph: original Song13 source, adapted
+  `ge2`, predicted `2bpp`, target `2bpp`
 - command: `scripts/train_song13_adapter.py`
 - output root: `data/processed/glyphs/stage22_song13_adapter/`
 

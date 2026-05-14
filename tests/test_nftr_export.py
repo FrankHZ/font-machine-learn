@@ -929,7 +929,10 @@ class NFTRExportTest(unittest.TestCase):
                 metadata["task"],
                 "adapt current Song13 1bpp source mask to target ge2 mask, then apply Stage20 two-head style model",
             )
-            self.assertEqual(metadata["contact_sheet_order"][0], "adapted_ge2")
+            self.assertEqual(
+                metadata["contact_sheet_order"],
+                ["original_source", "adapted_ge2", "predicted_2bpp", "target_2bpp"],
+            )
 
 
 if __name__ == "__main__":

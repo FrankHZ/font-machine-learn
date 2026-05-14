@@ -746,6 +746,12 @@ This keeps the current Song13 render fixed and trains a small adapter that maps
 the Song13 1bpp source mask toward target `ge2` before applying the existing
 Stage20 two-head style model.
 
+The Stage22 contact sheet has four rows per glyph:
+
+```text
+original Song13 source -> adapted ge2 -> predicted 2bpp -> target 2bpp
+```
+
 Current CJK result:
 
 - raw Song13 mask vs target ge2 F1/IoU: `0.5953` / `0.4442`
