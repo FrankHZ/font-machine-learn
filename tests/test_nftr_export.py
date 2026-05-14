@@ -185,6 +185,7 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(len(list((root / "source").glob("*.png"))), 1814)
 
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["font_mode"], "L")
             widths = [glyph["ink_width"] for glyph in metadata["glyphs"] if glyph["ink_width"]]
             self.assertGreater(sum(1 for width in widths if 12 <= width <= 13), 1000)
             zero = metadata["glyphs"][5]

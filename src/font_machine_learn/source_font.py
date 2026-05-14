@@ -44,9 +44,11 @@ def render_mask(
     char: str,
     cell_width: int,
     cell_height: int,
+    font_mode: str = "L",
 ) -> tuple[Image.Image, tuple[int, int, int, int] | None]:
     canvas = Image.new("L", (cell_width * 3, cell_height * 3), 0)
     draw = ImageDraw.Draw(canvas)
+    draw.fontmode = font_mode
     bbox = draw.textbbox((0, 0), char, font=font)
     if bbox is None:
         return canvas.crop((0, 0, cell_width, cell_height)), None
@@ -121,6 +123,7 @@ def export_source_dataset(
     cell_width: int = 15,
     cell_height: int = 15,
     threshold: int = 96,
+    font_mode: str = "L",
     metadata_json: Path | None = SOURCE_METADATA,
     contact_sheet: Path | None = SOURCE_TARGET_CONTACT,
     scale: int = 4,
@@ -151,7 +154,7 @@ def export_source_dataset(
         ink = None
         image = Image.new("RGBA", (cell_width, cell_height), (0, 0, 0, 0))
         if char is not None:
-            mask, bbox = render_mask(font, char, cell_width, cell_height)
+            mask, bbox = render_mask(font, char, cell_width, cell_height, font_mode)
             image = quantize_mask_to_1bpp(mask, threshold)
             ink = alpha_bbox(image)
         image.save(source_png)
@@ -197,6 +200,7 @@ def export_source_dataset(
         "cell_width": cell_width,
         "cell_height": cell_height,
         "threshold": threshold,
+        "font_mode": font_mode,
         "glyph_count": len(records),
         "rendered_count": sum(1 for record in records if record.chars),
         "glyph_dir": str(out_dir),

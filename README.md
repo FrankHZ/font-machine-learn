@@ -711,16 +711,23 @@ then evaluates it on rendered WQY source masks. By default it uses:
 - `song13`: `data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json`, if present
 - `song14`: `data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json`, if present
 
+For outline fonts that are meant to behave like bitmap sources, render with
+Pillow's monochrome rasterizer:
+
+```powershell
+python scripts/render_source_glyphs.py --font WenQuanYi.Bitmap.Song.14px.ttf --font-index 0 --font-size 14 --font-mode 1 --threshold 1 --out-dir data/processed/glyphs/stage21_external_eval_sources/song14/source --metadata data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song14/source_target_contact.png
+```
+
 Current CJK result:
 
 - WQY13 source mask vs target ge2 F1: `0.4056`
 - WQY13 visual score after style model: `0.4746`
 - WQY14 source mask vs target ge2 F1: `0.5576`
 - WQY14 visual score after style model: `0.6034`
-- Song13 source mask vs target ge2 F1: `0.4258`
-- Song13 visual score after style model: `0.4696`
-- Song14 source mask vs target ge2 F1: `0.4211`
-- Song14 visual score after style model: `0.4768`
+- Song13 source mask vs target ge2 F1: `0.4129`
+- Song13 visual score after style model: `0.4635`
+- Song14 source mask vs target ge2 F1: `0.4088`
+- Song14 visual score after style model: `0.4703`
 
 Interpretation: transfer is dominated by source mask quality. Stage20 has a
 strong controlled style transform, but WQY source masks do not yet align well

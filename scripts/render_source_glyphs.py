@@ -26,6 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--metadata", type=Path, default=SOURCE_METADATA)
     parser.add_argument("--contact-sheet", type=Path, default=SOURCE_TARGET_CONTACT)
     parser.add_argument("--threshold", type=int, default=96)
+    parser.add_argument("--font-mode", choices=("L", "1"), default="L", help="Pillow text rasterization mode.")
     parser.add_argument("--scale", type=int, default=4)
     parser.add_argument("--columns", type=int, default=32)
     return parser
@@ -41,6 +42,7 @@ def main(argv: list[str] | None = None) -> int:
         font_index=args.font_index,
         font_size=args.font_size,
         threshold=args.threshold,
+        font_mode=args.font_mode,
         metadata_json=args.metadata,
         contact_sheet=args.contact_sheet,
         scale=args.scale,

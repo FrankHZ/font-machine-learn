@@ -708,20 +708,22 @@ First recorded CJK metrics:
 - WQY14 source mask vs target ge2 IoU: `0.4093`
 - WQY14 visual score after style model: `0.6034`
 - WQY14 shadow F1: `0.4906`
-- Song13 source mask vs target ge2 F1: `0.4258`
-- Song13 source mask vs target ge2 IoU: `0.2762`
-- Song13 visual score after style model: `0.4696`
-- Song13 shadow F1: `0.3373`
-- Song14 source mask vs target ge2 F1: `0.4211`
-- Song14 source mask vs target ge2 IoU: `0.2741`
-- Song14 visual score after style model: `0.4768`
-- Song14 shadow F1: `0.3403`
+- Song13 source mask vs target ge2 F1: `0.4129`
+- Song13 source mask vs target ge2 IoU: `0.2686`
+- Song13 visual score after style model: `0.4635`
+- Song13 shadow F1: `0.3385`
+- Song14 source mask vs target ge2 F1: `0.4088`
+- Song14 source mask vs target ge2 IoU: `0.2669`
+- Song14 visual score after style model: `0.4703`
+- Song14 shadow F1: `0.3385`
 
 Interpretation:
 
 - WQY14 remains better than WQY13, matching earlier alignment diagnostics
 - the WenQuanYi Bitmap Song 13/14px fonts render cleanly but do not beat WQY14
   against this target
+- Song source rendering should use `--font-mode 1 --threshold 1`; grayscale
+  thresholding makes these outline-derived bitmap fonts look worse
 - external transfer is now clearly limited by source mask quality rather than
   the controlled style heads
 - next stage should adapt WQY source masks toward target `ge2` before investing

@@ -102,6 +102,8 @@ Generated glyph artifacts must be grouped by stage under
   source masks; use this to separate style learning from source adaptation.
 - `stage21_external_eval_sources/`: optional rendered source datasets for
   extra external fonts, currently WenQuanYi Bitmap Song 13px/14px when present.
+  Render Song with `--font-mode 1 --threshold 1`; the files are outline TTFs
+  without embedded bitmap tables, so grayscale thresholding looks broken.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
