@@ -911,3 +911,61 @@ Commit theme:
 ```text
 feat: preserve song13 source strokes
 ```
+
+## Stage 25: Source-Locked Song13 Style Sweep
+
+Deliverable:
+
+- stop adapting Song13 glyph shape
+- treat Song13 1bpp source pixels as a hard contract
+- assign source pixels to level `2` or `3`
+- add only outside-source level `1` shadow
+- search simple source-locked rules for CJK readability
+- export predictions, search report, metadata, contact sheet, and worst-case
+  contact sheet
+- command: `scripts/run_song13_source_locked.py`
+- output root: `data/processed/glyphs/stage25_song13_source_locked/`
+
+Current CJK metrics:
+
+- best rule: `edge_n1_diag_plus_right_from_source`
+- source deleted ratio: `0.0000`
+- source level-2 ratio: `0.1220`
+- source level-3 ratio: `0.8780`
+- source foreground ratio: `0.2552`
+- predicted foreground ratio: `0.4975`
+- target visible foreground ratio: `0.5139`
+- visual score: `0.6409`
+- ink F1: `0.5721`
+- shadow F1: `0.5483`
+- foreground IoU: `0.7149`
+
+Interpretation:
+
+- Stage25 is not a new metric winner; it is the clean source-preserving
+  reference point
+- it avoids target-shaped adapter failure by never deleting source strokes
+- the output is readable but mechanical, especially in dense CJK where
+  right/right-down shadow can look heavy
+- next work should learn layer assignment under this source-locked contract,
+  not learn target glyph shape
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_song13_source_locked.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_song13_source_locked_smoke
+```
+
+Commit theme:
+
+```text
+feat: lock song13 source shape
+```

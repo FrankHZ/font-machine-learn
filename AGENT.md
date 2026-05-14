@@ -64,6 +64,8 @@ style layering from a 1bpp mask into 2bpp levels.
   adapter, ranked with an ink-ratio/readability penalty.
 - `scripts/train_song13_add_only.py`: Stage 24 source-preserving adapter that
   can only add ge2 pixels outside the Song13 source mask.
+- `scripts/run_song13_source_locked.py`: Stage 25 source-locked style rule
+  sweep; source pixels are never removed and only receive level `2`/`3`.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -121,6 +123,9 @@ Generated glyph artifacts must be grouped by stage under
   over-connected by eye.
 - `stage24_song13_add_only/`: add-only source adapter. It preserves every
   Song13 source pixel and only learns outside-source additions.
+- `stage25_song13_source_locked/`: current source-preserving baseline for
+  Song13 style assignment. It does not adapt shape; it only assigns `2/3` inside
+  source and `1` shadow outside source.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -163,6 +168,9 @@ Current external-source direction:
 - Stage24 forbids deletion. Its best CJK source deleted ratio is `0.0000`, with
   adapted foreground ratio `0.2805` against target `0.2878`. Prefer this
   source-preserving direction before larger style heads.
+- Stage25 removes shape adaptation entirely. Best rule
+  `edge_n1_diag_plus_right_from_source` has source deleted ratio `0.0000`,
+  CJK visual `0.6409`, and source `2/3` split `0.1220` / `0.8780`.
 
 ## Target Split
 
@@ -216,6 +224,7 @@ python scripts/eval_external_sources.py
 python scripts/train_song13_adapter.py
 python scripts/train_song13_calibrated.py
 python scripts/train_song13_add_only.py
+python scripts/run_song13_source_locked.py
 python -m unittest discover
 ```
 
@@ -247,6 +256,7 @@ Expected result:
 - `data/processed/glyphs/stage22_song13_adapter/song13_adapter_metadata.json` exists after Stage 22.
 - `data/processed/glyphs/stage23_song13_calibrated/song13_calibrated_metadata.json` exists after Stage 23.
 - `data/processed/glyphs/stage24_song13_add_only/song13_add_only_metadata.json` exists after Stage 24.
+- `data/processed/glyphs/stage25_song13_source_locked/song13_source_locked_metadata.json` exists after Stage 25.
 - default unittest passes quickly and confirms the source NFTR shape.
 - slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 

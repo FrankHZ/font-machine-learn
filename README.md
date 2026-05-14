@@ -66,6 +66,7 @@ The first milestones were intentionally small:
 │   ├── train_song13_adapter.py   # Stage 22 source-mask adapter experiment
 │   ├── train_song13_calibrated.py # Stage 23 calibrated adapter threshold sweep
 │   ├── train_song13_add_only.py  # Stage 24 source-preserving add-only adapter
+│   ├── run_song13_source_locked.py # Stage 25 source-locked style rule sweep
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -202,6 +203,7 @@ data/processed/glyphs/
 ├── stage22_song13_adapter/ # Song13 mask adapter feeding Stage20 style heads
 ├── stage23_song13_calibrated/ # threshold-calibrated Song13 adapter sweep
 ├── stage24_song13_add_only/ # source-preserving add-only Song13 adapter
+├── stage25_song13_source_locked/ # source-locked Song13 2bpp style rules
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -831,6 +833,35 @@ Interpretation: Stage24 keeps Song13 strokes intact and is more faithful to the
 source font, but scores lower because it refuses to reshape Song13 into the
 target glyph. This confirms Stage22/23 were too influenced by target glyph shape.
 
+## Run the Source-Locked Style Sweep
+
+Run:
+
+```powershell
+python scripts/run_song13_source_locked.py
+```
+
+This stage stops adapting Song13 shape. It treats the Song13 1bpp mask as the
+fixed glyph contract and only assigns style layers:
+
+- source pixels become level `2` or `3`
+- outside-source pixels may become level `1` shadow
+- source pixels are never deleted
+
+Current CJK result:
+
+- best rule: `edge_n1_diag_plus_right_from_source`
+- source deleted ratio: `0.0000`
+- source level-2 / level-3 ratio: `0.1220` / `0.8780`
+- predicted foreground ratio: `0.4975`
+- target visible foreground ratio: `0.5139`
+- visual score: `0.6409`
+- ink F1 / shadow F1: `0.5721` / `0.5483`
+
+Interpretation: this is the clean source-preserving baseline. It is more
+mechanical than the learned stages, but it avoids the central failure of
+target-shaped adapters: erasing Song13 strokes.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
@@ -838,8 +869,8 @@ See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Keep Stage 20 as the controlled best style baseline.
 2. Keep Song13 as the default external source and avoid broad font comparisons.
-3. Treat Stage24's source-preserving behavior as the safer direction: learn
-   additions/layering around Song13, not target-shape replacement.
+3. Treat Stage25 as the baseline contract for future Song13 work: preserve
+   source shape first, then learn cleaner 2/3 core-edge and 0/1 shadow layers.
 4. Keep CJK as the primary split and non-CJK as a guard split.
 5. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.

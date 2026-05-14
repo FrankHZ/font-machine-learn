@@ -1035,3 +1035,60 @@ target `ge2`. The add-only version is lower scoring but more faithful to the
 source font. Future source adaptation should preserve source strokes and learn
 style/layer additions around them instead of treating the target glyph as the
 shape to copy.
+
+## Target 25: Source-Locked Song13 Style Assignment
+
+Goal: establish a clean baseline where Song13 glyph shape is fixed and only the
+2bpp style layers are assigned.
+
+Command:
+
+```powershell
+python scripts/run_song13_source_locked.py
+```
+
+Setup:
+
+- source: WenQuanYi Bitmap Song 13px rendered with the Target 21 settings
+- source pixels are never deleted
+- source pixels become level `2` edge/transition or level `3` core
+- outside-source pixels may become level `1` shadow
+- no target `ge2` shape adapter is used
+- ranking: CJK quality score over visual/ink/shadow/foreground metrics, with
+  source deletion disallowed by construction
+
+Outputs:
+
+- `stage25_song13_source_locked/*/source_ge2/*.png`
+- `stage25_song13_source_locked/*/predicted_2bpp/*.png`
+- `stage25_song13_source_locked/song13_source_locked_metadata.json`
+- `stage25_song13_source_locked/song13_source_locked_search.json`
+- `stage25_song13_source_locked/song13_source_locked_contact.png`
+- `stage25_song13_source_locked/song13_source_locked_error_contact.png`
+
+Contact sheet order:
+
+- original Song13 source
+- source `ge2`, visualized as level `2` gray
+- predicted `2bpp`
+- target `2bpp`
+
+Initial CJK run:
+
+- best rule: `edge_n1_diag_plus_right_from_source`
+- source deleted ratio: `0.0000`
+- source level-2 ratio: `0.1220`
+- source level-3 ratio: `0.8780`
+- source foreground ratio: `0.2552`
+- predicted foreground ratio: `0.4975`
+- target visible foreground ratio: `0.5139`
+- visual score: `0.6409`
+- ink F1: `0.5721`
+- shadow F1: `0.5483`
+- foreground IoU: `0.7149`
+
+Interpretation: Stage25 is the current baseline contract for Song13 production
+work. It preserves source glyph shape and accepts that target-shaped metrics
+will be imperfect. Its output is more mechanical than learned adapters, but it
+does not erase source strokes. Future learned models should be trained/evaluated
+under this source-locked contract.
