@@ -114,7 +114,7 @@ def make_pair_contact_sheet(
 
 def export_source_dataset(
     nftr_source: Path = Path("a.NFTR"),
-    font_path: Path = Path("wqy-zenhei.ttc"),
+    font_path: Path = Path("fonts/wqy-zenhei.ttc"),
     out_dir: Path = SOURCE_DIR,
     *,
     target_metadata: Path | None = None,

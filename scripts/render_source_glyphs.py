@@ -18,7 +18,7 @@ from font_machine_learn.paths import SOURCE_DIR, SOURCE_METADATA, SOURCE_TARGET_
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Render WQY source glyphs paired with target NFTR glyphs.")
     parser.add_argument("--nftr", type=Path, default=Path("a.NFTR"))
-    parser.add_argument("--font", type=Path, default=Path("wqy-zenhei.ttc"))
+    parser.add_argument("--font", type=Path, default=Path("fonts/wqy-zenhei.ttc"))
     parser.add_argument("--font-index", type=int, default=2)
     parser.add_argument("--font-size", type=int, default=13)
     parser.add_argument("--out-dir", type=Path, default=SOURCE_DIR)

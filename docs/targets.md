@@ -53,12 +53,12 @@ Key detail: labels should come from `PAMC` mappings, not only atlas position.
 
 ## Target 2: Source Bitmap Rendering
 
-Goal: render the full source character set from `wqy-zenhei.ttc`, using the
+Goal: render the full source character set from `fonts/wqy-zenhei.ttc`, using the
 WQY Sharp face as the future real 1bpp input font to validate the style pipeline.
 
 Known preferred settings from previous work:
 
-- font file: `wqy-zenhei.ttc`
+- font file: `fonts/wqy-zenhei.ttc`
 - face index: `2`
 - size: `13`
 - target cell: `15x15`
@@ -851,6 +851,8 @@ Default external sources:
 
 - `wqy13`: Stage 2 WQY Sharp size 13 source metadata
 - `wqy14`: Stage 14 WQY Sharp size 14 source metadata
+- `song12`: WenQuanYi Bitmap Song 12px source metadata, if rendered under
+  `stage21_external_eval_sources/song12/`
 - `song13`: WenQuanYi Bitmap Song 13px source metadata, if rendered under
   `stage21_external_eval_sources/song13/`
 - `song14`: WenQuanYi Bitmap Song 14px source metadata, if rendered under
@@ -868,24 +870,30 @@ Initial CJK run:
 - WQY14 visual score: `0.6034`
 - WQY14 ink F1: `0.5437`
 - WQY14 shadow F1: `0.4906`
-- Song13 source mask vs target ge2 F1: `0.4129`
-- Song13 source mask vs target ge2 IoU: `0.2686`
-- Song13 visual score: `0.4635`
-- Song13 ink F1: `0.3865`
-- Song13 shadow F1: `0.3385`
-- Song14 source mask vs target ge2 F1: `0.4088`
-- Song14 source mask vs target ge2 IoU: `0.2669`
-- Song14 visual score: `0.4703`
-- Song14 ink F1: `0.3851`
-- Song14 shadow F1: `0.3385`
+- Song12 source mask vs target ge2 F1: `0.3937`
+- Song12 source mask vs target ge2 IoU: `0.2492`
+- Song12 visual score: `0.4294`
+- Song12 ink F1: `0.3770`
+- Song12 shadow F1: `0.2758`
+- Song13 source mask vs target ge2 F1: `0.4258`
+- Song13 source mask vs target ge2 IoU: `0.2762`
+- Song13 visual score: `0.4696`
+- Song13 ink F1: `0.3972`
+- Song13 shadow F1: `0.3373`
+- Song14 source mask vs target ge2 F1: `0.4211`
+- Song14 source mask vs target ge2 IoU: `0.2741`
+- Song14 visual score: `0.4768`
+- Song14 ink F1: `0.3958`
+- Song14 shadow F1: `0.3403`
 
 Interpretation: Stage20 is a strong controlled style transform, but WQY transfer
 is bottlenecked by the source mask. WQY14 is still materially closer than WQY13,
 yet its source mask F1 against target `ge2` is only `0.5576`, so the next
 productive work is source adaptation rather than adding style-model capacity.
 The Song bitmap faces are useful evidence, but their CJK source masks are even
-farther from target `ge2` than WQY14 for this NFTR.
+farther from target `ge2` than WQY14 for this NFTR. Song12 fits inside 15x15
+more comfortably but is too small relative to the target.
 
-Rendering note: use `--font-mode 1 --threshold 1` for WenQuanYi Bitmap Song.
-The files are outline TTFs without embedded bitmap tables, so grayscale
-rasterization plus thresholding can produce broken-looking tiny glyphs.
+Rendering note: use `--font-mode L --threshold 96` for WenQuanYi Bitmap Song.
+`--font-mode 1` removes antialiasing but makes many CJK glyphs too sparse, and
+generic close/bridge morphology fills complex characters too aggressively.

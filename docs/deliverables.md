@@ -65,7 +65,7 @@ feat: export target glyph dataset
 
 Deliverable:
 
-- render matching source glyphs from `wqy-zenhei.ttc`
+- render matching source glyphs from `fonts/wqy-zenhei.ttc`
 - use WQY Sharp face index `2`, size `13`, cell `15x15`
 - write paired source/target metadata
 - produce source/target comparison contact sheets
@@ -708,22 +708,26 @@ First recorded CJK metrics:
 - WQY14 source mask vs target ge2 IoU: `0.4093`
 - WQY14 visual score after style model: `0.6034`
 - WQY14 shadow F1: `0.4906`
-- Song13 source mask vs target ge2 F1: `0.4129`
-- Song13 source mask vs target ge2 IoU: `0.2686`
-- Song13 visual score after style model: `0.4635`
-- Song13 shadow F1: `0.3385`
-- Song14 source mask vs target ge2 F1: `0.4088`
-- Song14 source mask vs target ge2 IoU: `0.2669`
-- Song14 visual score after style model: `0.4703`
-- Song14 shadow F1: `0.3385`
+- Song12 source mask vs target ge2 F1: `0.3937`
+- Song12 source mask vs target ge2 IoU: `0.2492`
+- Song12 visual score after style model: `0.4294`
+- Song12 shadow F1: `0.2758`
+- Song13 source mask vs target ge2 F1: `0.4258`
+- Song13 source mask vs target ge2 IoU: `0.2762`
+- Song13 visual score after style model: `0.4696`
+- Song13 shadow F1: `0.3373`
+- Song14 source mask vs target ge2 F1: `0.4211`
+- Song14 source mask vs target ge2 IoU: `0.2741`
+- Song14 visual score after style model: `0.4768`
+- Song14 shadow F1: `0.3403`
 
 Interpretation:
 
 - WQY14 remains better than WQY13, matching earlier alignment diagnostics
-- the WenQuanYi Bitmap Song 13/14px fonts render cleanly but do not beat WQY14
+- the WenQuanYi Bitmap Song 12/13/14px fonts render cleanly but do not beat WQY14
   against this target
-- Song source rendering should use `--font-mode 1 --threshold 1`; grayscale
-  thresholding makes these outline-derived bitmap fonts look worse
+- Song source rendering should use `--font-mode L --threshold 96`; 12px fits
+  the cell better but is too small for the target, while 14px is visually large
 - external transfer is now clearly limited by source mask quality rather than
   the controlled style heads
 - next stage should adapt WQY source masks toward target `ge2` before investing

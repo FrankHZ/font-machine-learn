@@ -29,7 +29,7 @@ style layering from a 1bpp mask into 2bpp levels.
 ## Important Files
 
 - `a.NFTR`: decompressed target/source-style NFTR.
-- `wqy-zenhei.ttc`: source bitmap font family; WQY Sharp face index `2` is a
+- `fonts/wqy-zenhei.ttc`: source bitmap font family; WQY Sharp face index `2` is a
   future real input font for the 1bpp-to-2bpp style pipeline.
 - `docs/targets.md`: target split and expected outputs.
 - `docs/deliverables.md`: stage deliverables, verification, and commit rhythm.
@@ -102,8 +102,8 @@ Generated glyph artifacts must be grouped by stage under
   source masks; use this to separate style learning from source adaptation.
 - `stage21_external_eval_sources/`: optional rendered source datasets for
   extra external fonts, currently WenQuanYi Bitmap Song 13px/14px when present.
-  Render Song with `--font-mode 1 --threshold 1`; the files are outline TTFs
-  without embedded bitmap tables, so grayscale thresholding looks broken.
+  Render Song with `--font-mode L --threshold 96`; 12px fits the cell but is
+  too small, while 13/14px are larger and still below WQY14 in transfer metrics.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -135,7 +135,7 @@ baseline.
 - Target 0: export `a.NFTR` to atlas PNG/JSON and keep the parser stable.
 - Target 1: split NFTR glyphs into labeled per-glyph target records using
   `PAMC`, `HDWC`, and glyph indexes.
-- Target 2: render matching source glyphs from `wqy-zenhei.ttc`, face index `2`,
+- Target 2: render matching source glyphs from `fonts/wqy-zenhei.ttc`, face index `2`,
   into `15x15` cells for validation against the future real input font.
 - Target 3 and later early baselines explored WQY-shaped inputs and visual
   metrics. Treat those as diagnostics, not as the final learning formulation.

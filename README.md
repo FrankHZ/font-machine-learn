@@ -18,7 +18,7 @@ The model/rules should learn style layering:
 - `1`: right-down shadow
 - `0`: transparent/background
 
-`wqy-zenhei.ttc` is the future real input font source and a useful validation
+`fonts/wqy-zenhei.ttc` is the future real input font source and a useful validation
 asset. The current `a.NFTR` target can also be quantized to 1bpp to create the
 cleanest paired training data for learning the 1bpp-to-2bpp style transform.
 
@@ -35,6 +35,7 @@ The first milestones were intentionally small:
 ├── a.NFTR                         # Source font file currently available
 ├── AGENT.md                       # Working notes for coding agents
 ├── README.md
+├── fonts/                         # Local source font assets
 ├── pyproject.toml                 # Python project metadata and tool config
 ├── requirements.txt               # Minimal runtime dependency list
 ├── docs/
@@ -230,7 +231,7 @@ python scripts/render_source_glyphs.py
 
 Default settings match the previous visual research:
 
-- font: `wqy-zenhei.ttc`
+- font: `fonts/wqy-zenhei.ttc`
 - face: `WenQuanYi Zen Hei Sharp`, TTC index `2`
 - size: `13`
 - cell: `15x15`
@@ -708,14 +709,16 @@ then evaluates it on rendered WQY source masks. By default it uses:
 
 - `wqy13`: `data/processed/glyphs/stage2_source/source_metadata.json`
 - `wqy14`: `data/processed/glyphs/stage14_wqy_size14/source_metadata.json`
+- `song12`: `data/processed/glyphs/stage21_external_eval_sources/song12/source_metadata.json`, if present
 - `song13`: `data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json`, if present
 - `song14`: `data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json`, if present
 
-For outline fonts that are meant to behave like bitmap sources, render with
-Pillow's monochrome rasterizer:
+For WenQuanYi Bitmap Song, current best visual source rendering uses normal
+grayscale rasterization with threshold `96`; monochrome rasterization avoids
+antialiasing but makes many small CJK structures too sparse:
 
 ```powershell
-python scripts/render_source_glyphs.py --font WenQuanYi.Bitmap.Song.14px.ttf --font-index 0 --font-size 14 --font-mode 1 --threshold 1 --out-dir data/processed/glyphs/stage21_external_eval_sources/song14/source --metadata data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song14/source_target_contact.png
+python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.13px.ttf --font-index 0 --font-size 13 --font-mode L --threshold 96 --out-dir data/processed/glyphs/stage21_external_eval_sources/song13/source --metadata data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song13/source_target_contact.png
 ```
 
 Current CJK result:
@@ -724,10 +727,12 @@ Current CJK result:
 - WQY13 visual score after style model: `0.4746`
 - WQY14 source mask vs target ge2 F1: `0.5576`
 - WQY14 visual score after style model: `0.6034`
-- Song13 source mask vs target ge2 F1: `0.4129`
-- Song13 visual score after style model: `0.4635`
-- Song14 source mask vs target ge2 F1: `0.4088`
-- Song14 visual score after style model: `0.4703`
+- Song12 source mask vs target ge2 F1: `0.3937`
+- Song12 visual score after style model: `0.4294`
+- Song13 source mask vs target ge2 F1: `0.4258`
+- Song13 visual score after style model: `0.4696`
+- Song14 source mask vs target ge2 F1: `0.4211`
+- Song14 visual score after style model: `0.4768`
 
 Interpretation: transfer is dominated by source mask quality. Stage20 has a
 strong controlled style transform, but WQY source masks do not yet align well

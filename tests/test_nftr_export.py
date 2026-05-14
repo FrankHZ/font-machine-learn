@@ -160,7 +160,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_wqy_source_dataset(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -195,7 +195,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_rule_based_shadow_baseline(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -234,7 +234,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_trainable_mlp_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -273,7 +273,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_tuned_shadow_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -313,7 +313,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_builds_baseline_review_report_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -370,7 +370,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_binary_diagnostic_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -415,7 +415,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_weight_search_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -457,7 +457,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_cjk_style_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -502,7 +502,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_cjk_edges_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -580,7 +580,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_compares_target_masks_to_wqy_source_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
@@ -619,7 +619,7 @@ class NFTRExportTest(unittest.TestCase):
     @slow_test
     def test_exports_wqy_alignment_diagnostic_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        font = ROOT / "wqy-zenhei.ttc"
+        font = ROOT / "fonts" / "wqy-zenhei.ttc"
         with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
