@@ -370,3 +370,43 @@ Commit theme:
 ```text
 feat: compare target mask choices
 ```
+
+## Stage 13: WQY Alignment and Weight Diagnostic
+
+Deliverable:
+
+- search WQY source offset and weight rules against three target mask views:
+  `visible`, `>=2`, and `==3`
+- rank rules by CJK source-nonempty foreground F1/IoU
+- export aligned WQY masks and matching target masks for each target view
+- output a contact sheet showing source, aligned/target pairs, and original 2bpp
+  target
+- command: `scripts/run_wqy_alignment_diagnostic.py`
+- first recorded CJK source-nonempty `visible` best rule:
+  `cardinal_dx+0_dy+1`, F1/IoU `0.8282` / `0.7111`
+- first recorded CJK source-nonempty `>=2` best rule:
+  `right_down_dx-1_dy+0`, F1/IoU `0.6388` / `0.4674`
+- first recorded CJK source-nonempty `==3` best rule:
+  `right_down_dx-1_dy+0`, F1/IoU `0.5861` / `0.4232`
+- first interpretation: WQY is closer to the full visible silhouette after
+  adding weight, but it is not a clean core or core+edge source; source
+  normalization and style-layer learning should remain separate.
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_wqy_alignment_diagnostic_smoke
+```
+
+Commit theme:
+
+```text
+feat: diagnose wqy alignment
+```

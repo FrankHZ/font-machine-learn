@@ -507,3 +507,45 @@ next directions are:
 - use contact sheets and level-aware visual metrics as the main signal
 - separately estimate WQY-to-target alignment/weight before judging style
   transfer quality
+
+## Target 13: WQY Alignment and Weight Diagnostic
+
+Goal: measure how much of the WQY gap is explained by simple source offset and
+stroke weight before asking a style model to learn 2bpp layers.
+
+Command:
+
+```powershell
+python scripts/run_wqy_alignment_diagnostic.py
+```
+
+Search:
+
+- source transform: Stage 8 weight rules (`none`, `right_down`, `cardinal`,
+  `box`) with `dx/dy` in `-1..1`
+- target views: `visible` (`level > 0`), `ge2` (`level >= 2`), and `eq3`
+  (`level == 3`)
+- ranking: CJK source-nonempty foreground F1, then IoU
+
+Outputs:
+
+- `stage13_wqy_alignment/aligned/{visible,ge2,eq3}/*.png`
+- `stage13_wqy_alignment/aligned/target_{visible,ge2,eq3}/*.png`
+- `stage13_wqy_alignment/wqy_alignment_metadata.json`
+- `stage13_wqy_alignment/wqy_alignment_search.json`
+- `stage13_wqy_alignment/wqy_alignment_contact.png`
+
+Initial CJK source-nonempty run:
+
+- `visible`: best `cardinal_dx+0_dy+1`, F1/IoU `0.8282` / `0.7111`,
+  precision/recall `0.7557` / `0.9216`
+- `ge2`: best `right_down_dx-1_dy+0`, F1/IoU `0.6388` / `0.4674`,
+  precision/recall `0.5124` / `0.8653`
+- `eq3`: best `right_down_dx-1_dy+0`, F1/IoU `0.5861` / `0.4232`,
+  precision/recall `0.4380` / `0.8976`
+
+Interpretation: WQY can approximate the full visible NFTR silhouette after
+adding weight, but it does not align cleanly with target core or core+edge masks.
+The best `visible` rule is a heavy cardinal dilation, so it is compensating for
+source weight/shape rather than learning NFTR style. Keep WQY adaptation as a
+separate source-normalization problem before training the 2bpp style model.

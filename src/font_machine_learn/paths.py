@@ -76,4 +76,10 @@ TARGET_EQ3_1BPP_DIR = STAGE12_TARGET_MASKS / "target_eq3_1bpp"
 TARGET_MASK_COMPARE_METADATA = STAGE12_TARGET_MASKS / "target_mask_compare_metadata.json"
 TARGET_MASK_COMPARE_CONTACT = STAGE12_TARGET_MASKS / "target_mask_compare_contact.png"
 
+STAGE13_WQY_ALIGNMENT = GLYPH_ROOT / "stage13_wqy_alignment"
+WQY_ALIGNMENT_DIR = STAGE13_WQY_ALIGNMENT / "aligned"
+WQY_ALIGNMENT_METADATA = STAGE13_WQY_ALIGNMENT / "wqy_alignment_metadata.json"
+WQY_ALIGNMENT_SEARCH = STAGE13_WQY_ALIGNMENT / "wqy_alignment_search.json"
+WQY_ALIGNMENT_CONTACT = STAGE13_WQY_ALIGNMENT / "wqy_alignment_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

@@ -55,6 +55,7 @@ The first milestones were intentionally small:
 │   ├── run_cjk_edges_baseline.py     # CJK level-2 edge transition refinement
 │   ├── build_1bpp_style_dataset.py   # Formal 1bpp-mask to 2bpp-style dataset
 │   ├── compare_target_masks_to_source.py # Compare target >=2/==3 masks to WQY
+│   ├── run_wqy_alignment_diagnostic.py # Search WQY alignment/weight by mask mode
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -180,6 +181,7 @@ data/processed/glyphs/
 ├── stage10_cjk_edges/      # CJK level-2 edge transition refinement
 ├── stage11_1bpp_style/     # formal 1bpp-mask to 2bpp-style dataset
 ├── stage12_target_masks/   # compare target >=2 and ==3 masks to WQY source
+├── stage13_wqy_alignment/  # WQY offset/weight search by target mask mode
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -469,6 +471,34 @@ remain low because WQY and NFTR differ in glyph shape, placement, and stroke
 weight. This does not make either binary mask a perfect training source:
 quantizing level `2` upward or downward discards the anti-alias/edge role that
 gives the target font its look.
+
+## Diagnose WQY Alignment and Weight
+
+Run:
+
+```powershell
+python scripts/run_wqy_alignment_diagnostic.py
+```
+
+This searches small WQY source offsets and dilation kernels separately against
+three target mask views:
+
+- `visible`: target level `> 0`
+- `ge2`: target level `>= 2`
+- `eq3`: target level `== 3`
+
+The contact sheet stacks each glyph as WQY source, aligned/target `visible`,
+aligned/target `ge2`, aligned/target `eq3`, and original 2bpp target.
+
+Current CJK source-nonempty result:
+
+- `visible`: best `cardinal_dx+0_dy+1`, F1/IoU `0.8282` / `0.7111`
+- `ge2`: best `right_down_dx-1_dy+0`, F1/IoU `0.6388` / `0.4674`
+- `eq3`: best `right_down_dx-1_dy+0`, F1/IoU `0.5861` / `0.4232`
+
+Interpretation: WQY can be made fairly close to the full visible NFTR
+silhouette only by adding weight. It remains much less aligned with `>=2` and
+`==3`, so WQY adaptation should be separated from 2bpp style-layer learning.
 
 ## Next Milestones
 

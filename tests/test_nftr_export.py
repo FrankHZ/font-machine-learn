@@ -32,6 +32,7 @@ from font_machine_learn.target_mask_compare import export_target_mask_compare
 from font_machine_learn.target_mask_compare import levels_to_threshold_mask
 from font_machine_learn.trainable_baseline import export_mlp_baseline
 from font_machine_learn.weight_search import export_weight_search
+from font_machine_learn.wqy_alignment import export_wqy_alignment_diagnostic
 
 
 RUN_SLOW_TESTS = os.environ.get("FML_RUN_SLOW_TESTS") == "1"
@@ -128,6 +129,13 @@ class NFTRExportTest(unittest.TestCase):
             [0, 1, 2, 3],
             [3, 2, 1, 0],
         ]
+        self.assertEqual(
+            levels_to_threshold_mask(levels, "visible"),
+            [
+                [False, True, True, True],
+                [True, True, True, False],
+            ],
+        )
         self.assertEqual(
             levels_to_threshold_mask(levels, "ge2"),
             [
@@ -600,6 +608,45 @@ class NFTRExportTest(unittest.TestCase):
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertEqual(metadata["mask_modes"]["ge2"], "target level >= 2")
             self.assertEqual(metadata["contact_sheet_order"][0], "wqy_source")
+
+    @slow_test
+    def test_exports_wqy_alignment_diagnostic_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_export = export_source_dataset(
+                source,
+                font,
+                root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_contact.png",
+            )
+            result = export_wqy_alignment_diagnostic(
+                source_metadata=Path(source_export.metadata_json),
+                out_dir=root / "alignment",
+                metadata_json=root / "alignment.json",
+                search_json=root / "alignment_search.json",
+                contact_sheet=root / "alignment.png",
+                search_limit=64,
+                contact_count=12,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.search_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["target_modes"]["visible"], "target level > 0")
+            self.assertIn("visible", metadata["best_by_mode"])
 
 
 if __name__ == "__main__":

@@ -38,6 +38,8 @@ class MaskCompareExport:
 
 
 def levels_to_threshold_mask(levels: list[list[int]], mode: str) -> Mask:
+    if mode == "visible":
+        return [[value > 0 for value in row] for row in levels]
     if mode == "ge2":
         return [[value >= 2 for value in row] for row in levels]
     if mode == "eq3":
