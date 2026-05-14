@@ -28,6 +28,7 @@ from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
+from font_machine_learn.style_mlp import export_style_mlp
 from font_machine_learn.target_mask_compare import export_target_mask_compare
 from font_machine_learn.target_mask_compare import levels_to_threshold_mask
 from font_machine_learn.trainable_baseline import export_mlp_baseline
@@ -647,6 +648,36 @@ class NFTRExportTest(unittest.TestCase):
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertEqual(metadata["target_modes"]["visible"], "target level > 0")
             self.assertIn("visible", metadata["best_by_mode"])
+
+    @slow_test
+    def test_exports_style_mlp_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            result = export_style_mlp(
+                target_metadata=Path(target.metadata_json),
+                out_dir=root / "style_mlp",
+                metadata_json=root / "style_mlp.json",
+                contact_sheet=root / "style_mlp.png",
+                max_train_glyphs=32,
+                hidden_units=16,
+                max_iter=4,
+                external_sources={},
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertIn(result.best_mode, {"visible", "ge2", "eq3"})
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["task"], "target-derived 1bpp mask -> NFTR 2bpp style levels")
+            self.assertIn("ge2", metadata["modes"])
 
 
 if __name__ == "__main__":

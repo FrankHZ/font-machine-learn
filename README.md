@@ -56,6 +56,7 @@ The first milestones were intentionally small:
 │   ├── build_1bpp_style_dataset.py   # Formal 1bpp-mask to 2bpp-style dataset
 │   ├── compare_target_masks_to_source.py # Compare target >=2/==3 masks to WQY
 │   ├── run_wqy_alignment_diagnostic.py # Search WQY alignment/weight by mask mode
+│   ├── train_style_mlp.py        # Controlled 1bpp-to-2bpp style MLP
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -182,6 +183,7 @@ data/processed/glyphs/
 ├── stage11_1bpp_style/     # formal 1bpp-mask to 2bpp-style dataset
 ├── stage12_target_masks/   # compare target >=2 and ==3 masks to WQY source
 ├── stage13_wqy_alignment/  # WQY offset/weight search by target mask mode
+├── stage15_style_mlp/      # controlled target-derived style-learning baseline
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -511,6 +513,36 @@ synthetic thickening:
 - size `14` raw CJK `==3` F1/IoU: `0.5326` / `0.3815`
 
 The size-14 diagnostic output is under `stage14_wqy_size14/`.
+
+## Train the Controlled Style MLP
+
+Run:
+
+```powershell
+python scripts/train_style_mlp.py
+```
+
+This is the first trainable baseline for the corrected task. It trains the same
+small pixel-level MLP on three target-derived 1bpp inputs:
+
+- `visible`: target level `> 0`
+- `ge2`: target level `>= 2`
+- `eq3`: target level `== 3`
+
+Labels are always the original NFTR 2bpp levels `0..3`. WQY 13/14 are evaluated
+as external inputs only and do not choose the best controlled mode.
+
+Current CJK result:
+
+- controlled `visible` visual score: `0.9031`
+- controlled `ge2` visual score: `0.9651`
+- controlled `eq3` visual score: `0.9633`
+- external WQY13 visual score: `0.4707`
+- external WQY14 visual score: `0.6029`
+
+Interpretation: controlled 1bpp-to-2bpp style learning works. WQY14 transfers
+better than WQY13, but both remain source-adaptation problems rather than style
+learning failures.
 
 ## Next Milestones
 

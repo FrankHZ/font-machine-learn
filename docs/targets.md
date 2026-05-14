@@ -584,3 +584,44 @@ Size-14 width profile:
 Interpretation: size `14` is a better raw WQY source candidate than size `13`
 and improves alignment without artificial thickening. Keep dilation results as
 diagnostic upper bounds only, not a production target.
+
+## Target 15: Controlled 1bpp-to-2bpp Style MLP
+
+Goal: train the first model for the corrected task while keeping WQY shape
+differences outside the training objective.
+
+Command:
+
+```powershell
+python scripts/train_style_mlp.py
+```
+
+Setup:
+
+- model: `sklearn.neural_network.MLPClassifier`
+- features: `5x5` source-mask patch, normalized coordinates, neighbor counts
+- labels: original NFTR 2bpp levels `0..3`
+- train glyphs: first `768`
+- controlled source modes: `visible` (`>0`), `ge2` (`>=2`), `eq3` (`==3`)
+- external sources: WQY13 and WQY14, evaluated with the best controlled model
+
+Initial CJK controlled results:
+
+- `visible`: visual `0.9031`, ink F1 `0.8543`, shadow F1 `0.8614`,
+  foreground IoU `1.0000`
+- `ge2`: visual `0.9651`, ink F1 `0.9639`, shadow F1 `0.9443`,
+  foreground IoU `0.9717`
+- `eq3`: visual `0.9633`, ink F1 `1.0000`, shadow F1 `0.9282`,
+  foreground IoU `0.9284`
+
+Initial CJK external results using the best controlled `ge2` model:
+
+- WQY13 visual `0.4707`, ink F1 `0.3831`, shadow F1 `0.3481`,
+  foreground IoU `0.5595`
+- WQY14 visual `0.6029`, ink F1 `0.5430`, shadow F1 `0.4877`,
+  foreground IoU `0.6602`
+
+Interpretation: style-layer learning is feasible under controlled target-derived
+inputs. `ge2` and `eq3` both work well, with `ge2` slightly ahead on CJK visual
+score. WQY14 transfers better than WQY13, but external scores remain much lower,
+so WQY source adaptation should stay separate from the 2bpp style model.

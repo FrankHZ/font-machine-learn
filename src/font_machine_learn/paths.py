@@ -82,4 +82,8 @@ WQY_ALIGNMENT_METADATA = STAGE13_WQY_ALIGNMENT / "wqy_alignment_metadata.json"
 WQY_ALIGNMENT_SEARCH = STAGE13_WQY_ALIGNMENT / "wqy_alignment_search.json"
 WQY_ALIGNMENT_CONTACT = STAGE13_WQY_ALIGNMENT / "wqy_alignment_contact.png"
 
+STAGE15_STYLE_MLP = GLYPH_ROOT / "stage15_style_mlp"
+STYLE_MLP_METADATA = STAGE15_STYLE_MLP / "style_mlp_metadata.json"
+STYLE_MLP_CONTACT = STAGE15_STYLE_MLP / "style_mlp_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

@@ -437,3 +437,40 @@ Commit theme:
 ```text
 docs: record wqy size 14 diagnostic
 ```
+
+## Stage 15: Controlled 1bpp-to-2bpp Style MLP
+
+Deliverable:
+
+- train a small pixel-level MLP on target-derived 1bpp inputs and original NFTR
+  2bpp labels
+- compare `visible`, `>=2`, and `==3` controlled source modes
+- select the best controlled mode by CJK visual score
+- run WQY13 and WQY14 as external inputs with the best controlled model
+- output per-mode source masks, 2bpp predictions, metadata, and contact sheets
+- command: `scripts/train_style_mlp.py`
+- first recorded best controlled mode: `ge2`
+- first recorded CJK controlled visual scores: `visible` `0.9031`, `ge2`
+  `0.9651`, `eq3` `0.9633`
+- first recorded CJK external visual scores: WQY13 `0.4707`, WQY14 `0.6029`
+- first interpretation: controlled style learning works; WQY transfer remains a
+  source-normalization problem
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_style_mlp_smoke
+```
+
+Commit theme:
+
+```text
+feat: train controlled style mlp
+```
