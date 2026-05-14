@@ -20,6 +20,7 @@ if str(SRC) not in sys.path:
 
 from font_machine_learn.nftr import export_font_atlas, export_target_dataset, parse_rtfn_font
 from font_machine_learn.baseline import export_shadow_baseline
+from font_machine_learn.boundary_rules import export_boundary_rules
 from font_machine_learn.binary_diagnostic import export_binary_diagnostic
 from font_machine_learn.char_class import classify_char, classify_glyph
 from font_machine_learn.cjk_edges import export_cjk_edges_baseline
@@ -678,6 +679,36 @@ class NFTRExportTest(unittest.TestCase):
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertEqual(metadata["task"], "target-derived 1bpp mask -> NFTR 2bpp style levels")
             self.assertIn("ge2", metadata["modes"])
+
+    @slow_test
+    def test_exports_boundary_rules_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            result = export_boundary_rules(
+                target_metadata=Path(target.metadata_json),
+                out_dir=root / "boundary",
+                metadata_json=root / "boundary.json",
+                search_json=root / "boundary_search.json",
+                contact_sheet=root / "boundary_contact.png",
+                worst_contact_sheet=root / "boundary_worst.png",
+                search_limit=64,
+                worst_count=12,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.search_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["task"], "explain ge2 source pixels as level 2 vs level 3 boundary")
 
 
 if __name__ == "__main__":

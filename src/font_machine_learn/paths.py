@@ -90,4 +90,11 @@ STAGE16_STYLE_MLP_TUNING = GLYPH_ROOT / "stage16_style_mlp_tuning"
 STYLE_MLP_TUNING_METADATA = STAGE16_STYLE_MLP_TUNING / "style_mlp_tuning_metadata.json"
 STYLE_MLP_TUNING_CONTACT = STAGE16_STYLE_MLP_TUNING / "style_mlp_tuning_contact.png"
 
+STAGE17_BOUNDARY_RULES = GLYPH_ROOT / "stage17_boundary_rules"
+BOUNDARY_RULE_DIR = STAGE17_BOUNDARY_RULES / "predicted_2bpp"
+BOUNDARY_RULE_METADATA = STAGE17_BOUNDARY_RULES / "boundary_rule_metadata.json"
+BOUNDARY_RULE_SEARCH = STAGE17_BOUNDARY_RULES / "boundary_rule_search.json"
+BOUNDARY_RULE_CONTACT = STAGE17_BOUNDARY_RULES / "boundary_rule_contact.png"
+BOUNDARY_RULE_WORST_CONTACT = STAGE17_BOUNDARY_RULES / "boundary_rule_worst_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

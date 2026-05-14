@@ -57,6 +57,7 @@ The first milestones were intentionally small:
 │   ├── compare_target_masks_to_source.py # Compare target >=2/==3 masks to WQY
 │   ├── run_wqy_alignment_diagnostic.py # Search WQY alignment/weight by mask mode
 │   ├── train_style_mlp.py        # Controlled 1bpp-to-2bpp style MLP
+│   ├── run_boundary_rules.py     # Explainable ge2 level-2/3 boundary rules
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -185,6 +186,7 @@ data/processed/glyphs/
 ├── stage13_wqy_alignment/  # WQY offset/weight search by target mask mode
 ├── stage15_style_mlp/      # controlled target-derived style-learning baseline
 ├── stage16_style_mlp_tuning/ # small capacity/feature tuning over Stage 15
+├── stage17_boundary_rules/ # explainable ge2 level-2/3 boundary search
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -569,6 +571,31 @@ Current CJK result:
 Interpretation: this is a marginal controlled improvement, not a new
 breakthrough. Remaining gains likely need a better formulation for level `2`
 edge pixels or source adaptation, not just more MLP capacity.
+
+## Explain Level-2 Boundaries
+
+Run:
+
+```powershell
+python scripts/run_boundary_rules.py
+```
+
+This searches simple rules for the main remaining controlled error: deciding
+whether a `ge2` source pixel should be target level `2` or `3`. The best rule is
+selected by CJK visual score.
+
+Current result:
+
+- best rule: `n2_band0_plain`
+- CJK visual score: `0.9361`
+- CJK ink F1: `0.9355`
+- CJK shadow F1: `0.8877`
+
+Interpretation: a simple rule explains much of the target style, but it remains
+well below Stage 15/16 MLP scores. Level `2` is mostly a ge2 boundary pixel:
+`16567 / 16576` CJK level-2 pixels are distance `1` from outside the `ge2` mask.
+However, many level-3 pixels are also near that boundary, so the remaining
+decision needs richer local context than a single neighbor-count rule.
 
 ## Next Milestones
 

@@ -501,3 +501,38 @@ Commit theme:
 ```text
 docs: record style mlp tuning
 ```
+
+## Stage 17: Explainable Level-2 Boundary Rules
+
+Deliverable:
+
+- search simple rules for `ge2` source pixels: level `2` boundary versus level
+  `3` core
+- report feature statistics for target level `2` and `3`
+- export rule predictions, search JSON, metadata, CJK contact sheet, and
+  worst-CJK contact sheet
+- command: `scripts/run_boundary_rules.py`
+- first recorded best rule: `n2_band0_plain`
+- first recorded CJK metrics: visual score `0.9361`, ink F1 `0.9355`, shadow F1
+  `0.8877`, foreground IoU `0.9515`
+- first interpretation: target level `2` is overwhelmingly a boundary pixel,
+  but simple geometry is not enough to match the MLP
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_boundary_rules_smoke
+```
+
+Commit theme:
+
+```text
+feat: explain ge2 boundary rules
+```

@@ -659,3 +659,45 @@ Ablation note:
 Interpretation: simple tuning is near saturation for the current pixel-MLP
 setup. The remaining controlled error is mostly level `2` versus level `3`
 boundary assignment, while WQY transfer remains dominated by source adaptation.
+
+## Target 17: Explainable Level-2 Boundary Rules
+
+Goal: understand whether target level `2` can be explained as a simple geometric
+boundary inside the `ge2` source mask.
+
+Command:
+
+```powershell
+python scripts/run_boundary_rules.py
+```
+
+Rule family:
+
+- source: target-derived `ge2` mask
+- inside source: predict level `3` if inside-neighbor count and edge-band tests
+  pass; otherwise level `2`
+- outside source: predict level `1` for simple right-down shadow candidates,
+  otherwise level `0`
+- ranking: CJK visual score, then ink F1, then shadow F1
+
+Initial run:
+
+- best rule: `n2_band0_plain`
+- CJK visual score: `0.9361`
+- CJK ink F1: `0.9355`
+- CJK shadow F1: `0.8877`
+- CJK foreground IoU: `0.9515`
+
+Feature stats:
+
+- CJK level-2 pixels: `16576`
+- CJK level-3 pixels: `82378`
+- level-2 distance to outside ge2 mask: `16567` at distance `1`, `9` at
+  distance `2`
+- level-3 distance to outside ge2 mask: `79454` at distance `1`, `2921` at
+  distance `2`, `3` at distance `3`
+
+Interpretation: level `2` is almost always a boundary pixel in the `ge2` mask,
+but that condition is not sufficient because most level `3` pixels are also
+near the boundary in 15x15 CJK glyphs. A simple neighbor-count rule is
+explainable and decent, but the MLP's extra gain comes from richer local context.
