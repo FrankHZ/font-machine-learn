@@ -583,3 +583,54 @@ Commit theme:
 ```text
 feat: build patch readiness dataset
 ```
+
+## Stage 19: Patch-Only Ge2 Classifier
+
+Deliverable:
+
+- train a linear baseline and a small MLP over 9x9 binary `ge2` source patches
+- classify only CJK `ge2` foreground pixels as target level `2` or `3`
+- keep outside-`ge2` pixels on the fixed right-down shadow rule
+- export model predictions, metadata, best-model contact sheet, and worst-case
+  contact sheet
+- command: `scripts/train_patch_classifier.py`
+- output root: `data/processed/glyphs/stage19_patch_classifier/`
+
+First recorded metrics:
+
+- train/CJK ge2 pixels: `98954`
+- best model: `patch_mlp`
+- best CJK visual score: `0.9590`
+- best CJK ge2 level-2/3 pixel accuracy: `0.9530`
+- `patch_mlp` confusion: level `2` correct `13619`, level `2 -> 3` `2957`,
+  level `3 -> 2` `1693`, level `3` correct `80685`
+- `logistic_balanced` CJK visual score: `0.8990`
+
+Interpretation:
+
+- a nonlinear patch model is clearly useful; the linear patch baseline is too
+  weak for these tiny CJK edge patterns
+- the patch MLP improves level `2/3` assignment over Stage 15's recorded ge2
+  2/3 accuracy, but full visual score stays below Stage 15 because Stage 19
+  deliberately leaves shadow as a fixed rule
+- next stage should separate shadow placement from core/edge classification
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_patch_classifier.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_patch_classifier_smoke
+```
+
+Commit theme:
+
+```text
+feat: train patch classifier baseline
+```

@@ -749,3 +749,46 @@ Interpretation: the MLP's extra value is concentrated on subtle level-2 edge
 pixels, which supports a patch-aware next stage. The contact sheet should be
 read as four rows per example: source `ge2` patch, target patch, MLP patch, rule
 patch.
+
+## Target 19: Patch-Only Ge2 Classifier
+
+Goal: test whether local 9x9 source patches alone can learn the `ge2` level
+`2` versus level `3` split.
+
+Command:
+
+```powershell
+python scripts/train_patch_classifier.py
+```
+
+Model family:
+
+- `logistic_balanced`: linear classifier over 9x9 binary `ge2` patch bits
+- `patch_mlp`: one-hidden-layer MLP over the same 81 patch bits
+
+Scope:
+
+- train/evaluate on CJK target-derived `ge2` pixels only
+- labels are only level `2` and level `3`
+- outside `ge2`, use fixed right-down shadow level `1`; otherwise level `0`
+
+Initial run:
+
+- training pixels: `98954`
+- label counts: level `2` = `16576`, level `3` = `82378`
+- best model: `patch_mlp`
+- best CJK visual score: `0.9590`
+- best CJK ge2 level-2/3 pixel accuracy: `0.9530`
+- `logistic_balanced` CJK visual score: `0.8990`
+
+Patch MLP confusion:
+
+- level `2 -> 2`: `13619`
+- level `2 -> 3`: `2957`
+- level `3 -> 2`: `1693`
+- level `3 -> 3`: `80685`
+
+Interpretation: local patch context is enough to improve the core/edge split,
+but it does not solve the whole style score because shadow placement is still a
+fixed rule. Stage 20 should either model shadow as a separate `0/1` classifier
+or combine the Stage 19 `2/3` classifier with a learned shadow head.

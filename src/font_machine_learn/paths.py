@@ -102,4 +102,9 @@ PATCH_READINESS_METADATA = STAGE18_PATCH_READINESS / "patch_readiness_metadata.j
 PATCH_READINESS_PATCHES = STAGE18_PATCH_READINESS / "patch_readiness_patches.jsonl"
 PATCH_READINESS_CONTACT = STAGE18_PATCH_READINESS / "patch_readiness_contact.png"
 
+STAGE19_PATCH_CLASSIFIER = GLYPH_ROOT / "stage19_patch_classifier"
+PATCH_CLASSIFIER_METADATA = STAGE19_PATCH_CLASSIFIER / "patch_classifier_metadata.json"
+PATCH_CLASSIFIER_CONTACT = STAGE19_PATCH_CLASSIFIER / "patch_classifier_contact.png"
+PATCH_CLASSIFIER_ERROR_CONTACT = STAGE19_PATCH_CLASSIFIER / "patch_classifier_error_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

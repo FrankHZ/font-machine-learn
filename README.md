@@ -59,6 +59,7 @@ The first milestones were intentionally small:
 │   ├── train_style_mlp.py        # Controlled 1bpp-to-2bpp style MLP
 │   ├── run_boundary_rules.py     # Explainable ge2 level-2/3 boundary rules
 │   ├── build_patch_readiness.py  # Stage 18 patch/error dataset for next model
+│   ├── train_patch_classifier.py # Stage 19 patch-only ge2 2/3 classifiers
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -189,6 +190,7 @@ data/processed/glyphs/
 ├── stage16_style_mlp_tuning/ # small capacity/feature tuning over Stage 15
 ├── stage17_boundary_rules/ # explainable ge2 level-2/3 boundary search
 ├── stage18_patch_readiness/ # CJK ge2 patch/error index for next model choice
+├── stage19_patch_classifier/ # patch-only ge2 level-2/3 classifier outputs
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -631,12 +633,43 @@ Interpretation: the MLP's improvement over the explainable rule is real and is
 mostly on level-2 edge pixels, so the next useful model should be patch-aware
 rather than just another scalar boundary rule.
 
+## Train Patch Classifier
+
+Run:
+
+```powershell
+python scripts/train_patch_classifier.py
+```
+
+This trains two CJK-focused classifiers for the `ge2` source mask:
+
+- `logistic_balanced`: a linear 9x9 patch-only baseline
+- `patch_mlp`: a small MLP over the same 9x9 patch bits
+
+Both models only decide whether a `ge2` source pixel is target level `2` or
+`3`. Pixels outside `ge2` still use the fixed right-down shadow rule.
+
+Current result:
+
+- best model: `patch_mlp`
+- CJK visual score: `0.9590`
+- CJK ge2 2/3 pixel accuracy: `0.9530`
+- `patch_mlp` confusion: level `2` correct `13619`, level `2 -> 3` `2957`;
+  level `3 -> 2` `1693`, level `3` correct `80685`
+- `logistic_balanced` CJK visual score: `0.8990`
+
+Interpretation: patch MLP improves the core/edge split beyond Stage 15's ge2
+2/3 accuracy, but the full visual score is lower than Stage 15 because Stage 19
+keeps shadow as a fixed rule. The next split should treat `2/3` and `0/1`
+shadow placement as separate subproblems.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Use Stage 18 to decide the first patch-aware model shape.
-2. Keep CJK as the primary split and non-CJK as a guard split.
-3. Compare model outputs by contact sheet first, then by level-aware visual
+1. Preserve Stage 19's patch MLP for ge2 level `2/3` assignment.
+2. Build a separate shadow classifier/rule diagnostic for `0/1` placement.
+3. Keep CJK as the primary split and non-CJK as a guard split.
+4. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.

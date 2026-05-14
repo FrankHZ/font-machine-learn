@@ -51,6 +51,8 @@ style layering from a 1bpp mask into 2bpp levels.
 - `scripts/run_boundary_rules.py`: Stage 17 explainable ge2 boundary rules.
 - `scripts/build_patch_readiness.py`: Stage 18 patch/error dataset for the next
   model decision.
+- `scripts/train_patch_classifier.py`: Stage 19 patch-only ge2 level-2/3
+  classifiers.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -88,6 +90,8 @@ Generated glyph artifacts must be grouped by stage under
   inside `ge2` target-derived source.
 - `stage18_patch_readiness/`: CJK `ge2` 9x9 patch/error index comparing Stage
   15 MLP and Stage 17 rule outputs.
+- `stage19_patch_classifier/`: patch-only classifiers for assigning level `2`
+  vs `3` inside the `ge2` source mask.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -160,6 +164,7 @@ python scripts/train_style_mlp.py
 python scripts/train_style_mlp.py --hidden-units 128 --max-iter 100 --random-seed 17 --out-dir data/processed/glyphs/stage16_style_mlp_tuning --metadata data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json --contact-sheet data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_contact.png
 python scripts/run_boundary_rules.py
 python scripts/build_patch_readiness.py
+python scripts/train_patch_classifier.py
 python -m unittest discover
 ```
 
@@ -185,6 +190,7 @@ Expected result:
 - `data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json` exists after Stage 16.
 - `data/processed/glyphs/stage17_boundary_rules/boundary_rule_metadata.json` exists after Stage 17.
 - `data/processed/glyphs/stage18_patch_readiness/patch_readiness_metadata.json` exists after Stage 18.
+- `data/processed/glyphs/stage19_patch_classifier/patch_classifier_metadata.json` exists after Stage 19.
 - default unittest passes quickly and confirms the source NFTR shape.
 - slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 
