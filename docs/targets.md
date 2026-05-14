@@ -926,3 +926,57 @@ mostly local shape failures: over-connected strokes, lost small counters, and
 some dense CJK glyphs becoming too dark. The next target should add constraints
 or a richer glyph-level adapter objective before increasing the 2bpp style
 model itself.
+
+## Target 23: Calibrated Song13 Adapter
+
+Goal: keep the Stage22 source-adapter model family, but select adapter masks by
+probability threshold instead of hard `predict()` so the output can be tuned for
+readability and ink density.
+
+Command:
+
+```powershell
+python scripts/train_song13_calibrated.py
+```
+
+Setup:
+
+- source: WenQuanYi Bitmap Song 13px rendered with the Target 21 settings
+- adapter models: Stage22 `adapter_logistic_balanced` and `adapter_patch_mlp`
+- thresholds: `0.50`, `0.55`, `0.60`, `0.65`, `0.70`, `0.75`, `0.80`
+- style model: Stage20 two-head patch model trained on target-derived `ge2`
+- ranking: CJK quality score with visual score, adapted-mask F1, precision,
+  ink F1, and adapted-vs-target `ge2` foreground-ratio penalty
+
+Outputs:
+
+- `stage23_song13_calibrated/*/adapted_ge2/*.png`
+- `stage23_song13_calibrated/*/predicted_2bpp/*.png`
+- `stage23_song13_calibrated/song13_calibrated_metadata.json`
+- `stage23_song13_calibrated/song13_calibrated_contact.png`
+- `stage23_song13_calibrated/song13_calibrated_error_contact.png`
+
+Contact sheet order:
+
+- original Song13 source
+- adapted `ge2`, visualized as level `2` gray
+- predicted `2bpp`
+- target `2bpp`
+
+Initial CJK run:
+
+- best candidate: `adapter_patch_mlp_t055`
+- threshold: `0.55`
+- adapted mask vs target ge2 F1/IoU: `0.6705` / `0.5156`
+- adapted mask precision/recall: `0.6607` / `0.6825`
+- adapted foreground ratio: `0.2994`
+- target ge2 foreground ratio: `0.2878`
+- final visual score: `0.6696`
+- final ink F1: `0.6199`
+- final shadow F1: `0.5657`
+
+Interpretation: Stage23 makes the adapter less over-inked than Stage22 and
+confirms thresholding matters. It does not solve the source adaptation problem:
+low thresholds bridge strokes and fill counters, while high thresholds break
+thin strokes. The next target should move beyond a single threshold, likely by
+learning separate add/remove decisions or applying topology-aware penalties.

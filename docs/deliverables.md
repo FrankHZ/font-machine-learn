@@ -799,3 +799,59 @@ Commit theme:
 ```text
 feat: adapt song13 source masks
 ```
+
+## Stage 23: Calibrated Song13 Adapter
+
+Deliverable:
+
+- keep the Stage22 adapter/style-head model family
+- use adapter `predict_proba` and sweep binary thresholds
+- rank candidates with a CJK quality score that penalizes adapted foreground
+  ratio drift from target `ge2`
+- export per-threshold adapted masks, 2bpp predictions, best-candidate contact
+  sheet, worst-case contact sheet, and metadata
+- contact sheets use four rows per glyph: original Song13 source, adapted
+  `ge2` gray, predicted `2bpp`, target `2bpp`
+- command: `scripts/train_song13_calibrated.py`
+- output root: `data/processed/glyphs/stage23_song13_calibrated/`
+
+Current CJK metrics:
+
+- best candidate: `adapter_patch_mlp_t055`
+- best threshold: `0.55`
+- adapted mask vs target ge2 F1: `0.6705`
+- adapted mask vs target ge2 precision/recall: `0.6607` / `0.6825`
+- adapted foreground ratio: `0.2994`
+- target ge2 foreground ratio: `0.2878`
+- visual score after style heads: `0.6696`
+- ink F1 after style heads: `0.6199`
+- shadow F1 after style heads: `0.5657`
+
+Interpretation:
+
+- threshold calibration reduces Stage22's over-inked look, but it is still a
+  tradeoff rather than a solved model
+- the best calibrated threshold is lower scoring than Stage22 by raw visual
+  metrics, but the contact sheet is less muddy
+- next work should add structure-aware adapter constraints: preserve counters,
+  discourage isolated bridges, or split add/remove decisions
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_song13_calibrated.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_song13_calibrated_smoke
+```
+
+Commit theme:
+
+```text
+feat: calibrate song13 adapter threshold
+```

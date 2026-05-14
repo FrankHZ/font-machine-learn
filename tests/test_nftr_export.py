@@ -32,6 +32,7 @@ from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.shadow_classifier import export_shadow_classifier
 from font_machine_learn.song13_adapter import export_song13_adapter
+from font_machine_learn.song13_calibrated import export_song13_calibrated
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
 from font_machine_learn.style_mlp import export_style_mlp
@@ -929,6 +930,62 @@ class NFTRExportTest(unittest.TestCase):
                 metadata["task"],
                 "adapt current Song13 1bpp source mask to target ge2 mask, then apply Stage20 two-head style model",
             )
+            self.assertEqual(
+                metadata["contact_sheet_order"],
+                ["original_source", "adapted_ge2", "predicted_2bpp", "target_2bpp"],
+            )
+
+    @slow_test
+    def test_exports_song13_calibrated_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            target_metadata = json.loads(Path(target.metadata_json).read_text(encoding="utf-8"))
+            fake_source = {
+                "cell_width": target_metadata["cell_width"],
+                "cell_height": target_metadata["cell_height"],
+                "glyphs": [
+                    {
+                        **glyph,
+                        "source_png": glyph["png"],
+                        "target_png": glyph["png"],
+                    }
+                    for glyph in target_metadata["glyphs"]
+                ],
+            }
+            fake_source_json = root / "fake_source.json"
+            fake_source_json.write_text(json.dumps(fake_source, ensure_ascii=False), encoding="utf-8")
+            result = export_song13_calibrated(
+                target_metadata=Path(target.metadata_json),
+                source_metadata=fake_source_json,
+                out_dir=root / "song13_calibrated",
+                metadata_json=root / "song13_calibrated.json",
+                contact_sheet=root / "song13_calibrated.png",
+                error_contact_sheet=root / "song13_calibrated_errors.png",
+                thresholds=[0.50, 0.65],
+                max_train_glyphs=16,
+                adapter_hidden_units=12,
+                style_core_hidden_units=12,
+                style_shadow_hidden_units=12,
+                max_iter=4,
+                worst_count=12,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertIn(result.best_adapter_model, {"adapter_logistic_balanced", "adapter_patch_mlp"})
+            self.assertIn(result.best_threshold, {0.50, 0.65})
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.error_contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["task"], "calibrate Song13 source-mask adapter threshold before Stage20 style heads")
             self.assertEqual(
                 metadata["contact_sheet_order"],
                 ["original_source", "adapted_ge2", "predicted_2bpp", "target_2bpp"],

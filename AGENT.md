@@ -60,6 +60,8 @@ style layering from a 1bpp mask into 2bpp levels.
   comparisons.
 - `scripts/train_song13_adapter.py`: Stage 22 source-mask adapter before the
   Stage20 two-head style model.
+- `scripts/train_song13_calibrated.py`: Stage 23 threshold sweep for the Song13
+  adapter, ranked with an ink-ratio/readability penalty.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -112,6 +114,9 @@ Generated glyph artifacts must be grouped by stage under
 - `stage22_song13_adapter/`: current source-adaptation experiment. It learns a
   Song13 source mask to target `ge2` adapter, then feeds the adapted mask into
   the Stage20 core/edge and shadow heads.
+- `stage23_song13_calibrated/`: calibrated threshold sweep over the Stage22
+  adapter family. Use this when Stage22's raw F1 improvement looks too dark or
+  over-connected by eye.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -146,8 +151,11 @@ Current external-source direction:
 - Treat serif feet as expected source shape, not a rendering error.
 - Stage 22 improved CJK raw Song13 ge2 F1 from `0.5953` to adapted F1 `0.6844`
   and final visual score from `0.6320` to `0.6809`.
-- The remaining visible failure is local over-connection/counter loss in dense
-  CJK glyphs, so favor adapter constraints before larger style heads.
+- Stage 23 calibrated the adapter threshold to `0.55`; adapted foreground ratio
+  moved from Stage22's `0.3324` toward target `0.2878`, landing at `0.2994`.
+- The remaining visible failure shifts between over-connection at low thresholds
+  and broken thin strokes at high thresholds, so favor adapter constraints
+  before larger style heads.
 
 ## Target Split
 
@@ -199,6 +207,7 @@ python scripts/train_patch_classifier.py
 python scripts/train_shadow_classifier.py
 python scripts/eval_external_sources.py
 python scripts/train_song13_adapter.py
+python scripts/train_song13_calibrated.py
 python -m unittest discover
 ```
 
@@ -228,6 +237,7 @@ Expected result:
 - `data/processed/glyphs/stage20_shadow_classifier/shadow_classifier_metadata.json` exists after Stage 20.
 - `data/processed/glyphs/stage21_external_eval/external_eval_metadata.json` exists after Stage 21.
 - `data/processed/glyphs/stage22_song13_adapter/song13_adapter_metadata.json` exists after Stage 22.
+- `data/processed/glyphs/stage23_song13_calibrated/song13_calibrated_metadata.json` exists after Stage 23.
 - default unittest passes quickly and confirms the source NFTR shape.
 - slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 

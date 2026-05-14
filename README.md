@@ -64,6 +64,7 @@ The first milestones were intentionally small:
 │   ├── train_shadow_classifier.py # Stage 20 learned 0/1 shadow classifier
 │   ├── eval_external_sources.py  # Stage 21 external source-mask transfer eval
 │   ├── train_song13_adapter.py   # Stage 22 source-mask adapter experiment
+│   ├── train_song13_calibrated.py # Stage 23 calibrated adapter threshold sweep
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -198,6 +199,7 @@ data/processed/glyphs/
 ├── stage20_shadow_classifier/ # learned shadow + patch MLP combined output
 ├── stage21_external_eval/ # Stage20 two-head model on external source masks
 ├── stage22_song13_adapter/ # Song13 mask adapter feeding Stage20 style heads
+├── stage23_song13_calibrated/ # threshold-calibrated Song13 adapter sweep
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -770,6 +772,34 @@ local over-connection and lost small counters in complex Song-style CJK glyphs.
 The next useful direction is to constrain or regularize the adapter so it
 improves alignment without collapsing tiny white spaces.
 
+## Calibrate the Song13 Adapter
+
+Run:
+
+```powershell
+python scripts/train_song13_calibrated.py
+```
+
+This keeps the Stage22 model family but sweeps adapter probability thresholds.
+Selection uses a CJK quality score that includes visual score, adapted-mask F1,
+precision, ink F1, and a penalty for adapted-mask foreground ratio drifting away
+from target `ge2`.
+
+Current CJK result:
+
+- best candidate: `adapter_patch_mlp_t055`
+- threshold: `0.55`
+- adapted mask vs target ge2 F1/IoU: `0.6705` / `0.5156`
+- adapted foreground ratio: `0.2994`
+- target ge2 foreground ratio: `0.2878`
+- visual score after Stage20 style heads: `0.6696`
+- ink F1 / shadow F1: `0.6199` / `0.5657`
+
+Interpretation: Stage23 is visually less over-inked than Stage22 because the
+adapted mask is much closer to the target `ge2` ink ratio. It also lowers raw
+F1 and visual score, so this should be read as a readability/calibration
+diagnostic rather than a new best model.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
@@ -777,8 +807,8 @@ See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Keep Stage 20 as the controlled best style baseline.
 2. Keep Song13 as the default external source and avoid broad font comparisons.
-3. Improve the Stage22 source adapter with topology/shape constraints before
-   increasing style-model capacity.
+3. Use Stage23 to choose readable adapter thresholds, then improve the adapter
+   with topology/shape constraints before increasing style-model capacity.
 4. Keep CJK as the primary split and non-CJK as a guard split.
 5. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.
