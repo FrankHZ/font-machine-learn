@@ -60,6 +60,7 @@ The first milestones were intentionally small:
 │   ├── run_boundary_rules.py     # Explainable ge2 level-2/3 boundary rules
 │   ├── build_patch_readiness.py  # Stage 18 patch/error dataset for next model
 │   ├── train_patch_classifier.py # Stage 19 patch-only ge2 2/3 classifiers
+│   ├── train_shadow_classifier.py # Stage 20 learned 0/1 shadow classifier
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -191,6 +192,7 @@ data/processed/glyphs/
 ├── stage17_boundary_rules/ # explainable ge2 level-2/3 boundary search
 ├── stage18_patch_readiness/ # CJK ge2 patch/error index for next model choice
 ├── stage19_patch_classifier/ # patch-only ge2 level-2/3 classifier outputs
+├── stage20_shadow_classifier/ # learned shadow + patch MLP combined output
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -663,13 +665,41 @@ Interpretation: patch MLP improves the core/edge split beyond Stage 15's ge2
 keeps shadow as a fixed rule. The next split should treat `2/3` and `0/1`
 shadow placement as separate subproblems.
 
+## Train Shadow Classifier
+
+Run:
+
+```powershell
+python scripts/train_shadow_classifier.py
+```
+
+This stage combines two learned patch heads over the target-derived `ge2` mask:
+
+- a Stage19-style MLP for level `2` versus `3` inside `ge2`
+- a shadow classifier for level `0` versus `1` outside `ge2`
+
+Current result:
+
+- best shadow model: `shadow_patch_mlp`
+- CJK visual score: `0.9739`
+- CJK ink F1: `0.9738`
+- CJK shadow F1: `0.9557`
+- CJK foreground IoU: `0.9768`
+- shadow 0/1 accuracy: `0.9831`
+- shadow F1 from 0/1 confusion: `0.9735`
+
+Interpretation: learned shadow placement fixes the main Stage19 weakness and
+beats the earlier controlled MLP baselines. The next useful work is to package
+this as the current controlled best baseline, then test how it behaves on real
+WQY-derived source masks.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Preserve Stage 19's patch MLP for ge2 level `2/3` assignment.
-2. Build a separate shadow classifier/rule diagnostic for `0/1` placement.
+1. Treat Stage 20 as the current controlled best baseline.
+2. Add an external-source evaluation path for WQY13/WQY14 masks.
 3. Keep CJK as the primary split and non-CJK as a guard split.
 4. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.

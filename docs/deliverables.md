@@ -634,3 +634,53 @@ Commit theme:
 ```text
 feat: train patch classifier baseline
 ```
+
+## Stage 20: Learned Shadow Classifier
+
+Deliverable:
+
+- train a Stage19-style patch MLP for `ge2` level `2/3` assignment
+- train separate shadow classifiers for outside-`ge2` level `0/1` assignment
+- combine the two heads into full 2bpp glyph predictions
+- export metadata, best-model contact sheet, and worst-case contact sheet
+- command: `scripts/train_shadow_classifier.py`
+- output root: `data/processed/glyphs/stage20_shadow_classifier/`
+
+First recorded metrics:
+
+- core/edge training pixels: `98954`
+- shadow training pixels: `244846`
+- best shadow model: `shadow_patch_mlp`
+- best CJK visual score: `0.9739`
+- CJK ink F1: `0.9738`
+- CJK shadow F1: `0.9557`
+- CJK foreground IoU: `0.9768`
+- shadow 0/1 accuracy: `0.9831`
+- shadow F1 from 0/1 confusion: `0.9735`
+
+Interpretation:
+
+- learned shadow placement fixes the main weakness of Stage 19
+- this is the current controlled best baseline over target-derived `ge2` source
+- next stage should evaluate the two-head patch model on WQY13/WQY14 source
+  masks to expose source adaptation separately from style learning
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_shadow_classifier.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_shadow_classifier_smoke
+```
+
+Commit theme:
+
+```text
+feat: train shadow classifier baseline
+```

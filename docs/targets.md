@@ -792,3 +792,46 @@ Interpretation: local patch context is enough to improve the core/edge split,
 but it does not solve the whole style score because shadow placement is still a
 fixed rule. Stage 20 should either model shadow as a separate `0/1` classifier
 or combine the Stage 19 `2/3` classifier with a learned shadow head.
+
+## Target 20: Learned Shadow Classifier
+
+Goal: split the style problem into two learned patch heads: level `2/3` inside
+the `ge2` source mask and level `0/1` outside it.
+
+Command:
+
+```powershell
+python scripts/train_shadow_classifier.py
+```
+
+Model family:
+
+- core/edge head: Stage19-style patch MLP over 9x9 `ge2` source patches
+- shadow head: `shadow_logistic_balanced` and `shadow_patch_mlp`, both over the
+  same 9x9 source patch centered on outside-`ge2` pixels
+
+Initial run:
+
+- core/edge pixels: `98954`
+- shadow pixels: `244846`
+- shadow labels: level `0` = `167129`, level `1` = `77717`
+- best shadow model: `shadow_patch_mlp`
+- CJK visual score: `0.9739`
+- CJK ink F1: `0.9738`
+- CJK shadow F1: `0.9557`
+- CJK foreground IoU: `0.9768`
+- shadow 0/1 accuracy: `0.9831`
+- shadow 0/1 F1: `0.9735`
+
+Shadow MLP confusion:
+
+- level `0 -> 0`: `164561`
+- level `0 -> 1`: `2568`
+- level `1 -> 0`: `1582`
+- level `1 -> 1`: `76135`
+
+Interpretation: once shadow placement is learned separately, the target-derived
+controlled baseline jumps past the earlier pixel MLPs. This makes Stage 20 the
+current best style-learning reference. The remaining big unknown is transfer to
+real WQY source masks, where source alignment and glyph-shape differences are
+still expected to dominate.

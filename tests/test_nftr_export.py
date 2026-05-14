@@ -29,6 +29,7 @@ from font_machine_learn.patch_readiness import export_patch_readiness
 from font_machine_learn.patch_classifier import export_patch_classifier
 from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
+from font_machine_learn.shadow_classifier import export_shadow_classifier
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
 from font_machine_learn.style_mlp import export_style_mlp
@@ -779,6 +780,46 @@ class NFTRExportTest(unittest.TestCase):
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertEqual(metadata["task"], "patch-only classifier for ge2 source pixels: target level 2 vs 3")
             self.assertIn("patch_mlp", metadata["models"])
+            self.assertEqual(metadata["contact_sheet_order"][0], "source_ge2")
+
+    @slow_test
+    def test_exports_shadow_classifier_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            result = export_shadow_classifier(
+                target_metadata=Path(target.metadata_json),
+                out_dir=root / "shadow_classifier",
+                metadata_json=root / "shadow_classifier.json",
+                contact_sheet=root / "shadow_classifier.png",
+                error_contact_sheet=root / "shadow_classifier_errors.png",
+                max_train_glyphs=24,
+                core_hidden_units=12,
+                shadow_hidden_units=12,
+                max_iter=4,
+                worst_count=12,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertGreater(result.core_edge_train_pixel_count, 0)
+            self.assertGreater(result.shadow_train_pixel_count, 0)
+            self.assertIn(result.best_shadow_model, {"shadow_logistic_balanced", "shadow_patch_mlp"})
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.error_contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(
+                metadata["task"],
+                "separate shadow classifier combined with ge2 patch MLP core/edge classifier",
+            )
+            self.assertIn("shadow_patch_mlp", metadata["models"])
             self.assertEqual(metadata["contact_sheet_order"][0], "source_ge2")
 
 
