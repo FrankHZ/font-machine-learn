@@ -105,8 +105,10 @@ Generated glyph artifacts must be grouped by stage under
   extra external fonts. Current WenQuanYi Bitmap Song defaults are fitted from
   dense sweep review rather than nominal strike size: Song 12px at
   `--font-size 15 --font-mode L --threshold 96`, and Song 13px at
-  `--font-size 16 --font-mode L --threshold 96`. Song 14px is intentionally
-  excluded from the default Stage21 run for now to save iteration time.
+  `--font-size 16 --font-mode L --threshold 128`. Song13 at threshold `96`
+  scores higher but is visually too dense, so do not restore it by metric alone.
+  Song 14px is intentionally excluded from the default Stage21 run for now to
+  save iteration time.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.

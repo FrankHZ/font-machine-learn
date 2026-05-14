@@ -713,19 +713,21 @@ Current fitted CJK metrics:
 - Song12 source mask vs target ge2 IoU: `0.3455`
 - Song12 visual score after style model: `0.5521`
 - Song12 shadow F1: `0.4311`
-- Song13 source mask vs target ge2 F1: `0.5574`
-- Song13 source mask vs target ge2 IoU: `0.3976`
-- Song13 visual score after style model: `0.5906`
-- Song13 shadow F1: `0.4667`
+- Song13 source mask vs target ge2 F1: `0.5441`
+- Song13 source mask vs target ge2 IoU: `0.3853`
+- Song13 visual score after style model: `0.5839`
+- Song13 shadow F1: `0.4668`
 
 Interpretation:
 
 - WQY14 remains better than WQY13, matching earlier alignment diagnostics
 - WenQuanYi Bitmap Song nominal sizes were too small; use dense-sweep fitted
-  renders instead: Song12 at `--font-size 15`, Song13 at `--font-size 16`,
-  both with `--font-mode L --threshold 96`
-- fitted Song13 nearly matches WQY14 at source-mask F1, but WQY14 still has the
-  best final visual score in this run
+  renders instead: Song12 at `--font-size 15 --threshold 96`, Song13 at
+  `--font-size 16 --threshold 128`, both with `--font-mode L`
+- Song13 at threshold `96` scores higher but is visually too dense; threshold
+  `128` is the current default because contact sheets match the dense sweep
+  better
+- WQY14 still has the best final visual score in this run
 - Song14 is intentionally excluded from the default Stage21 run for now
 - external transfer is now clearly limited by source mask quality rather than
   the controlled style heads

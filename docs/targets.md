@@ -873,21 +873,21 @@ Current fitted CJK run:
 - Song12 visual score: `0.5521`
 - Song12 ink F1: `0.4876`
 - Song12 shadow F1: `0.4311`
-- Song13 source mask vs target ge2 F1: `0.5574`
-- Song13 source mask vs target ge2 IoU: `0.3976`
-- Song13 visual score: `0.5906`
-- Song13 ink F1: `0.5305`
-- Song13 shadow F1: `0.4667`
+- Song13 source mask vs target ge2 F1: `0.5441`
+- Song13 source mask vs target ge2 IoU: `0.3853`
+- Song13 visual score: `0.5839`
+- Song13 ink F1: `0.5205`
+- Song13 shadow F1: `0.4668`
 
 Interpretation: Stage20 is a strong controlled style transform, but external
 transfer is bottlenecked by the source mask. WQY14 is still materially closer
-than WQY13. Dense-sweep fitted Song13 nearly ties WQY14 at source-mask F1, but
-WQY14 still has the better final visual score. Song12 is a useful looser
-comparison, and Song14 is excluded from the default run for now to save
-iteration time.
+than WQY13. Song13 at threshold `96` scores higher but is visually too dense,
+so the dense-sweep default is threshold `128`; WQY14 still has the better final
+visual score. Song12 is a useful looser comparison, and Song14 is excluded from
+the default run for now to save iteration time.
 
-Rendering note: use `--font-mode L --threshold 96` for WenQuanYi Bitmap Song,
-with fitted sizes rather than nominal sizes: Song12 at `--font-size 15` and
-Song13 at `--font-size 16`. `--font-mode 1` removes antialiasing but makes many
-CJK glyphs too sparse, and generic close/bridge morphology fills complex
+Rendering note: use `--font-mode L` for WenQuanYi Bitmap Song. Song12 currently
+uses `--font-size 15 --threshold 96`; Song13 uses
+`--font-size 16 --threshold 128`. `--font-mode 1` removes antialiasing but makes
+many CJK glyphs too sparse, and generic close/bridge morphology fills complex
 characters too aggressively.
