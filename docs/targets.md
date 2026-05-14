@@ -835,3 +835,37 @@ controlled baseline jumps past the earlier pixel MLPs. This makes Stage 20 the
 current best style-learning reference. The remaining big unknown is transfer to
 real WQY source masks, where source alignment and glyph-shape differences are
 still expected to dominate.
+
+## Target 21: External Source Transfer Evaluation
+
+Goal: evaluate whether the Stage20 two-head style model transfers to real WQY
+source masks, and report source-mask alignment next to style metrics.
+
+Command:
+
+```powershell
+python scripts/eval_external_sources.py
+```
+
+Default external sources:
+
+- `wqy13`: Stage 2 WQY Sharp size 13 source metadata
+- `wqy14`: Stage 14 WQY Sharp size 14 source metadata
+
+Initial CJK run:
+
+- WQY13 source mask vs target ge2 F1: `0.4056`
+- WQY13 source mask vs target ge2 IoU: `0.2666`
+- WQY13 visual score: `0.4746`
+- WQY13 ink F1: `0.3833`
+- WQY13 shadow F1: `0.3458`
+- WQY14 source mask vs target ge2 F1: `0.5576`
+- WQY14 source mask vs target ge2 IoU: `0.4093`
+- WQY14 visual score: `0.6034`
+- WQY14 ink F1: `0.5437`
+- WQY14 shadow F1: `0.4906`
+
+Interpretation: Stage20 is a strong controlled style transform, but WQY transfer
+is bottlenecked by the source mask. WQY14 is still materially closer than WQY13,
+yet its source mask F1 against target `ge2` is only `0.5576`, so the next
+productive work is source adaptation rather than adding style-model capacity.

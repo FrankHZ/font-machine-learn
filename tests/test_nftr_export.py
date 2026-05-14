@@ -25,6 +25,7 @@ from font_machine_learn.binary_diagnostic import export_binary_diagnostic
 from font_machine_learn.char_class import classify_char, classify_glyph
 from font_machine_learn.cjk_edges import export_cjk_edges_baseline
 from font_machine_learn.cjk_style import export_cjk_style_baseline
+from font_machine_learn.external_eval import export_external_eval
 from font_machine_learn.patch_readiness import export_patch_readiness
 from font_machine_learn.patch_classifier import export_patch_classifier
 from font_machine_learn.review import ReviewBaseline, export_review_report
@@ -821,6 +822,53 @@ class NFTRExportTest(unittest.TestCase):
             )
             self.assertIn("shadow_patch_mlp", metadata["models"])
             self.assertEqual(metadata["contact_sheet_order"][0], "source_ge2")
+
+    @slow_test
+    def test_exports_external_eval_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            target_metadata = json.loads(Path(target.metadata_json).read_text(encoding="utf-8"))
+            fake_source = {
+                "cell_width": target_metadata["cell_width"],
+                "cell_height": target_metadata["cell_height"],
+                "glyphs": [
+                    {
+                        **glyph,
+                        "source_png": glyph["png"],
+                        "target_png": glyph["png"],
+                    }
+                    for glyph in target_metadata["glyphs"]
+                ],
+            }
+            fake_source_json = root / "fake_source.json"
+            fake_source_json.write_text(json.dumps(fake_source, ensure_ascii=False), encoding="utf-8")
+            result = export_external_eval(
+                target_metadata=Path(target.metadata_json),
+                out_dir=root / "external_eval",
+                metadata_json=root / "external_eval.json",
+                external_sources={"target_visible": fake_source_json},
+                max_train_glyphs=24,
+                core_hidden_units=12,
+                shadow_hidden_units=12,
+                max_iter=4,
+                worst_count=12,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertEqual(result.evaluated_sources, ["target_visible"])
+            self.assertGreater(result.train_core_edge_pixel_count, 0)
+            self.assertGreater(result.train_shadow_pixel_count, 0)
+            self.assertTrue(Path(result.metadata_json).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["task"], "evaluate Stage20 two-head patch style model on external source masks")
+            self.assertIn("target_visible", metadata["sources"])
 
 
 if __name__ == "__main__":

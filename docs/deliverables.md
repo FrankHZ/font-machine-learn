@@ -684,3 +684,55 @@ Commit theme:
 ```text
 feat: train shadow classifier baseline
 ```
+
+## Stage 21: External Source Evaluation
+
+Deliverable:
+
+- retrain the Stage20 two-head patch model on target-derived `ge2` masks
+- evaluate that model on WQY13 and WQY14 rendered source masks
+- report source-mask alignment against target `ge2` alongside final visual
+  metrics
+- export per-source predictions, contact sheets, worst-case contact sheets, and
+  metadata
+- command: `scripts/eval_external_sources.py`
+- output root: `data/processed/glyphs/stage21_external_eval/`
+
+First recorded CJK metrics:
+
+- WQY13 source mask vs target ge2 F1: `0.4056`
+- WQY13 source mask vs target ge2 IoU: `0.2666`
+- WQY13 visual score after style model: `0.4746`
+- WQY13 shadow F1: `0.3458`
+- WQY14 source mask vs target ge2 F1: `0.5576`
+- WQY14 source mask vs target ge2 IoU: `0.4093`
+- WQY14 visual score after style model: `0.6034`
+- WQY14 shadow F1: `0.4906`
+
+Interpretation:
+
+- WQY14 remains better than WQY13, matching earlier alignment diagnostics
+- external transfer is now clearly limited by source mask quality rather than
+  the controlled style heads
+- next stage should adapt WQY source masks toward target `ge2` before investing
+  in larger style models
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\eval_external_sources.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_external_eval_smoke
+```
+
+Commit theme:
+
+```text
+feat: evaluate external source transfer
+```

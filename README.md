@@ -61,6 +61,7 @@ The first milestones were intentionally small:
 │   ├── build_patch_readiness.py  # Stage 18 patch/error dataset for next model
 │   ├── train_patch_classifier.py # Stage 19 patch-only ge2 2/3 classifiers
 │   ├── train_shadow_classifier.py # Stage 20 learned 0/1 shadow classifier
+│   ├── eval_external_sources.py  # Stage 21 WQY source-mask transfer eval
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -193,6 +194,7 @@ data/processed/glyphs/
 ├── stage18_patch_readiness/ # CJK ge2 patch/error index for next model choice
 ├── stage19_patch_classifier/ # patch-only ge2 level-2/3 classifier outputs
 ├── stage20_shadow_classifier/ # learned shadow + patch MLP combined output
+├── stage21_external_eval/ # Stage20 two-head model on WQY source masks
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -693,13 +695,39 @@ beats the earlier controlled MLP baselines. The next useful work is to package
 this as the current controlled best baseline, then test how it behaves on real
 WQY-derived source masks.
 
+## Evaluate External Sources
+
+Run:
+
+```powershell
+python scripts/eval_external_sources.py
+```
+
+This retrains the Stage20 two-head patch model on target-derived `ge2` masks,
+then evaluates it on rendered WQY source masks. By default it uses:
+
+- `wqy13`: `data/processed/glyphs/stage2_source/source_metadata.json`
+- `wqy14`: `data/processed/glyphs/stage14_wqy_size14/source_metadata.json`
+
+Current CJK result:
+
+- WQY13 source mask vs target ge2 F1: `0.4056`
+- WQY13 visual score after style model: `0.4746`
+- WQY14 source mask vs target ge2 F1: `0.5576`
+- WQY14 visual score after style model: `0.6034`
+
+Interpretation: transfer is dominated by source mask quality. Stage20 has a
+strong controlled style transform, but WQY source masks do not yet align well
+enough with target `ge2` structure for the style model to shine.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Treat Stage 20 as the current controlled best baseline.
-2. Add an external-source evaluation path for WQY13/WQY14 masks.
+1. Keep Stage 20 as the current controlled best baseline.
+2. Work on source adaptation for WQY masks before increasing style-model
+   capacity.
 3. Keep CJK as the primary split and non-CJK as a guard split.
 4. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.

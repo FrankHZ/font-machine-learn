@@ -55,6 +55,8 @@ style layering from a 1bpp mask into 2bpp levels.
   classifiers.
 - `scripts/train_shadow_classifier.py`: Stage 20 learned 0/1 shadow classifier
   combined with the ge2 patch MLP.
+- `scripts/eval_external_sources.py`: Stage 21 transfer evaluation on WQY13 and
+  WQY14 source masks.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -96,6 +98,8 @@ Generated glyph artifacts must be grouped by stage under
   vs `3` inside the `ge2` source mask.
 - `stage20_shadow_classifier/`: separate learned shadow head combined with the
   Stage19-style patch MLP; current controlled best baseline.
+- `stage21_external_eval/`: Stage20 two-head model evaluated on external WQY
+  source masks; use this to separate style learning from source adaptation.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -170,6 +174,7 @@ python scripts/run_boundary_rules.py
 python scripts/build_patch_readiness.py
 python scripts/train_patch_classifier.py
 python scripts/train_shadow_classifier.py
+python scripts/eval_external_sources.py
 python -m unittest discover
 ```
 
@@ -197,6 +202,7 @@ Expected result:
 - `data/processed/glyphs/stage18_patch_readiness/patch_readiness_metadata.json` exists after Stage 18.
 - `data/processed/glyphs/stage19_patch_classifier/patch_classifier_metadata.json` exists after Stage 19.
 - `data/processed/glyphs/stage20_shadow_classifier/shadow_classifier_metadata.json` exists after Stage 20.
+- `data/processed/glyphs/stage21_external_eval/external_eval_metadata.json` exists after Stage 21.
 - default unittest passes quickly and confirms the source NFTR shape.
 - slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 
