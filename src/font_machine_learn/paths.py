@@ -70,4 +70,10 @@ STYLE_BASELINE_SEARCH = STAGE11_1BPP_STYLE / "style_baseline_search.json"
 STYLE_BASELINE_CONTACT = STAGE11_1BPP_STYLE / "style_baseline_contact.png"
 STYLE_BASELINE_WORST_CONTACT = STAGE11_1BPP_STYLE / "style_baseline_worst_contact.png"
 
+STAGE12_TARGET_MASKS = GLYPH_ROOT / "stage12_target_masks"
+TARGET_GE2_1BPP_DIR = STAGE12_TARGET_MASKS / "target_ge2_1bpp"
+TARGET_EQ3_1BPP_DIR = STAGE12_TARGET_MASKS / "target_eq3_1bpp"
+TARGET_MASK_COMPARE_METADATA = STAGE12_TARGET_MASKS / "target_mask_compare_metadata.json"
+TARGET_MASK_COMPARE_CONTACT = STAGE12_TARGET_MASKS / "target_mask_compare_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

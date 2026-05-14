@@ -45,6 +45,7 @@ style layering from a 1bpp mask into 2bpp levels.
 - `scripts/run_cjk_style_baseline.py`: Stage 9 CJK-focused fixed-style baseline.
 - `scripts/run_cjk_edges_baseline.py`: Stage 10 CJK level-2 edge refinement.
 - `scripts/build_1bpp_style_dataset.py`: Stage 11 formal 1bpp-to-2bpp dataset.
+- `scripts/compare_target_masks_to_source.py`: Stage 12 target mask comparison.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -69,6 +70,8 @@ Generated glyph artifacts must be grouped by stage under
   WQY-shaped input.
 - `stage11_1bpp_style/`: target-derived 1bpp masks paired with original 2bpp
   labels; this is the main training direction.
+- `stage12_target_masks/`: compare target `>=2` and `==3` 1bpp masks against
+  WQY source glyphs.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -104,9 +107,20 @@ layers.
 
 ## Smoke Test
 
-Run this after changes:
+Run this after normal changes:
 
 ```powershell
+python -m unittest discover
+python scripts/check_env.py
+```
+
+Default tests should stay fast. Historical stage exporters are slow and are
+skipped unless `FML_RUN_SLOW_TESTS=1` is set.
+
+Run this only when changing stage exporters:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
 python scripts/export_nftr.py a.NFTR --out data/processed/a_atlas.png
 python scripts/extract_target_glyphs.py a.NFTR
 python scripts/render_source_glyphs.py
@@ -119,8 +133,8 @@ python scripts/search_weight_baseline.py
 python scripts/run_cjk_style_baseline.py
 python scripts/run_cjk_edges_baseline.py
 python scripts/build_1bpp_style_dataset.py
+python scripts/compare_target_masks_to_source.py
 python -m unittest discover
-python scripts/check_env.py
 ```
 
 Expected result:
@@ -139,7 +153,9 @@ Expected result:
 - `data/processed/glyphs/stage9_cjk_style/cjk_style_metadata.json` exists after Stage 9.
 - `data/processed/glyphs/stage10_cjk_edges/cjk_edges_metadata.json` exists after Stage 10.
 - `data/processed/glyphs/stage11_1bpp_style/style_pairs_metadata.json` exists after Stage 11.
-- unittest passes and confirms the source NFTR shape.
+- `data/processed/glyphs/stage12_target_masks/target_mask_compare_metadata.json` exists after Stage 12.
+- default unittest passes quickly and confirms the source NFTR shape.
+- slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 
 ## Documentation Rules
 

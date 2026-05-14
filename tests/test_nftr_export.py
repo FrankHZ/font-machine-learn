@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import sys
-import tempfile
 import unittest
+import uuid
 import warnings
+from contextlib import contextmanager
 from pathlib import Path
 
 from PIL import Image
@@ -25,8 +28,26 @@ from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
+from font_machine_learn.target_mask_compare import export_target_mask_compare
+from font_machine_learn.target_mask_compare import levels_to_threshold_mask
 from font_machine_learn.trainable_baseline import export_mlp_baseline
 from font_machine_learn.weight_search import export_weight_search
+
+
+RUN_SLOW_TESTS = os.environ.get("FML_RUN_SLOW_TESTS") == "1"
+slow_test = unittest.skipUnless(RUN_SLOW_TESTS, "set FML_RUN_SLOW_TESTS=1 to run full stage export smoke tests")
+
+
+@contextmanager
+def workspace_tempdir():
+    tmp_root = ROOT / ".tmp" / "tests"
+    tmp_root.mkdir(parents=True, exist_ok=True)
+    path = tmp_root / f"test_{uuid.uuid4().hex}"
+    path.mkdir()
+    try:
+        yield str(path)
+    finally:
+        shutil.rmtree(path, ignore_errors=True)
 
 
 class NFTRExportTest(unittest.TestCase):
@@ -54,7 +75,7 @@ class NFTRExportTest(unittest.TestCase):
         source = ROOT / "a.NFTR"
         self.assertTrue(source.exists(), "a.NFTR must be present for the smoke test")
 
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             out_png = Path(tmp) / "a_atlas.png"
             config = export_font_atlas(source, out_png)
             out_json = out_png.with_suffix(".json")
@@ -77,7 +98,7 @@ class NFTRExportTest(unittest.TestCase):
 
     def test_exports_target_glyph_dataset(self) -> None:
         source = ROOT / "a.NFTR"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             result = export_target_dataset(
                 source,
@@ -102,10 +123,31 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(zero["chars"], ["0"])
             self.assertEqual(sum(zero["histogram"].values()), 15 * 15)
 
+    def test_target_mask_threshold_modes(self) -> None:
+        levels = [
+            [0, 1, 2, 3],
+            [3, 2, 1, 0],
+        ]
+        self.assertEqual(
+            levels_to_threshold_mask(levels, "ge2"),
+            [
+                [False, False, True, True],
+                [True, True, False, False],
+            ],
+        )
+        self.assertEqual(
+            levels_to_threshold_mask(levels, "eq3"),
+            [
+                [False, False, False, True],
+                [True, False, False, False],
+            ],
+        )
+
+    @slow_test
     def test_exports_wqy_source_dataset(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -135,10 +177,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(zero["chars"], ["0"])
             self.assertGreater(zero["ink_width"], 0)
 
+    @slow_test
     def test_exports_rule_based_shadow_baseline(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -173,10 +216,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertGreaterEqual(zero["pixel_accuracy"], 0.0)
             self.assertLessEqual(zero["pixel_accuracy"], 1.0)
 
+    @slow_test
     def test_exports_trainable_mlp_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -211,10 +255,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertGreaterEqual(result.mean_pixel_accuracy, 0.0)
             self.assertLessEqual(result.mean_pixel_accuracy, 1.0)
 
+    @slow_test
     def test_exports_tuned_shadow_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -250,10 +295,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertGreaterEqual(len(search["rules"]), 4)
             self.assertEqual(search["rules"][0]["name"], result.best_rule)
 
+    @slow_test
     def test_builds_baseline_review_report_smoke(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -306,10 +352,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(report["image_order"], ["source", "shadow", "tuned", "target"])
             self.assertIn("visual_score", report["summaries"]["shadow"])
 
+    @slow_test
     def test_exports_binary_diagnostic_smoke(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -350,10 +397,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(metadata["image_order"], ["source", "shadow", "target_1bpp"])
             self.assertIn("foreground_f1", metadata["summaries"]["source"])
 
+    @slow_test
     def test_exports_weight_search_smoke(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -391,10 +439,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertGreaterEqual(len(search["rules"]), 9)
             self.assertEqual(search["rules"][0]["name"], result.best_rule)
 
+    @slow_test
     def test_exports_cjk_style_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -435,10 +484,11 @@ class NFTRExportTest(unittest.TestCase):
             self.assertIn("non_cjk", metadata["groups"])
             self.assertEqual(metadata["best_rule"]["name"], result.best_rule)
 
+    @slow_test
     def test_exports_cjk_edges_baseline_smoke(self) -> None:
         source = ROOT / "a.NFTR"
         font = ROOT / "wqy-zenhei.ttc"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -476,9 +526,10 @@ class NFTRExportTest(unittest.TestCase):
             self.assertIn("edge_transition", metadata["style_constraints"])
             self.assertEqual(metadata["best_rule"]["name"], result.best_rule)
 
+    @slow_test
     def test_exports_1bpp_style_dataset_smoke(self) -> None:
         source = ROOT / "a.NFTR"
-        with tempfile.TemporaryDirectory() as tmp:
+        with workspace_tempdir() as tmp:
             root = Path(tmp)
             target = export_target_dataset(
                 source,
@@ -510,6 +561,45 @@ class NFTRExportTest(unittest.TestCase):
             self.assertEqual(metadata["task"], "1bpp glyph mask -> NFTR-style 2bpp layered glyph")
             self.assertIn("input_1bpp_png", metadata["glyphs"][0])
             self.assertIn("label_2bpp_png", metadata["glyphs"][0])
+
+    @slow_test
+    def test_compares_target_masks_to_wqy_source_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        font = ROOT / "wqy-zenhei.ttc"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            source_export = export_source_dataset(
+                source,
+                font,
+                root / "source",
+                target_metadata=Path(target.metadata_json),
+                metadata_json=root / "source_metadata.json",
+                contact_sheet=root / "source_contact.png",
+            )
+            result = export_target_mask_compare(
+                source_metadata=Path(source_export.metadata_json),
+                ge2_dir=root / "target_ge2",
+                eq3_dir=root / "target_eq3",
+                metadata_json=root / "mask_compare.json",
+                contact_sheet=root / "mask_compare.png",
+                contact_count=24,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertEqual(len(list((root / "target_ge2").glob("*.png"))), 1814)
+            self.assertEqual(len(list((root / "target_eq3").glob("*.png"))), 1814)
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["mask_modes"]["ge2"], "target level >= 2")
+            self.assertEqual(metadata["contact_sheet_order"][0], "wqy_source")
 
 
 if __name__ == "__main__":

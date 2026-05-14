@@ -453,3 +453,57 @@ Interpretation: Stage 11 is now evaluating layer assignment rather than glyph
 shape alignment. Perfect foreground F1/IoU is expected because the baseline does
 not change the input silhouette; the useful signal is visual score and contact
 sheets showing where core/edge/shadow splitting is wrong.
+
+## Target 12: Target Mask Choice Diagnostic
+
+Goal: decide which target-derived 1bpp definition is closest to WQY Sharp source
+glyphs before using it as a model input convention.
+
+Command:
+
+```powershell
+python scripts/compare_target_masks_to_source.py
+```
+
+Mask choices:
+
+- `ge2`: target levels `2` and `3`
+- `eq3`: target level `3` only
+
+Outputs:
+
+- `stage12_target_masks/target_ge2_1bpp/*.png`
+- `stage12_target_masks/target_eq3_1bpp/*.png`
+- `stage12_target_masks/target_mask_compare_metadata.json`
+- `stage12_target_masks/target_mask_compare_contact.png`
+
+Contact sheet order:
+
+- WQY source
+- target `>=2`
+- target `==3`
+- original target 2bpp
+
+Initial run:
+
+- CJK source-nonempty glyphs: `1528`
+- CJK `ge2` F1/IoU: `0.4141` / `0.2657`
+- CJK `eq3` F1/IoU: `0.3903` / `0.2517`
+- CJK `ge2` precision/recall: `0.4340` / `0.3831`
+- CJK `eq3` precision/recall: `0.3667` / `0.3977`
+
+Interpretation: target `>=2` is slightly closer to WQY Sharp than target `==3`,
+but this is a diagnostic result, not a final source contract. Level `2` appears
+to carry edge/anti-alias information; forcing it into a binary source either
+thickens the source or makes it too thin. The low scores are also expected
+because WQY and NFTR differ in glyph shape, placement, and core alignment.
+
+Stage 13 should avoid treating target quantization as a solved input. Better
+next directions are:
+
+- keep `>=2` and `==3` as diagnostic masks, not authoritative labels
+- train/evaluate level assignment on true 2bpp labels instead of collapsing
+  level `2`
+- use contact sheets and level-aware visual metrics as the main signal
+- separately estimate WQY-to-target alignment/weight before judging style
+  transfer quality

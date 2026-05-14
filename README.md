@@ -54,6 +54,7 @@ The first milestones were intentionally small:
 │   ├── run_cjk_style_baseline.py     # CJK-focused fixed-style baseline
 │   ├── run_cjk_edges_baseline.py     # CJK level-2 edge transition refinement
 │   ├── build_1bpp_style_dataset.py   # Formal 1bpp-mask to 2bpp-style dataset
+│   ├── compare_target_masks_to_source.py # Compare target >=2/==3 masks to WQY
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -99,9 +100,18 @@ Run the smoke-test harness with:
 python -m unittest discover
 ```
 
-The test exports `a.NFTR` into a temporary directory and verifies the key source
-font facts: `RTFN` mode, `15x15`, `2bpp`, `57` bytes per glyph, and `1814`
-glyphs.
+The default harness is intentionally fast. It verifies parser invariants and
+small pure functions without rebuilding every historical stage.
+
+Run full stage-export smoke tests only when changing stage exporters:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+python -m unittest discover
+```
+
+The slow tests export generated artifacts into `.tmp/tests/`, which is ignored
+by Git.
 
 ## Export the Font Atlas
 
@@ -169,6 +179,7 @@ data/processed/glyphs/
 ├── stage9_cjk_style/       # CJK-first fixed-style baseline
 ├── stage10_cjk_edges/      # CJK level-2 edge transition refinement
 ├── stage11_1bpp_style/     # formal 1bpp-mask to 2bpp-style dataset
+├── stage12_target_masks/   # compare target >=2 and ==3 masks to WQY source
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -429,6 +440,35 @@ Current baseline:
 - CJK visual score: `0.8170`
 - all visual score: `0.8257`
 - non-CJK visual score: `0.8718`
+
+## Compare Target 1bpp Mask Choices
+
+Run:
+
+```powershell
+python scripts/compare_target_masks_to_source.py
+```
+
+This compares two target-derived 1bpp masks against the WQY Sharp source glyphs:
+
+- `ge2`: target level `>= 2`, meaning main stroke plus edge/transition pixels
+- `eq3`: target level `== 3`, meaning main stroke core only
+
+The contact sheet stacks each glyph vertically as WQY source, `ge2`, `eq3`, and
+original 2bpp target.
+
+Current result:
+
+- CJK `ge2` F1/IoU: `0.4141` / `0.2657`
+- CJK `eq3` F1/IoU: `0.3903` / `0.2517`
+- CJK source-nonempty winner: `ge2`
+
+Interpretation: target `>=2` is slightly closer to WQY Sharp than `==3`, mostly
+because WQY Sharp is a little heavier than the NFTR level-3 core. Both scores
+remain low because WQY and NFTR differ in glyph shape, placement, and stroke
+weight. This does not make either binary mask a perfect training source:
+quantizing level `2` upward or downward discards the anti-alias/edge role that
+gives the target font its look.
 
 ## Next Milestones
 

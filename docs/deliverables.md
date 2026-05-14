@@ -29,6 +29,10 @@ Verification:
 .\.venv\Scripts\python.exe -m unittest discover
 ```
 
+Default `unittest discover` is a fast harness. Full stage-export smoke tests are
+behind `FML_RUN_SLOW_TESTS=1` so normal verification does not rebuild every
+historical artifact.
+
 Commit theme:
 
 ```text
@@ -328,4 +332,41 @@ Commit theme:
 
 ```text
 feat: build 1bpp style dataset
+```
+
+## Stage 12: Target Mask Choice Diagnostic
+
+Deliverable:
+
+- export two target-derived 1bpp masks: target level `>=2` and target level
+  `==3`
+- compare both masks against WQY Sharp source glyphs
+- report grouped metrics for all, CJK, non-CJK, source-nonempty, and
+  CJK-source-nonempty glyphs
+- output a contact sheet with WQY source, `>=2`, `==3`, and original 2bpp target
+- command: `scripts/compare_target_masks_to_source.py`
+- first recorded CJK `>=2` F1/IoU: `0.4141` / `0.2657`
+- first recorded CJK `==3` F1/IoU: `0.3903` / `0.2517`
+- first interpretation: `>=2` is closer to WQY Sharp than `==3`, but neither is
+  a clean final source definition. Level `2` behaves like anti-alias/edge
+  information, so quantizing it upward or downward destroys part of the target
+  effect, and WQY/NFTR shape alignment remains weak.
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_compares_target_masks_to_wqy_source_smoke
+```
+
+Commit theme:
+
+```text
+feat: compare target mask choices
 ```
