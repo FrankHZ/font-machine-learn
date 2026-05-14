@@ -855,3 +855,59 @@ Commit theme:
 ```text
 feat: calibrate song13 adapter threshold
 ```
+
+## Stage 24: Source-Preserving Song13 Add-Only Adapter
+
+Deliverable:
+
+- train an add-only adapter for pixels outside the Song13 source mask
+- force every original Song13 source pixel to remain in `adapted_ge2`
+- feed the source-preserving adapted mask into the Stage20 style heads
+- report source deleted ratio alongside mask and visual metrics
+- export adapted masks, predictions, best-candidate contact sheet, worst-case
+  contact sheet, and metadata
+- command: `scripts/train_song13_add_only.py`
+- output root: `data/processed/glyphs/stage24_song13_add_only/`
+
+Current CJK metrics:
+
+- Stage22 source deleted ratio: `0.1023`
+- Stage23 source deleted ratio: `0.1489`
+- Stage24 best candidate: `add_patch_mlp_t075`
+- Stage24 source deleted ratio: `0.0000`
+- adapted foreground ratio: `0.2805`
+- target ge2 foreground ratio: `0.2878`
+- adapted mask vs target ge2 F1/IoU: `0.6302` / `0.4769`
+- visual score after style heads: `0.6508`
+- ink F1 after style heads: `0.6014`
+- shadow F1 after style heads: `0.5390`
+
+Interpretation:
+
+- the user-visible stroke loss in Stage22/23 was real and measurable
+- target `ge2` supervision pushed the adapter toward target glyph-shape
+  replacement
+- Stage24 keeps Song13 shape intact, so it is a safer source-adaptation contract
+  even though it scores lower against the target-shaped `ge2` labels
+- next work should learn 2bpp layering around the preserved Song13 shape or
+  split additions from style assignment, not erase source strokes
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_song13_add_only.py
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Full stage smoke:
+
+```powershell
+$env:FML_RUN_SLOW_TESTS = "1"
+.\.venv\Scripts\python.exe -m unittest tests.test_nftr_export.NFTRExportTest.test_exports_song13_add_only_smoke
+```
+
+Commit theme:
+
+```text
+feat: preserve song13 source strokes
+```

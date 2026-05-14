@@ -62,6 +62,8 @@ style layering from a 1bpp mask into 2bpp levels.
   Stage20 two-head style model.
 - `scripts/train_song13_calibrated.py`: Stage 23 threshold sweep for the Song13
   adapter, ranked with an ink-ratio/readability penalty.
+- `scripts/train_song13_add_only.py`: Stage 24 source-preserving adapter that
+  can only add ge2 pixels outside the Song13 source mask.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -117,6 +119,8 @@ Generated glyph artifacts must be grouped by stage under
 - `stage23_song13_calibrated/`: calibrated threshold sweep over the Stage22
   adapter family. Use this when Stage22's raw F1 improvement looks too dark or
   over-connected by eye.
+- `stage24_song13_add_only/`: add-only source adapter. It preserves every
+  Song13 source pixel and only learns outside-source additions.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -153,9 +157,12 @@ Current external-source direction:
   and final visual score from `0.6320` to `0.6809`.
 - Stage 23 calibrated the adapter threshold to `0.55`; adapted foreground ratio
   moved from Stage22's `0.3324` toward target `0.2878`, landing at `0.2994`.
-- The remaining visible failure shifts between over-connection at low thresholds
-  and broken thin strokes at high thresholds, so favor adapter constraints
-  before larger style heads.
+- Stage22 deleted about `10.2%` of Song13 CJK source pixels; Stage23 deleted
+  about `14.9%`. This means those adapters were learning target-shape
+  replacement, not just style prep.
+- Stage24 forbids deletion. Its best CJK source deleted ratio is `0.0000`, with
+  adapted foreground ratio `0.2805` against target `0.2878`. Prefer this
+  source-preserving direction before larger style heads.
 
 ## Target Split
 
@@ -208,6 +215,7 @@ python scripts/train_shadow_classifier.py
 python scripts/eval_external_sources.py
 python scripts/train_song13_adapter.py
 python scripts/train_song13_calibrated.py
+python scripts/train_song13_add_only.py
 python -m unittest discover
 ```
 
@@ -238,6 +246,7 @@ Expected result:
 - `data/processed/glyphs/stage21_external_eval/external_eval_metadata.json` exists after Stage 21.
 - `data/processed/glyphs/stage22_song13_adapter/song13_adapter_metadata.json` exists after Stage 22.
 - `data/processed/glyphs/stage23_song13_calibrated/song13_calibrated_metadata.json` exists after Stage 23.
+- `data/processed/glyphs/stage24_song13_add_only/song13_add_only_metadata.json` exists after Stage 24.
 - default unittest passes quickly and confirms the source NFTR shape.
 - slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 

@@ -65,6 +65,7 @@ The first milestones were intentionally small:
 │   ├── eval_external_sources.py  # Stage 21 external source-mask transfer eval
 │   ├── train_song13_adapter.py   # Stage 22 source-mask adapter experiment
 │   ├── train_song13_calibrated.py # Stage 23 calibrated adapter threshold sweep
+│   ├── train_song13_add_only.py  # Stage 24 source-preserving add-only adapter
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -200,6 +201,7 @@ data/processed/glyphs/
 ├── stage21_external_eval/ # Stage20 two-head model on external source masks
 ├── stage22_song13_adapter/ # Song13 mask adapter feeding Stage20 style heads
 ├── stage23_song13_calibrated/ # threshold-calibrated Song13 adapter sweep
+├── stage24_song13_add_only/ # source-preserving add-only Song13 adapter
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -800,6 +802,35 @@ adapted mask is much closer to the target `ge2` ink ratio. It also lowers raw
 F1 and visual score, so this should be read as a readability/calibration
 diagnostic rather than a new best model.
 
+## Run the Add-Only Song13 Adapter
+
+Run:
+
+```powershell
+python scripts/train_song13_add_only.py
+```
+
+This stage tests whether target-shape supervision is erasing useful Song13
+strokes. It forbids deletion:
+
+```text
+adapted_ge2 = original Song13 source OR learned outside-source additions
+```
+
+Current CJK result:
+
+- best candidate: `add_patch_mlp_t075`
+- source deleted ratio: `0.0000`
+- adapted foreground ratio: `0.2805`
+- target ge2 foreground ratio: `0.2878`
+- adapted mask vs target ge2 F1/IoU: `0.6302` / `0.4769`
+- visual score after Stage20 style heads: `0.6508`
+- ink F1 / shadow F1: `0.6014` / `0.5390`
+
+Interpretation: Stage24 keeps Song13 strokes intact and is more faithful to the
+source font, but scores lower because it refuses to reshape Song13 into the
+target glyph. This confirms Stage22/23 were too influenced by target glyph shape.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
@@ -807,8 +838,8 @@ See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
 1. Keep Stage 20 as the controlled best style baseline.
 2. Keep Song13 as the default external source and avoid broad font comparisons.
-3. Use Stage23 to choose readable adapter thresholds, then improve the adapter
-   with topology/shape constraints before increasing style-model capacity.
+3. Treat Stage24's source-preserving behavior as the safer direction: learn
+   additions/layering around Song13, not target-shape replacement.
 4. Keep CJK as the primary split and non-CJK as a guard split.
 5. Compare model outputs by contact sheet first, then by level-aware visual
    metrics.

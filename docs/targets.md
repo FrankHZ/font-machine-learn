@@ -980,3 +980,58 @@ confirms thresholding matters. It does not solve the source adaptation problem:
 low thresholds bridge strokes and fill counters, while high thresholds break
 thin strokes. The next target should move beyond a single threshold, likely by
 learning separate add/remove decisions or applying topology-aware penalties.
+
+## Target 24: Source-Preserving Add-Only Adapter
+
+Goal: test whether Stage22/23 were losing Song13 strokes because target `ge2`
+labels forced the adapter to learn target glyph-shape replacement.
+
+Command:
+
+```powershell
+python scripts/train_song13_add_only.py
+```
+
+Setup:
+
+- source: WenQuanYi Bitmap Song 13px rendered with the Target 21 settings
+- training rows: only pixels outside the Song13 source mask
+- label: whether an outside-source pixel is target `ge2`
+- hard constraint: every Song13 source pixel remains in `adapted_ge2`
+- style model: Stage20 two-head patch model trained on target-derived `ge2`
+- ranking: CJK quality score with an over-ink penalty
+
+Outputs:
+
+- `stage24_song13_add_only/*/adapted_ge2/*.png`
+- `stage24_song13_add_only/*/predicted_2bpp/*.png`
+- `stage24_song13_add_only/song13_add_only_metadata.json`
+- `stage24_song13_add_only/song13_add_only_contact.png`
+- `stage24_song13_add_only/song13_add_only_error_contact.png`
+
+Contact sheet order:
+
+- original Song13 source
+- adapted `ge2`, visualized as level `2` gray
+- predicted `2bpp`
+- target `2bpp`
+
+Initial CJK run:
+
+- Stage22 source deleted ratio: `0.1023`
+- Stage23 source deleted ratio: `0.1489`
+- Stage24 best candidate: `add_patch_mlp_t075`
+- Stage24 source deleted ratio: `0.0000`
+- adapted foreground ratio: `0.2805`
+- target ge2 foreground ratio: `0.2878`
+- adapted mask vs target ge2 F1/IoU: `0.6302` / `0.4769`
+- final visual score: `0.6508`
+- final ink F1: `0.6014`
+- final shadow F1: `0.5390`
+
+Interpretation: Stage24 confirms the suspicion: the earlier adapter was too
+strongly supervised by the target glyph shape and erased Song13 strokes to chase
+target `ge2`. The add-only version is lower scoring but more faithful to the
+source font. Future source adaptation should preserve source strokes and learn
+style/layer additions around them instead of treating the target glyph as the
+shape to copy.

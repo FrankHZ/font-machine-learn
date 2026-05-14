@@ -32,6 +32,7 @@ from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.shadow_classifier import export_shadow_classifier
 from font_machine_learn.song13_adapter import export_song13_adapter
+from font_machine_learn.song13_add_only import export_song13_add_only
 from font_machine_learn.song13_calibrated import export_song13_calibrated
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
@@ -986,6 +987,65 @@ class NFTRExportTest(unittest.TestCase):
 
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertEqual(metadata["task"], "calibrate Song13 source-mask adapter threshold before Stage20 style heads")
+            self.assertEqual(
+                metadata["contact_sheet_order"],
+                ["original_source", "adapted_ge2", "predicted_2bpp", "target_2bpp"],
+            )
+
+    @slow_test
+    def test_exports_song13_add_only_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            target_metadata = json.loads(Path(target.metadata_json).read_text(encoding="utf-8"))
+            fake_source = {
+                "cell_width": target_metadata["cell_width"],
+                "cell_height": target_metadata["cell_height"],
+                "glyphs": [
+                    {
+                        **glyph,
+                        "source_png": glyph["png"],
+                        "target_png": glyph["png"],
+                    }
+                    for glyph in target_metadata["glyphs"]
+                ],
+            }
+            fake_source_json = root / "fake_source.json"
+            fake_source_json.write_text(json.dumps(fake_source, ensure_ascii=False), encoding="utf-8")
+            result = export_song13_add_only(
+                target_metadata=Path(target.metadata_json),
+                source_metadata=fake_source_json,
+                out_dir=root / "song13_add_only",
+                metadata_json=root / "song13_add_only.json",
+                contact_sheet=root / "song13_add_only.png",
+                error_contact_sheet=root / "song13_add_only_errors.png",
+                thresholds=[0.65],
+                max_train_glyphs=12,
+                add_hidden_units=10,
+                style_core_hidden_units=10,
+                style_shadow_hidden_units=10,
+                max_iter=4,
+                worst_count=12,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertEqual(result.best_source_deleted_ratio, 0.0)
+            self.assertIn(result.best_model, {"add_constant", "add_logistic_balanced", "add_patch_mlp"})
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.error_contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(
+                metadata["task"],
+                "source-preserving Song13 add-only ge2 adapter before Stage20 style heads",
+            )
             self.assertEqual(
                 metadata["contact_sheet_order"],
                 ["original_source", "adapted_ge2", "predicted_2bpp", "target_2bpp"],
