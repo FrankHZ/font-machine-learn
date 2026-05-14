@@ -84,9 +84,6 @@ def default_external_sources() -> dict[str, Path]:
     song13 = Path("data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json")
     if song13.exists():
         sources["song13"] = song13
-    song14 = Path("data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json")
-    if song14.exists():
-        sources["song14"] = song14
     return sources
 
 
@@ -310,7 +307,7 @@ def export_external_eval(
         "target_metadata": str(target_metadata),
         "glyph_count": len(glyphs),
         "task": "evaluate Stage20 two-head patch style model on external source masks",
-        "source_mask_contract": "external source PNG alpha mask, usually WQY rendered 1bpp",
+        "source_mask_contract": "external source PNG alpha mask, usually rendered WQY/Song 1bpp",
         "patch_radius": patch_radius,
         "patch_size": patch_radius * 2 + 1,
         "model": {
@@ -321,7 +318,7 @@ def export_external_eval(
         "sources": source_payloads,
         "interpretation_notes": [
             "Controlled Stage20 score measures style learning with target-derived ge2 masks.",
-            "This stage measures transfer when the input mask comes from rendered WQY source glyphs.",
+            "This stage measures transfer when the input mask comes from rendered WQY or Song source glyphs.",
             "Low WQY scores should be read primarily as source adaptation/alignment issues unless source_mask_vs_target_ge2 is already strong.",
         ],
     }

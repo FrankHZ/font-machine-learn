@@ -62,7 +62,7 @@ The first milestones were intentionally small:
 │   ├── build_patch_readiness.py  # Stage 18 patch/error dataset for next model
 │   ├── train_patch_classifier.py # Stage 19 patch-only ge2 2/3 classifiers
 │   ├── train_shadow_classifier.py # Stage 20 learned 0/1 shadow classifier
-│   ├── eval_external_sources.py  # Stage 21 WQY source-mask transfer eval
+│   ├── eval_external_sources.py  # Stage 21 external source-mask transfer eval
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -195,7 +195,7 @@ data/processed/glyphs/
 ├── stage18_patch_readiness/ # CJK ge2 patch/error index for next model choice
 ├── stage19_patch_classifier/ # patch-only ge2 level-2/3 classifier outputs
 ├── stage20_shadow_classifier/ # learned shadow + patch MLP combined output
-├── stage21_external_eval/ # Stage20 two-head model on WQY source masks
+├── stage21_external_eval/ # Stage20 two-head model on external source masks
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -705,20 +705,20 @@ python scripts/eval_external_sources.py
 ```
 
 This retrains the Stage20 two-head patch model on target-derived `ge2` masks,
-then evaluates it on rendered WQY source masks. By default it uses:
+then evaluates it on rendered external source masks. By default it uses:
 
 - `wqy13`: `data/processed/glyphs/stage2_source/source_metadata.json`
 - `wqy14`: `data/processed/glyphs/stage14_wqy_size14/source_metadata.json`
 - `song12`: `data/processed/glyphs/stage21_external_eval_sources/song12/source_metadata.json`, if present
 - `song13`: `data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json`, if present
-- `song14`: `data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json`, if present
 
-For WenQuanYi Bitmap Song, current best visual source rendering uses normal
-grayscale rasterization with threshold `96`; monochrome rasterization avoids
-antialiasing but makes many small CJK structures too sparse:
+For WenQuanYi Bitmap Song, use the dense-sweep fitted render sizes instead of
+the nominal strike size. Normal grayscale rasterization with threshold `96`
+keeps small CJK structures healthier than monochrome rasterization:
 
 ```powershell
-python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.13px.ttf --font-index 0 --font-size 13 --font-mode L --threshold 96 --out-dir data/processed/glyphs/stage21_external_eval_sources/song13/source --metadata data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song13/source_target_contact.png
+python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.12px.ttf --font-index 0 --font-size 15 --font-mode L --threshold 96 --out-dir data/processed/glyphs/stage21_external_eval_sources/song12/source --metadata data/processed/glyphs/stage21_external_eval_sources/song12/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song12/source_target_contact.png
+python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.13px.ttf --font-index 0 --font-size 16 --font-mode L --threshold 96 --out-dir data/processed/glyphs/stage21_external_eval_sources/song13/source --metadata data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song13/source_target_contact.png
 ```
 
 Current CJK result:
@@ -727,18 +727,17 @@ Current CJK result:
 - WQY13 visual score after style model: `0.4746`
 - WQY14 source mask vs target ge2 F1: `0.5576`
 - WQY14 visual score after style model: `0.6034`
-- Song12 source mask vs target ge2 F1: `0.3937`
-- Song12 visual score after style model: `0.4294`
-- Song13 source mask vs target ge2 F1: `0.4258`
-- Song13 visual score after style model: `0.4696`
-- Song14 source mask vs target ge2 F1: `0.4211`
-- Song14 visual score after style model: `0.4768`
+- Song12 fitted source mask vs target ge2 F1: `0.5002`
+- Song12 visual score after style model: `0.5521`
+- Song13 fitted source mask vs target ge2 F1: `0.5574`
+- Song13 visual score after style model: `0.5906`
 
 Interpretation: transfer is dominated by source mask quality. Stage20 has a
-strong controlled style transform, but WQY source masks do not yet align well
-enough with target `ge2` structure for the style model to shine. The bitmap Song
-faces render cleanly, but their source masks are not closer than WQY14 for this
-target.
+strong controlled style transform, but external source masks still need to align
+with target `ge2` structure for the style model to shine. Fitted Song13 is now
+almost tied with WQY14 at the source-mask level, while WQY14 still gives the
+best final Stage20 visual score in this run. Song14 is excluded from the default
+Stage21 set for now.
 
 ## Next Milestones
 

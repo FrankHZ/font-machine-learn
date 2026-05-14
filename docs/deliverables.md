@@ -690,7 +690,8 @@ feat: train shadow classifier baseline
 Deliverable:
 
 - retrain the Stage20 two-head patch model on target-derived `ge2` masks
-- evaluate that model on WQY13 and WQY14 rendered source masks
+- evaluate that model on WQY13, WQY14, and fitted Song12/Song13 rendered source
+  masks
 - report source-mask alignment against target `ge2` alongside final visual
   metrics
 - export per-source predictions, contact sheets, worst-case contact sheets, and
@@ -698,7 +699,7 @@ Deliverable:
 - command: `scripts/eval_external_sources.py`
 - output root: `data/processed/glyphs/stage21_external_eval/`
 
-First recorded CJK metrics:
+Current fitted CJK metrics:
 
 - WQY13 source mask vs target ge2 F1: `0.4056`
 - WQY13 source mask vs target ge2 IoU: `0.2666`
@@ -708,26 +709,24 @@ First recorded CJK metrics:
 - WQY14 source mask vs target ge2 IoU: `0.4093`
 - WQY14 visual score after style model: `0.6034`
 - WQY14 shadow F1: `0.4906`
-- Song12 source mask vs target ge2 F1: `0.3937`
-- Song12 source mask vs target ge2 IoU: `0.2492`
-- Song12 visual score after style model: `0.4294`
-- Song12 shadow F1: `0.2758`
-- Song13 source mask vs target ge2 F1: `0.4258`
-- Song13 source mask vs target ge2 IoU: `0.2762`
-- Song13 visual score after style model: `0.4696`
-- Song13 shadow F1: `0.3373`
-- Song14 source mask vs target ge2 F1: `0.4211`
-- Song14 source mask vs target ge2 IoU: `0.2741`
-- Song14 visual score after style model: `0.4768`
-- Song14 shadow F1: `0.3403`
+- Song12 source mask vs target ge2 F1: `0.5002`
+- Song12 source mask vs target ge2 IoU: `0.3455`
+- Song12 visual score after style model: `0.5521`
+- Song12 shadow F1: `0.4311`
+- Song13 source mask vs target ge2 F1: `0.5574`
+- Song13 source mask vs target ge2 IoU: `0.3976`
+- Song13 visual score after style model: `0.5906`
+- Song13 shadow F1: `0.4667`
 
 Interpretation:
 
 - WQY14 remains better than WQY13, matching earlier alignment diagnostics
-- the WenQuanYi Bitmap Song 12/13/14px fonts render cleanly but do not beat WQY14
-  against this target
-- Song source rendering should use `--font-mode L --threshold 96`; 12px fits
-  the cell better but is too small for the target, while 14px is visually large
+- WenQuanYi Bitmap Song nominal sizes were too small; use dense-sweep fitted
+  renders instead: Song12 at `--font-size 15`, Song13 at `--font-size 16`,
+  both with `--font-mode L --threshold 96`
+- fitted Song13 nearly matches WQY14 at source-mask F1, but WQY14 still has the
+  best final visual score in this run
+- Song14 is intentionally excluded from the default Stage21 run for now
 - external transfer is now clearly limited by source mask quality rather than
   the controlled style heads
 - next stage should adapt WQY source masks toward target `ge2` before investing

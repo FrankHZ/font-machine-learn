@@ -855,10 +855,8 @@ Default external sources:
   `stage21_external_eval_sources/song12/`
 - `song13`: WenQuanYi Bitmap Song 13px source metadata, if rendered under
   `stage21_external_eval_sources/song13/`
-- `song14`: WenQuanYi Bitmap Song 14px source metadata, if rendered under
-  `stage21_external_eval_sources/song14/`
 
-Initial CJK run:
+Current fitted CJK run:
 
 - WQY13 source mask vs target ge2 F1: `0.4056`
 - WQY13 source mask vs target ge2 IoU: `0.2666`
@@ -870,30 +868,26 @@ Initial CJK run:
 - WQY14 visual score: `0.6034`
 - WQY14 ink F1: `0.5437`
 - WQY14 shadow F1: `0.4906`
-- Song12 source mask vs target ge2 F1: `0.3937`
-- Song12 source mask vs target ge2 IoU: `0.2492`
-- Song12 visual score: `0.4294`
-- Song12 ink F1: `0.3770`
-- Song12 shadow F1: `0.2758`
-- Song13 source mask vs target ge2 F1: `0.4258`
-- Song13 source mask vs target ge2 IoU: `0.2762`
-- Song13 visual score: `0.4696`
-- Song13 ink F1: `0.3972`
-- Song13 shadow F1: `0.3373`
-- Song14 source mask vs target ge2 F1: `0.4211`
-- Song14 source mask vs target ge2 IoU: `0.2741`
-- Song14 visual score: `0.4768`
-- Song14 ink F1: `0.3958`
-- Song14 shadow F1: `0.3403`
+- Song12 source mask vs target ge2 F1: `0.5002`
+- Song12 source mask vs target ge2 IoU: `0.3455`
+- Song12 visual score: `0.5521`
+- Song12 ink F1: `0.4876`
+- Song12 shadow F1: `0.4311`
+- Song13 source mask vs target ge2 F1: `0.5574`
+- Song13 source mask vs target ge2 IoU: `0.3976`
+- Song13 visual score: `0.5906`
+- Song13 ink F1: `0.5305`
+- Song13 shadow F1: `0.4667`
 
-Interpretation: Stage20 is a strong controlled style transform, but WQY transfer
-is bottlenecked by the source mask. WQY14 is still materially closer than WQY13,
-yet its source mask F1 against target `ge2` is only `0.5576`, so the next
-productive work is source adaptation rather than adding style-model capacity.
-The Song bitmap faces are useful evidence, but their CJK source masks are even
-farther from target `ge2` than WQY14 for this NFTR. Song12 fits inside 15x15
-more comfortably but is too small relative to the target.
+Interpretation: Stage20 is a strong controlled style transform, but external
+transfer is bottlenecked by the source mask. WQY14 is still materially closer
+than WQY13. Dense-sweep fitted Song13 nearly ties WQY14 at source-mask F1, but
+WQY14 still has the better final visual score. Song12 is a useful looser
+comparison, and Song14 is excluded from the default run for now to save
+iteration time.
 
-Rendering note: use `--font-mode L --threshold 96` for WenQuanYi Bitmap Song.
-`--font-mode 1` removes antialiasing but makes many CJK glyphs too sparse, and
-generic close/bridge morphology fills complex characters too aggressively.
+Rendering note: use `--font-mode L --threshold 96` for WenQuanYi Bitmap Song,
+with fitted sizes rather than nominal sizes: Song12 at `--font-size 15` and
+Song13 at `--font-size 16`. `--font-mode 1` removes antialiasing but makes many
+CJK glyphs too sparse, and generic close/bridge morphology fills complex
+characters too aggressively.
