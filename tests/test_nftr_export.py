@@ -24,6 +24,7 @@ from font_machine_learn.cjk_style import export_cjk_style_baseline
 from font_machine_learn.review import ReviewBaseline, export_review_report
 from font_machine_learn.shadow_search import export_tuned_shadow_baseline
 from font_machine_learn.source_font import export_source_dataset
+from font_machine_learn.style_dataset import export_1bpp_style_dataset
 from font_machine_learn.trainable_baseline import export_mlp_baseline
 from font_machine_learn.weight_search import export_weight_search
 
@@ -474,6 +475,41 @@ class NFTRExportTest(unittest.TestCase):
             metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
             self.assertIn("edge_transition", metadata["style_constraints"])
             self.assertEqual(metadata["best_rule"]["name"], result.best_rule)
+
+    def test_exports_1bpp_style_dataset_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            result = export_1bpp_style_dataset(
+                target_metadata=Path(target.metadata_json),
+                input_dir=root / "input_1bpp",
+                baseline_dir=root / "baseline_2bpp",
+                metadata_json=root / "style_pairs_metadata.json",
+                search_json=root / "style_search.json",
+                contact_sheet=root / "style_contact.png",
+                worst_contact_sheet=root / "style_worst.png",
+                search_limit=64,
+                worst_count=24,
+            )
+            self.assertEqual(result.glyph_count, 1814)
+            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.search_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.worst_contact_sheet).exists())
+            self.assertEqual(len(list((root / "input_1bpp").glob("*.png"))), 1814)
+            self.assertEqual(len(list((root / "baseline_2bpp").glob("*.png"))), 1814)
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(metadata["task"], "1bpp glyph mask -> NFTR-style 2bpp layered glyph")
+            self.assertIn("input_1bpp_png", metadata["glyphs"][0])
+            self.assertIn("label_2bpp_png", metadata["glyphs"][0])
 
 
 if __name__ == "__main__":

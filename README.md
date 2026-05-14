@@ -53,6 +53,7 @@ The first milestones were intentionally small:
 │   ├── search_weight_baseline.py     # Search source weight/offset before shadow
 │   ├── run_cjk_style_baseline.py     # CJK-focused fixed-style baseline
 │   ├── run_cjk_edges_baseline.py     # CJK level-2 edge transition refinement
+│   ├── build_1bpp_style_dataset.py   # Formal 1bpp-mask to 2bpp-style dataset
 │   └── export_nftr.py             # CLI wrapper for exporting an atlas
 ├── src/
 │   └── font_machine_learn/
@@ -395,7 +396,7 @@ The command writes:
 
 ## Build the 1bpp Style Dataset
 
-Planned next command:
+Run:
 
 ```powershell
 python scripts/build_1bpp_style_dataset.py
@@ -406,19 +407,36 @@ input side and the original NFTR 2bpp glyphs as labels. Later, any complete 1bpp
 font, including WQY Sharp, should be able to pass through the same style
 pipeline.
 
-Planned outputs:
+Important: the 1bpp input is the visible glyph silhouette, not a pre-labeled
+level-3 core. The Stage 11 baseline keeps that silhouette fixed, then searches a
+simple decomposition into level `3` core, level `2` edge/transition pixels, and
+level `1` right-down shadow pixels.
+
+Outputs:
 
 - `stage11_1bpp_style/input_1bpp/*.png`
 - `stage11_1bpp_style/baseline_2bpp/*.png`
 - `stage11_1bpp_style/style_pairs_metadata.json`
+- `stage11_1bpp_style/style_baseline_search.json`
 - `stage11_1bpp_style/style_baseline_contact.png`
+- `stage11_1bpp_style/style_baseline_worst_contact.png`
+
+Current baseline:
+
+- best rule: `core_n3_right_down_dx-1_dy-1`
+- glyphs: `1814`, CJK glyphs: `1528`
+- CJK foreground F1/IoU: `1.0000` / `1.0000`
+- CJK visual score: `0.8170`
+- all visual score: `0.8257`
+- non-CJK visual score: `0.8718`
 
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
 See `docs/deliverables.md` for stage deliverables and commit checkpoints.
 
-1. Build `stage11_1bpp_style/`: target-derived 1bpp input masks paired with
-   original 2bpp labels.
-2. Run a 1bpp-to-2bpp rule baseline using core/edge/shadow layer semantics.
-3. Train the next model on 1bpp masks as input and 2bpp target levels as labels.
+1. Train the next model on Stage 11 pairs: 1bpp visible masks as input and 2bpp
+   target levels as labels.
+2. Keep CJK as the primary split and non-CJK as a guard split.
+3. Compare model outputs by contact sheet first, then by level-aware visual
+   metrics.

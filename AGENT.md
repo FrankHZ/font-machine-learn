@@ -44,6 +44,7 @@ style layering from a 1bpp mask into 2bpp levels.
 - `scripts/search_weight_baseline.py`: Stage 8 source weight/offset search.
 - `scripts/run_cjk_style_baseline.py`: Stage 9 CJK-focused fixed-style baseline.
 - `scripts/run_cjk_edges_baseline.py`: Stage 10 CJK level-2 edge refinement.
+- `scripts/build_1bpp_style_dataset.py`: Stage 11 formal 1bpp-to-2bpp dataset.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -66,8 +67,8 @@ Generated glyph artifacts must be grouped by stage under
 - `stage9_cjk_style/`: CJK-focused style baseline over WQY-shaped input.
 - `stage10_cjk_edges/`: CJK-focused level-2 edge transition refinement over
   WQY-shaped input.
-- planned `stage11_1bpp_style/`: target-derived 1bpp masks paired with original
-  2bpp labels; this is the main training direction.
+- `stage11_1bpp_style/`: target-derived 1bpp masks paired with original 2bpp
+  labels; this is the main training direction.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -77,12 +78,17 @@ README.
 
 Level semantics for style work:
 
-- `3`: 1bpp-mask-derived main stroke core.
+- `3`: main stroke core inferred inside the 1bpp visible silhouette.
 - `2`: edge/anti-alias transition around the core, not generic stroke
   thickening.
 - `1`: fixed right-down shadow unless a later stage explicitly changes the
   style constraint.
 - `0`: transparent/background.
+
+For Stage 11 and later, remember that the source 1bpp mask is a visible
+silhouette containing core, edge, and shadow pixels together. Do not treat every
+source pixel as level `3`; the task is to split that silhouette into 2bpp style
+layers.
 
 ## Target Split
 
@@ -93,7 +99,7 @@ Level semantics for style work:
   into `15x15` cells for validation against the future real input font.
 - Target 3 and later early baselines explored WQY-shaped inputs and visual
   metrics. Treat those as diagnostics, not as the final learning formulation.
-- Target 11 should pivot the main dataset to target-derived `1bpp` masks as
+- Target 11 pivots the main dataset to target-derived `1bpp` visible masks as
   input and original NFTR `2bpp` glyphs as labels.
 
 ## Smoke Test
@@ -112,6 +118,7 @@ python scripts/run_binary_diagnostic.py
 python scripts/search_weight_baseline.py
 python scripts/run_cjk_style_baseline.py
 python scripts/run_cjk_edges_baseline.py
+python scripts/build_1bpp_style_dataset.py
 python -m unittest discover
 python scripts/check_env.py
 ```
@@ -131,8 +138,7 @@ Expected result:
 - `data/processed/glyphs/stage8_weight/weight_search_metadata.json` exists after Stage 8.
 - `data/processed/glyphs/stage9_cjk_style/cjk_style_metadata.json` exists after Stage 9.
 - `data/processed/glyphs/stage10_cjk_edges/cjk_edges_metadata.json` exists after Stage 10.
-- planned `data/processed/glyphs/stage11_1bpp_style/style_pairs_metadata.json`
-  should exist after Stage 11.
+- `data/processed/glyphs/stage11_1bpp_style/style_pairs_metadata.json` exists after Stage 11.
 - unittest passes and confirms the source NFTR shape.
 
 ## Documentation Rules
@@ -141,8 +147,8 @@ Expected result:
 - Update `docs/deliverables.md` when stage deliverables or verification changes.
 - Update README commands when the runnable harness changes.
 - Record guessed format details as metadata fields and CLI options.
-- When adding Stage 11, keep the wording focused on `1bpp mask -> 2bpp style
-  layers`; do not describe it as WQY glyph-shape correction.
+- Keep Stage 11+ wording focused on `1bpp visible mask -> 2bpp style layers`;
+  do not describe it as WQY glyph-shape correction.
 
 ## Design Constraints
 

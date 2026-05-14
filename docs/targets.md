@@ -411,7 +411,8 @@ Goal: pivot the main pipeline to the real learning problem: given a complete
 
 Inputs and labels:
 
-- input: target-derived `1bpp` mask, later replaceable by any complete 1bpp font
+- input: target-derived `1bpp` visible mask, later replaceable by any complete
+  1bpp font
 - label: original NFTR target glyph with levels `0..3`
 - primary subset: CJK
 - guard subsets: kana, latin, digit, punctuation, symbol
@@ -425,15 +426,30 @@ python scripts/build_1bpp_style_dataset.py
 Planned outputs:
 
 - `stage11_1bpp_style/input_1bpp/*.png`
-- `stage11_1bpp_style/label_2bpp/*.png` or label references to stage1 target
+- label references to Stage 1 target glyphs
 - `stage11_1bpp_style/baseline_2bpp/*.png`
 - `stage11_1bpp_style/style_pairs_metadata.json`
+- `stage11_1bpp_style/style_baseline_search.json`
 - `stage11_1bpp_style/style_baseline_contact.png`
+- `stage11_1bpp_style/style_baseline_worst_contact.png`
 
 Baseline rule:
 
-- 1bpp source mask core: level `3`
-- constrained edge transition near core: level `2`
-- fixed right-down `(1, 1)` shadow: level `1`
+- keep the 1bpp visible silhouette fixed
+- infer a dense level `3` core inside that silhouette
+- assign remaining visible pixels to level `2` edge/transition by default
+- allow visible non-core pixels right-down from core to become level `1` shadow
 
-This stage should become the reference dataset for later machine learning.
+Initial run:
+
+- CJK glyphs: `1528`
+- best rule: `core_n3_right_down_dx-1_dy-1`
+- CJK visual score: `0.8170`
+- CJK foreground F1/IoU: `1.0000` / `1.0000`
+- all visual score: `0.8257`
+- non-CJK visual score: `0.8718`
+
+Interpretation: Stage 11 is now evaluating layer assignment rather than glyph
+shape alignment. Perfect foreground F1/IoU is expected because the baseline does
+not change the input silhouette; the useful signal is visual score and contact
+sheets showing where core/edge/shadow splitting is wrong.

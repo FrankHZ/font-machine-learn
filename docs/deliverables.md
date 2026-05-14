@@ -299,16 +299,30 @@ feat: refine cjk edge transitions
 
 ## Stage 11: 1bpp-to-2bpp Style Dataset
 
-Planned deliverable:
+Deliverable:
 
 - build the formal paired dataset for the real task
-- input: target-derived 1bpp glyph masks
+- input: target-derived 1bpp visible glyph masks
 - label: original NFTR 2bpp glyph levels
 - include `char_class` and CJK/non-CJK grouping
-- run a rule baseline using core `3`, edge transition `2`, right-down shadow `1`
+- run a rule baseline that keeps the silhouette fixed and splits visible pixels
+  into core `3`, edge transition `2`, and right-down shadow `1`
 - output source masks, label references, baseline predictions, metadata, and a
   contact sheet
 - command: `scripts/build_1bpp_style_dataset.py`
+- first recorded best rule: `core_n3_right_down_dx-1_dy-1`
+- first recorded CJK metrics: visual score `0.8170`, foreground F1 `1.0000`,
+  foreground IoU `1.0000`
+- first recorded guard metrics: all visual `0.8257`, non-CJK visual `0.8718`
+- first interpretation: foreground metrics are perfect by construction because
+  the baseline no longer edits glyph shape; review layer assignment by visual
+  score and contact sheets
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
 
 Commit theme:
 

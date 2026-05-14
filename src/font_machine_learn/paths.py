@@ -62,4 +62,12 @@ CJK_EDGES_SEARCH = STAGE10_CJK_EDGES / "cjk_edges_search.json"
 CJK_EDGES_CONTACT = STAGE10_CJK_EDGES / "cjk_edges_contact.png"
 CJK_EDGES_WORST_CONTACT = STAGE10_CJK_EDGES / "cjk_edges_worst_contact.png"
 
+STAGE11_1BPP_STYLE = GLYPH_ROOT / "stage11_1bpp_style"
+STYLE_INPUT_1BPP_DIR = STAGE11_1BPP_STYLE / "input_1bpp"
+STYLE_BASELINE_2BPP_DIR = STAGE11_1BPP_STYLE / "baseline_2bpp"
+STYLE_PAIRS_METADATA = STAGE11_1BPP_STYLE / "style_pairs_metadata.json"
+STYLE_BASELINE_SEARCH = STAGE11_1BPP_STYLE / "style_baseline_search.json"
+STYLE_BASELINE_CONTACT = STAGE11_1BPP_STYLE / "style_baseline_contact.png"
+STYLE_BASELINE_WORST_CONTACT = STAGE11_1BPP_STYLE / "style_baseline_worst_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"
