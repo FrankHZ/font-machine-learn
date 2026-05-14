@@ -26,7 +26,28 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--shadow-hidden-units", type=int, default=64)
     parser.add_argument("--max-iter", type=int, default=80)
     parser.add_argument("--random-seed", type=int, default=21)
+    parser.add_argument(
+        "--source",
+        action="append",
+        default=[],
+        metavar="NAME=METADATA",
+        help="External source metadata to evaluate. May be repeated. Default: known WQY source metadata files.",
+    )
     return parser
+
+
+def parse_sources(values: list[str]) -> dict[str, Path] | None:
+    if not values:
+        return None
+    sources: dict[str, Path] = {}
+    for value in values:
+        if "=" not in value:
+            raise ValueError(f"--source must be NAME=METADATA, got {value!r}")
+        name, path = value.split("=", 1)
+        if not name:
+            raise ValueError("--source name must not be empty")
+        sources[name] = Path(path)
+    return sources
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -41,6 +62,7 @@ def main(argv: list[str] | None = None) -> int:
         shadow_hidden_units=args.shadow_hidden_units,
         max_iter=args.max_iter,
         random_seed=args.random_seed,
+        external_sources=parse_sources(args.source),
     )
     print(json.dumps(asdict(result), ensure_ascii=False, indent=2))
     return 0

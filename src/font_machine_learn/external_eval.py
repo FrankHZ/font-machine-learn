@@ -78,6 +78,12 @@ def default_external_sources() -> dict[str, Path]:
     wqy14 = Path("data/processed/glyphs/stage14_wqy_size14/source_metadata.json")
     if wqy14.exists():
         sources["wqy14"] = wqy14
+    song13 = Path("data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json")
+    if song13.exists():
+        sources["song13"] = song13
+    song14 = Path("data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json")
+    if song14.exists():
+        sources["song14"] = song14
     return sources
 
 

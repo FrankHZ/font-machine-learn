@@ -851,6 +851,10 @@ Default external sources:
 
 - `wqy13`: Stage 2 WQY Sharp size 13 source metadata
 - `wqy14`: Stage 14 WQY Sharp size 14 source metadata
+- `song13`: WenQuanYi Bitmap Song 13px source metadata, if rendered under
+  `stage21_external_eval_sources/song13/`
+- `song14`: WenQuanYi Bitmap Song 14px source metadata, if rendered under
+  `stage21_external_eval_sources/song14/`
 
 Initial CJK run:
 
@@ -864,8 +868,20 @@ Initial CJK run:
 - WQY14 visual score: `0.6034`
 - WQY14 ink F1: `0.5437`
 - WQY14 shadow F1: `0.4906`
+- Song13 source mask vs target ge2 F1: `0.4258`
+- Song13 source mask vs target ge2 IoU: `0.2762`
+- Song13 visual score: `0.4696`
+- Song13 ink F1: `0.3972`
+- Song13 shadow F1: `0.3373`
+- Song14 source mask vs target ge2 F1: `0.4211`
+- Song14 source mask vs target ge2 IoU: `0.2741`
+- Song14 visual score: `0.4768`
+- Song14 ink F1: `0.3958`
+- Song14 shadow F1: `0.3403`
 
 Interpretation: Stage20 is a strong controlled style transform, but WQY transfer
 is bottlenecked by the source mask. WQY14 is still materially closer than WQY13,
 yet its source mask F1 against target `ge2` is only `0.5576`, so the next
 productive work is source adaptation rather than adding style-model capacity.
+The Song bitmap faces are useful evidence, but their CJK source masks are even
+farther from target `ge2` than WQY14 for this NFTR.

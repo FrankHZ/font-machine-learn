@@ -708,6 +708,8 @@ then evaluates it on rendered WQY source masks. By default it uses:
 
 - `wqy13`: `data/processed/glyphs/stage2_source/source_metadata.json`
 - `wqy14`: `data/processed/glyphs/stage14_wqy_size14/source_metadata.json`
+- `song13`: `data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json`, if present
+- `song14`: `data/processed/glyphs/stage21_external_eval_sources/song14/source_metadata.json`, if present
 
 Current CJK result:
 
@@ -715,10 +717,16 @@ Current CJK result:
 - WQY13 visual score after style model: `0.4746`
 - WQY14 source mask vs target ge2 F1: `0.5576`
 - WQY14 visual score after style model: `0.6034`
+- Song13 source mask vs target ge2 F1: `0.4258`
+- Song13 visual score after style model: `0.4696`
+- Song14 source mask vs target ge2 F1: `0.4211`
+- Song14 visual score after style model: `0.4768`
 
 Interpretation: transfer is dominated by source mask quality. Stage20 has a
 strong controlled style transform, but WQY source masks do not yet align well
-enough with target `ge2` structure for the style model to shine.
+enough with target `ge2` structure for the style model to shine. The bitmap Song
+faces render cleanly, but their source masks are not closer than WQY14 for this
+target.
 
 ## Next Milestones
 

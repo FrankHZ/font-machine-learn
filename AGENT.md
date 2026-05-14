@@ -55,8 +55,8 @@ style layering from a 1bpp mask into 2bpp levels.
   classifiers.
 - `scripts/train_shadow_classifier.py`: Stage 20 learned 0/1 shadow classifier
   combined with the ge2 patch MLP.
-- `scripts/eval_external_sources.py`: Stage 21 transfer evaluation on WQY13 and
-  WQY14 source masks.
+- `scripts/eval_external_sources.py`: Stage 21 transfer evaluation on WQY13,
+  WQY14, and any rendered Song source masks.
 - `scripts/check_env.py`: local dependency sanity check.
 - `src/font_machine_learn/nftr.py`: parser/exporter implementation.
 - `tests/test_nftr_export.py`: fixed smoke-test harness.
@@ -100,6 +100,8 @@ Generated glyph artifacts must be grouped by stage under
   Stage19-style patch MLP; current controlled best baseline.
 - `stage21_external_eval/`: Stage20 two-head model evaluated on external WQY
   source masks; use this to separate style learning from source adaptation.
+- `stage21_external_eval_sources/`: optional rendered source datasets for
+  extra external fonts, currently WenQuanYi Bitmap Song 13px/14px when present.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
