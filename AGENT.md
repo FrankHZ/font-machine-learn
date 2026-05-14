@@ -75,6 +75,8 @@ Generated glyph artifacts must be grouped by stage under
   WQY source glyphs.
 - `stage13_wqy_alignment/`: search WQY source offset/weight against target
   `visible`, `>=2`, and `==3` mask views.
+- `stage14_wqy_size14/`: WQY Sharp size-14 raw source diagnostic; use this to
+  compare native bitmap strike size before considering any synthetic thickening.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -95,6 +97,11 @@ For Stage 11 and later, remember that the source 1bpp mask is a visible
 silhouette containing core, edge, and shadow pixels together. Do not treat every
 source pixel as level `3`; the task is to split that silhouette into 2bpp style
 layers.
+
+For tiny bitmap fonts, do not use dilation/boldening as a default adaptation
+strategy. Check native strike size and placement first. WQY Sharp size `14` is a
+current diagnostic candidate in the `15x15` cell; size `13` was the earlier
+baseline.
 
 ## Target Split
 

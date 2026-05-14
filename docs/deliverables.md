@@ -410,3 +410,30 @@ Commit theme:
 ```text
 feat: diagnose wqy alignment
 ```
+
+## Stage 14: WQY Sharp Size-14 Diagnostic
+
+Deliverable:
+
+- render WQY Sharp face index `2` at size `14` in the existing `15x15` cell
+- compare raw size-14 source masks against target `>=2` and `==3` masks
+- do not apply synthetic dilation/boldening
+- output source glyphs, source/target contact sheet, target mask comparison
+  metadata, and target mask contact sheet under `stage14_wqy_size14/`
+- first recorded CJK source-nonempty size-14 `>=2` F1/IoU: `0.5590` / `0.4078`
+- first recorded CJK source-nonempty size-14 `==3` F1/IoU: `0.5326` / `0.3815`
+- first interpretation: size `14` is a better raw WQY source than size `13`
+  without violating the tiny-bitmap-font constraint against artificial
+  thickening
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+docs: record wqy size 14 diagnostic
+```

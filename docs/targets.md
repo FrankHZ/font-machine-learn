@@ -549,3 +549,38 @@ adding weight, but it does not align cleanly with target core or core+edge masks
 The best `visible` rule is a heavy cardinal dilation, so it is compensating for
 source weight/shape rather than learning NFTR style. Keep WQY adaptation as a
 separate source-normalization problem before training the 2bpp style model.
+
+Important follow-up: for tiny bitmap fonts, synthetic dilation should not be a
+default source-normalization path. Prefer checking native bitmap strike sizes and
+placement first.
+
+## Target 14: WQY Sharp Size-14 Diagnostic
+
+Goal: test whether WQY Sharp size `14` is a better raw 1bpp source in the same
+`15x15` cell than the previous size `13`, without synthetic boldening.
+
+Commands:
+
+```powershell
+python scripts/render_source_glyphs.py --font-size 14 --out-dir data/processed/glyphs/stage14_wqy_size14/source --metadata data/processed/glyphs/stage14_wqy_size14/source_metadata.json --contact-sheet data/processed/glyphs/stage14_wqy_size14/source_target_contact.png
+python scripts/compare_target_masks_to_source.py --source-metadata data/processed/glyphs/stage14_wqy_size14/source_metadata.json --ge2-dir data/processed/glyphs/stage14_wqy_size14/target_ge2_1bpp --eq3-dir data/processed/glyphs/stage14_wqy_size14/target_eq3_1bpp --metadata data/processed/glyphs/stage14_wqy_size14/target_mask_compare_metadata.json --contact-sheet data/processed/glyphs/stage14_wqy_size14/target_mask_compare_contact.png
+```
+
+Initial CJK source-nonempty comparison:
+
+- size `13` raw `ge2` F1/IoU: `0.4141` / `0.2657`
+- size `13` raw `eq3` F1/IoU: `0.3903` / `0.2517`
+- size `14` raw `ge2` F1/IoU: `0.5590` / `0.4078`
+- size `14` raw `eq3` F1/IoU: `0.5326` / `0.3815`
+
+Size-14 width profile:
+
+- non-empty glyphs: `1812`
+- glyphs with ink width `12..13`: `1458`
+- glyphs with ink width `14..15`: `4`
+- average ink width: `12.06`
+- max ink width: `14`
+
+Interpretation: size `14` is a better raw WQY source candidate than size `13`
+and improves alignment without artificial thickening. Keep dilation results as
+diagnostic upper bounds only, not a production target.

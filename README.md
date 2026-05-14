@@ -500,6 +500,18 @@ Interpretation: WQY can be made fairly close to the full visible NFTR
 silhouette only by adding weight. It remains much less aligned with `>=2` and
 `==3`, so WQY adaptation should be separated from 2bpp style-layer learning.
 
+For tiny bitmap fonts, do not treat dilation/boldening as a normal production
+fix. A better first check is the native bitmap strike size. Rendering WQY Sharp
+at size `14` in the same `15x15` cell improved raw CJK source alignment without
+synthetic thickening:
+
+- size `13` raw CJK `>=2` F1/IoU: `0.4141` / `0.2657`
+- size `13` raw CJK `==3` F1/IoU: `0.3903` / `0.2517`
+- size `14` raw CJK `>=2` F1/IoU: `0.5590` / `0.4078`
+- size `14` raw CJK `==3` F1/IoU: `0.5326` / `0.3815`
+
+The size-14 diagnostic output is under `stage14_wqy_size14/`.
+
 ## Next Milestones
 
 See `docs/targets.md` for the working target split.
