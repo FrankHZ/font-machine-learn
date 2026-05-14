@@ -752,6 +752,10 @@ The Stage22 contact sheet has four rows per glyph:
 original Song13 source -> adapted ge2 -> predicted 2bpp -> target 2bpp
 ```
 
+The `adapted_ge2` row is still a binary mask, but foreground pixels are drawn as
+NFTR level `2` gray so it is visually distinct from the original black source
+row.
+
 Current CJK result:
 
 - raw Song13 mask vs target ge2 F1/IoU: `0.5953` / `0.4442`

@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.neural_network import MLPClassifier
 
 from font_machine_learn.baseline import BaselineGlyphMetrics, image_to_target_levels, levels_to_image
-from font_machine_learn.binary_diagnostic import compare_masks, image_to_mask, mask_to_image
+from font_machine_learn.binary_diagnostic import compare_masks, image_to_mask
 from font_machine_learn.char_class import classify_glyph
 from font_machine_learn.cjk_style import group_name
 from font_machine_learn.external_eval import summarize_binary, summarize_visual, train_two_head_models
@@ -165,6 +165,10 @@ def predict_adapter_mask(model: object, source_mask: Mask, *, patch_radius: int)
     return predicted
 
 
+def ge2_mask_to_image(mask: Mask) -> Image.Image:
+    return levels_to_image([[2 if value else 0 for value in row] for row in mask])
+
+
 def make_adapter_contact_sheet(
     records: list[dict],
     *,
@@ -235,7 +239,7 @@ def evaluate_adapter_model(
 
         adapted_png = adapted_dir / f"glyph_{index:04d}.png"
         predicted_png = pred_dir / f"glyph_{index:04d}.png"
-        mask_to_image(adapted_mask).save(adapted_png)
+        ge2_mask_to_image(adapted_mask).save(adapted_png)
         predicted_levels = predict_combined_levels(
             core_model,
             shadow_model,
@@ -427,6 +431,7 @@ def export_song13_adapter(
         "task": "adapt current Song13 1bpp source mask to target ge2 mask, then apply Stage20 two-head style model",
         "source_contract": "WenQuanYi Bitmap Song 13px, rendered at font-size 15 and left-bottom aligned",
         "target_adapter_label": "target level >= 2",
+        "adapted_ge2_visualization": "foreground pixels are saved as NFTR level 2 gray for readability; metrics still treat this as a binary ge2 mask",
         "adapter_patch_radius": adapter_patch_radius,
         "adapter_patch_size": adapter_patch_radius * 2 + 1,
         "style_patch_radius": style_patch_radius,

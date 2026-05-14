@@ -755,6 +755,8 @@ Deliverable:
   worst-case contact sheet, and metadata
 - contact sheets are four rows per glyph: original Song13 source, adapted
   `ge2`, predicted `2bpp`, target `2bpp`
+- adapted `ge2` is a binary mask, but foreground pixels are visualized as NFTR
+  level `2` gray rather than source black
 - command: `scripts/train_song13_adapter.py`
 - output root: `data/processed/glyphs/stage22_song13_adapter/`
 

@@ -904,7 +904,7 @@ Outputs:
 Contact sheet order:
 
 - original Song13 source
-- adapted `ge2`
+- adapted `ge2`, visualized as level `2` gray
 - predicted `2bpp`
 - target `2bpp`
 
