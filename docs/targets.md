@@ -625,3 +625,37 @@ Interpretation: style-layer learning is feasible under controlled target-derived
 inputs. `ge2` and `eq3` both work well, with `ge2` slightly ahead on CJK visual
 score. WQY14 transfers better than WQY13, but external scores remain much lower,
 so WQY source adaptation should stay separate from the 2bpp style model.
+
+## Target 16: Style MLP Tuning and Ablation
+
+Goal: test whether Stage 15 can improve by simple capacity/feature tuning before
+moving to a different model family.
+
+Command:
+
+```powershell
+python scripts/train_style_mlp.py --hidden-units 128 --max-iter 100 --random-seed 17 --out-dir data/processed/glyphs/stage16_style_mlp_tuning --metadata data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json --contact-sheet data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_contact.png
+```
+
+Initial CJK controlled comparison:
+
+- Stage 15 `ge2`: visual `0.9651`, ink F1 `0.9639`, shadow F1 `0.9443`
+- Stage 16 tuned `ge2`: visual `0.9654`, ink F1 `0.9656`, shadow F1 `0.9439`
+- Stage 16 tuned `eq3`: visual `0.9649`, ink F1 `1.0000`, shadow F1 `0.9328`
+
+Initial CJK external comparison with the tuned `ge2` model:
+
+- WQY13 visual `0.4677`
+- WQY14 visual `0.5995`
+
+Ablation note:
+
+- hard source constraints were already learned by Stage 15; postprocessing made
+  `0` pixel changes
+- a two-head tree classifier performed poorly (`visual ~0.71`)
+- edge/distance features plus heavier level-2 sample weights did not beat Stage
+  15 (`best quick ablation visual ~0.9642`)
+
+Interpretation: simple tuning is near saturation for the current pixel-MLP
+setup. The remaining controlled error is mostly level `2` versus level `3`
+boundary assignment, while WQY transfer remains dominated by source adaptation.

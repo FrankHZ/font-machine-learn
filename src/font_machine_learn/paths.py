@@ -86,4 +86,8 @@ STAGE15_STYLE_MLP = GLYPH_ROOT / "stage15_style_mlp"
 STYLE_MLP_METADATA = STAGE15_STYLE_MLP / "style_mlp_metadata.json"
 STYLE_MLP_CONTACT = STAGE15_STYLE_MLP / "style_mlp_contact.png"
 
+STAGE16_STYLE_MLP_TUNING = GLYPH_ROOT / "stage16_style_mlp_tuning"
+STYLE_MLP_TUNING_METADATA = STAGE16_STYLE_MLP_TUNING / "style_mlp_tuning_metadata.json"
+STYLE_MLP_TUNING_CONTACT = STAGE16_STYLE_MLP_TUNING / "style_mlp_tuning_contact.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

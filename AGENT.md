@@ -79,6 +79,8 @@ Generated glyph artifacts must be grouped by stage under
 - `stage14_wqy_size14/`: WQY Sharp size-14 raw source diagnostic; use this to
   compare native bitmap strike size before considering any synthetic thickening.
 - `stage15_style_mlp/`: controlled target-derived style-learning MLP outputs.
+- `stage16_style_mlp_tuning/`: capacity/ablation run over Stage 15; current
+  tuned result is only marginally better than Stage 15.
 - `legacy_flat/`: archived outputs from the old flat layout.
 
 Do not add new generated PNG/JSON artifacts directly under the glyph root.
@@ -148,6 +150,7 @@ python scripts/build_1bpp_style_dataset.py
 python scripts/compare_target_masks_to_source.py
 python scripts/run_wqy_alignment_diagnostic.py
 python scripts/train_style_mlp.py
+python scripts/train_style_mlp.py --hidden-units 128 --max-iter 100 --random-seed 17 --out-dir data/processed/glyphs/stage16_style_mlp_tuning --metadata data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json --contact-sheet data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_contact.png
 python -m unittest discover
 ```
 
@@ -170,6 +173,7 @@ Expected result:
 - `data/processed/glyphs/stage12_target_masks/target_mask_compare_metadata.json` exists after Stage 12.
 - `data/processed/glyphs/stage13_wqy_alignment/wqy_alignment_metadata.json` exists after Stage 13.
 - `data/processed/glyphs/stage15_style_mlp/style_mlp_metadata.json` exists after Stage 15.
+- `data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json` exists after Stage 16.
 - default unittest passes quickly and confirms the source NFTR shape.
 - slow unittest passes when `FML_RUN_SLOW_TESTS=1` is explicitly enabled.
 

@@ -474,3 +474,30 @@ Commit theme:
 ```text
 feat: train controlled style mlp
 ```
+
+## Stage 16: Style MLP Tuning and Ablation
+
+Deliverable:
+
+- rerun the controlled style MLP with slightly larger capacity
+- record whether edge/distance features or two-head classifiers are worth
+  promoting
+- keep the result honest: compare against Stage 15 and call out marginal gains
+- command: `scripts/train_style_mlp.py --hidden-units 128 --max-iter 100 --random-seed 17 --out-dir data/processed/glyphs/stage16_style_mlp_tuning --metadata data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json --contact-sheet data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_contact.png`
+- first recorded best controlled mode: `ge2`
+- first recorded CJK controlled visual score: `0.9654`
+- first recorded CJK external visual scores: WQY13 `0.4677`, WQY14 `0.5995`
+- first interpretation: larger MLP capacity gives only a tiny controlled
+  improvement; edge-feature and two-head ablations did not beat Stage 15
+
+Verification:
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover
+```
+
+Commit theme:
+
+```text
+docs: record style mlp tuning
+```

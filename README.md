@@ -184,6 +184,7 @@ data/processed/glyphs/
 ├── stage12_target_masks/   # compare target >=2 and ==3 masks to WQY source
 ├── stage13_wqy_alignment/  # WQY offset/weight search by target mask mode
 ├── stage15_style_mlp/      # controlled target-derived style-learning baseline
+├── stage16_style_mlp_tuning/ # small capacity/feature tuning over Stage 15
 └── legacy_flat/            # archived outputs from the old flat layout
 ```
 
@@ -543,6 +544,31 @@ Current CJK result:
 Interpretation: controlled 1bpp-to-2bpp style learning works. WQY14 transfers
 better than WQY13, but both remain source-adaptation problems rather than style
 learning failures.
+
+## Tune the Controlled Style MLP
+
+Run:
+
+```powershell
+python scripts/train_style_mlp.py --hidden-units 128 --max-iter 100 --random-seed 17 --out-dir data/processed/glyphs/stage16_style_mlp_tuning --metadata data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json --contact-sheet data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_contact.png
+```
+
+This keeps the Stage 15 model family and only checks whether extra capacity can
+improve the `ge2` controlled result. A separate edge-feature/class-weight
+prototype did not beat Stage 15, so it was kept as an ablation result rather
+than promoted into the main code.
+
+Current CJK result:
+
+- Stage 15 `ge2` visual score: `0.9651`
+- Stage 16 tuned `ge2` visual score: `0.9654`
+- Stage 16 tuned `eq3` visual score: `0.9649`
+- Stage 16 WQY13 external visual score: `0.4677`
+- Stage 16 WQY14 external visual score: `0.5995`
+
+Interpretation: this is a marginal controlled improvement, not a new
+breakthrough. Remaining gains likely need a better formulation for level `2`
+edge pixels or source adaptation, not just more MLP capacity.
 
 ## Next Milestones
 
