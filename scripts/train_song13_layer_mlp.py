@@ -35,6 +35,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--patch-radius", type=int, default=4)
     parser.add_argument("--max-train-glyphs", type=int, default=None)
     parser.add_argument("--search-limit", type=int, default=512)
+    parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--core-hidden-units", type=int, default=64)
     parser.add_argument("--shadow-hidden-units", type=int, default=64)
     parser.add_argument("--max-iter", type=int, default=80)
@@ -56,6 +57,7 @@ def main(argv: list[str] | None = None) -> int:
         patch_radius=args.patch_radius,
         max_train_glyphs=args.max_train_glyphs,
         search_limit=args.search_limit,
+        jobs=args.jobs,
         core_hidden_units=args.core_hidden_units,
         shadow_hidden_units=args.shadow_hidden_units,
         max_iter=args.max_iter,

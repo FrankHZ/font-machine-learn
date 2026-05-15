@@ -181,7 +181,9 @@ Current external-source direction:
   Song13 `ge2` mask. Current best candidate
   `core_patch_mlp_shadow_logistic_balanced_c055_s045` keeps source deletion at
   `0.0000`, but CJK visual `0.6339` is below Stage25's `0.6409`; treat it as a
-  working learned harness, not a quality win.
+  working learned harness, not a quality win. The script supports
+  `--jobs N` for CPU-threaded candidate scoring and caches probability grids;
+  prefer `--jobs 4` for local full runs.
 
 ## Target Split
 

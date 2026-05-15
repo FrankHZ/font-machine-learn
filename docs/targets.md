@@ -1102,6 +1102,7 @@ Command:
 
 ```powershell
 python scripts/train_song13_layer_mlp.py
+python scripts/train_song13_layer_mlp.py --jobs 4
 ```
 
 Setup:
@@ -1145,4 +1146,5 @@ judged against Stage25 by contact sheet first, then by visual/ink/shadow metrics
 as supporting evidence. It is not allowed to learn a replacement Song13 shape.
 This first learned version does not beat Stage25's rule baseline (`0.6409`
 visual); keep Stage25 as the quality reference while Stage26 remains the learned
-harness to improve.
+harness to improve. The implementation preloads evaluation glyphs, caches model
+probability grids, and supports `--jobs N` for CPU-threaded candidate scoring.

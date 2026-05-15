@@ -872,6 +872,12 @@ Run:
 python scripts/train_song13_layer_mlp.py
 ```
 
+Use CPU parallel candidate scoring when desired:
+
+```powershell
+python scripts/train_song13_layer_mlp.py --jobs 4
+```
+
 This is the first learned stage after locking the Song13 shape. It trains two
 small heads on target-derived `ge2` masks:
 
@@ -901,7 +907,9 @@ Current CJK result:
 Interpretation: Stage26 proves the source-locked learned-layer harness works,
 but it does not beat Stage25's rule baseline (`0.6409` visual). The learned
 shadow head is more conservative and scores lower by both metric and contact
-sheet, so Stage25 remains the current Song13 quality baseline.
+sheet, so Stage25 remains the current Song13 quality baseline. The exporter
+preloads evaluation glyphs and caches model probability grids; on this machine
+the full default run is about `45s` with `--jobs 4`.
 
 ## Next Milestones
 

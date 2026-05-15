@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import warnings
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -61,6 +62,20 @@ class ConstantBinaryModel:
     def predict_proba(self, x_values: np.ndarray) -> np.ndarray:
         probability = float(self.value)
         return np.tile(np.asarray([[1.0 - probability, probability]], dtype=np.float32), (len(x_values), 1))
+
+
+@dataclass(frozen=True)
+class EvalGlyph:
+    index: int
+    codes: list[int]
+    chars: list[str]
+    source_png: str
+    target_png: str
+    char_class: str
+    group: str
+    source_mask: Mask
+    target_levels: list[list[int]]
+    target_mask: Mask
 
 
 def local_features(mask: Mask, x: int, y: int, radius: int) -> list[float]:
@@ -237,6 +252,29 @@ def predict_source_locked_levels(
     return levels
 
 
+def load_eval_glyphs(source_glyphs: list[dict]) -> list[EvalGlyph]:
+    records: list[EvalGlyph] = []
+    for glyph in source_glyphs:
+        chars = list(glyph["chars"])
+        char_class = classify_glyph(chars)
+        target_levels = image_to_target_levels(Image.open(glyph["target_png"]).convert("RGBA"))
+        records.append(
+            EvalGlyph(
+                index=int(glyph["index"]),
+                codes=list(glyph["codes"]),
+                chars=chars,
+                source_png=str(glyph["source_png"]),
+                target_png=str(glyph["target_png"]),
+                char_class=char_class,
+                group=group_name(char_class),
+                source_mask=image_to_mask(glyph["source_png"]),
+                target_levels=target_levels,
+                target_mask=levels_to_threshold_mask(target_levels, "visible"),
+            )
+        )
+    return records
+
+
 def predict_source_locked_levels_from_probabilities(
     source_mask: Mask,
     core_probabilities: np.ndarray,
@@ -262,22 +300,20 @@ def predict_source_locked_levels_from_probabilities(
 
 
 def build_probability_cache(
-    source_glyphs: list[dict],
+    source_records: list[EvalGlyph],
     models: dict[str, object],
     *,
     patch_radius: int,
 ) -> dict[str, dict[int, np.ndarray]]:
     cache: dict[str, dict[int, np.ndarray]] = {name: {} for name in models}
-    for glyph in source_glyphs:
-        index = int(glyph["index"])
-        source_mask = image_to_mask(glyph["source_png"])
+    for glyph in source_records:
         rows: list[list[float]] = []
-        for y, row in enumerate(source_mask):
+        for y, row in enumerate(glyph.source_mask):
             for x, _value in enumerate(row):
-                rows.append(local_features(source_mask, x, y, patch_radius))
+                rows.append(local_features(glyph.source_mask, x, y, patch_radius))
         feature_matrix = np.asarray(rows, dtype=np.float32)
         for model_name, model in models.items():
-            cache[model_name][index] = positive_probabilities(model, feature_matrix)
+            cache[model_name][glyph.index] = positive_probabilities(model, feature_matrix)
     return cache
 
 
@@ -309,7 +345,7 @@ def evaluate_candidate(
     shadow_model_name: str,
     core_model: object,
     shadow_model: object,
-    source_glyphs: list[dict],
+    source_glyphs: list[EvalGlyph],
     *,
     out_dir: Path | None,
     patch_radius: int,
@@ -339,13 +375,8 @@ def evaluate_candidate(
     glyph_payloads: list[dict] = []
 
     for glyph in source_glyphs:
-        index = int(glyph["index"])
-        chars = list(glyph["chars"])
-        char_class = classify_glyph(chars)
-        group = group_name(char_class)
-        source_mask = image_to_mask(glyph["source_png"])
-        target_levels = image_to_target_levels(Image.open(glyph["target_png"]).convert("RGBA"))
-        target_mask = levels_to_threshold_mask(target_levels, "visible")
+        index = glyph.index
+        source_mask = glyph.source_mask
         if core_probability_cache is not None and shadow_probability_cache is not None:
             predicted_levels = predict_source_locked_levels_from_probabilities(
                 source_mask,
@@ -372,11 +403,11 @@ def evaluate_candidate(
         if predicted_png is not None:
             levels_to_image(predicted_levels).save(predicted_png)
 
-        binary = compare_masks(predicted_mask, target_mask)
-        visual = compare_visual(predicted_levels, target_levels)
+        binary = compare_masks(predicted_mask, glyph.target_mask)
+        visual = compare_visual(predicted_levels, glyph.target_levels)
         deleted = source_deleted_ratio(source_mask, predicted_levels)
         level_ratios = source_level_ratios(source_mask, predicted_levels)
-        for key in ("all", group):
+        for key in ("all", glyph.group):
             visual_by_group[key].append(visual)
             binary_by_group[key].append(binary)
             deleted_by_group[key].append(deleted)
@@ -384,19 +415,19 @@ def evaluate_candidate(
             level3_by_group[key].append(level_ratios["level3"])
             ratios[key]["source"].append(mask_foreground_ratio(source_mask))
             ratios[key]["predicted"].append(mask_foreground_ratio(predicted_mask))
-            ratios[key]["target"].append(mask_foreground_ratio(target_mask))
+            ratios[key]["target"].append(mask_foreground_ratio(glyph.target_mask))
 
         if include_glyphs:
             glyph_payloads.append(
                 {
                     "index": index,
-                    "codes": list(glyph["codes"]),
-                    "chars": chars,
-                    "original_source_png": str(glyph["source_png"]),
-                    "source_png": str(source_png) if source_png is not None else str(glyph["source_png"]),
+                    "codes": glyph.codes,
+                    "chars": glyph.chars,
+                    "original_source_png": glyph.source_png,
+                    "source_png": str(source_png) if source_png is not None else glyph.source_png,
                     "predicted_png": str(predicted_png) if predicted_png is not None else "",
-                    "target_png": str(glyph["target_png"]),
-                    "char_class": char_class,
+                    "target_png": glyph.target_png,
+                    "char_class": glyph.char_class,
                     "source_deleted_ratio": deleted,
                     "source_level_ratio": level_ratios,
                     "binary": asdict(binary),
@@ -404,7 +435,7 @@ def evaluate_candidate(
                     "foreground_ratio": {
                         "source": mask_foreground_ratio(source_mask),
                         "predicted": mask_foreground_ratio(predicted_mask),
-                        "target_visible": mask_foreground_ratio(target_mask),
+                        "target_visible": mask_foreground_ratio(glyph.target_mask),
                     },
                 }
             )
@@ -440,6 +471,40 @@ def evaluate_candidate(
     return payload
 
 
+def evaluate_candidate_specs(
+    specs: list[tuple[str, str, str, object, object, float, float]],
+    source_records: list[EvalGlyph],
+    *,
+    patch_radius: int,
+    core_probability_cache: dict[str, dict[int, np.ndarray]],
+    shadow_probability_cache: dict[str, dict[int, np.ndarray]],
+    jobs: int,
+) -> dict[str, dict]:
+    def run_spec(spec: tuple[str, str, str, object, object, float, float]) -> tuple[str, dict]:
+        candidate_name, core_model_name, shadow_model_name, core_model, shadow_model, core_threshold, shadow_threshold = spec
+        return candidate_name, evaluate_candidate(
+            candidate_name,
+            core_model_name,
+            shadow_model_name,
+            core_model,
+            shadow_model,
+            source_records,
+            out_dir=None,
+            patch_radius=patch_radius,
+            core_threshold=core_threshold,
+            shadow_threshold=shadow_threshold,
+            include_glyphs=False,
+            core_probability_cache=core_probability_cache,
+            shadow_probability_cache=shadow_probability_cache,
+        )
+
+    if jobs <= 1 or len(specs) <= 1:
+        return dict(run_spec(spec) for spec in specs)
+
+    with ThreadPoolExecutor(max_workers=jobs) as executor:
+        return dict(executor.map(run_spec, specs))
+
+
 def export_song13_layer_mlp(
     target_metadata: Path = TARGET_METADATA,
     source_metadata: Path = DEFAULT_SONG13_SOURCE_METADATA,
@@ -453,6 +518,7 @@ def export_song13_layer_mlp(
     patch_radius: int = 4,
     max_train_glyphs: int | None = None,
     search_limit: int | None = 512,
+    jobs: int = 1,
     core_hidden_units: int = 64,
     shadow_hidden_units: int = 64,
     max_iter: int = 80,
@@ -478,6 +544,7 @@ def export_song13_layer_mlp(
     source = json.loads(source_metadata.read_text(encoding="utf-8"))
     target_glyphs = list(target["glyphs"])
     source_glyphs = list(source["glyphs"])
+    source_records = load_eval_glyphs(source_glyphs)
     cell_width = int(source["cell_width"])
     cell_height = int(source["cell_height"])
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -509,11 +576,11 @@ def export_song13_layer_mlp(
         negative_ratio=3,
     )
 
-    search_glyphs = source_glyphs[:search_limit] if search_limit is not None else source_glyphs
-    core_probability_cache = build_probability_cache(source_glyphs, core_models, patch_radius=patch_radius)
-    shadow_probability_cache = build_probability_cache(source_glyphs, shadow_models, patch_radius=patch_radius)
+    search_records = source_records[:search_limit] if search_limit is not None else source_records
+    core_probability_cache = build_probability_cache(source_records, core_models, patch_radius=patch_radius)
+    shadow_probability_cache = build_probability_cache(source_records, shadow_models, patch_radius=patch_radius)
 
-    candidates: dict[str, dict] = {}
+    specs: list[tuple[str, str, str, object, object, float, float]] = []
     candidate_specs: dict[str, tuple[str, str, object, object, float, float]] = {}
     for core_model_name, core_model in core_models.items():
         for shadow_model_name, shadow_model in shadow_models.items():
@@ -532,22 +599,26 @@ def export_song13_layer_mlp(
                         float(core_threshold),
                         float(shadow_threshold),
                     )
-                    candidates[candidate_name] = evaluate_candidate(
+                    specs.append(
+                        (
                         candidate_name,
                         core_model_name,
                         shadow_model_name,
                         core_model,
                         shadow_model,
-                        search_glyphs,
-                        out_dir=None,
-                        patch_radius=patch_radius,
-                        core_threshold=float(core_threshold),
-                        shadow_threshold=float(shadow_threshold),
-                        include_glyphs=False,
-                        core_probability_cache=core_probability_cache,
-                        shadow_probability_cache=shadow_probability_cache,
+                        float(core_threshold),
+                        float(shadow_threshold),
+                        )
                     )
 
+    candidates = evaluate_candidate_specs(
+        specs,
+        search_records,
+        patch_radius=patch_radius,
+        core_probability_cache=core_probability_cache,
+        shadow_probability_cache=shadow_probability_cache,
+        jobs=max(1, jobs),
+    )
     best_candidate = max(candidates, key=lambda name: float(candidates[name]["cjk_quality_score"]))
     best_core_name, best_shadow_name, best_core_model, best_shadow_model, best_core_threshold, best_shadow_threshold = (
         candidate_specs[best_candidate]
@@ -558,7 +629,7 @@ def export_song13_layer_mlp(
         best_shadow_name,
         best_core_model,
         best_shadow_model,
-        source_glyphs,
+        source_records,
         out_dir=out_dir,
         patch_radius=patch_radius,
         core_threshold=best_core_threshold,
@@ -603,6 +674,7 @@ def export_song13_layer_mlp(
         "core_thresholds": core_thresholds,
         "shadow_thresholds": shadow_thresholds,
         "search_limit": search_limit,
+        "jobs": jobs,
         "train_cjk_glyph_count": train_cjk,
         "train_pixel_count": {
             "core_edge": int(len(y_core)),

@@ -1147,6 +1147,7 @@ class NFTRExportTest(unittest.TestCase):
                 core_hidden_units=10,
                 shadow_hidden_units=10,
                 max_iter=4,
+                jobs=2,
                 worst_count=12,
             )
             self.assertEqual(result.glyph_count, 1814)

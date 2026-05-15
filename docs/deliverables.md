@@ -1014,6 +1014,7 @@ Verification:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py
+.\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --jobs 4
 .\.venv\Scripts\python.exe -m unittest discover
 ```
 
