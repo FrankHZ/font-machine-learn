@@ -187,7 +187,9 @@ Current external-source direction:
   after one shared training pass: use `--eval-target-quantized
   --eval-source-jobs 3` to evaluate Song13, target `>=2`, and target `==3`.
   Current multi-source CJK visual scores are Song13 `0.6339`, target_ge2
-  `0.9742`, and target_eq3 `0.8903`.
+  `0.9742`, and target_eq3 `0.8903`. For quick iteration, add
+  `--eval-limit 256 --search-limit 128`; this limits final eval/export and
+  brings the three-source command to about `29s`.
 
 ## Target Split
 

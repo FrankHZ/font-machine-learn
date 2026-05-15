@@ -38,6 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--patch-radius", type=int, default=4)
     parser.add_argument("--max-train-glyphs", type=int, default=None)
     parser.add_argument("--search-limit", type=int, default=512)
+    parser.add_argument("--eval-limit", type=int, default=None)
     parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument("--eval-source-jobs", type=int, default=1)
     parser.add_argument(
@@ -73,11 +74,13 @@ def main(argv: list[str] | None = None) -> int:
             args.target_metadata,
             out_dir=quantized_root,
             mode="ge2",
+            glyph_limit=args.eval_limit,
         )
         extra_eval_sources["target_eq3"] = export_target_quantized_source_metadata(
             args.target_metadata,
             out_dir=quantized_root,
             mode="eq3",
+            glyph_limit=args.eval_limit,
         )
     result = export_song13_layer_mlp(
         target_metadata=args.target_metadata,
@@ -91,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
         patch_radius=args.patch_radius,
         max_train_glyphs=args.max_train_glyphs,
         search_limit=args.search_limit,
+        eval_limit=args.eval_limit,
         jobs=args.jobs,
         extra_eval_sources=extra_eval_sources or None,
         eval_source_jobs=args.eval_source_jobs,

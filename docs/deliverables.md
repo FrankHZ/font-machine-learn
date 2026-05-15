@@ -1019,6 +1019,8 @@ Current interpretation:
 - multi-source eval shares one training pass; `--eval-target-quantized
   --eval-source-jobs 3` evaluates Song13, target `>=2`, and target `==3` in
   about `88s`
+- quick multi-source eval can use `--eval-limit 256 --search-limit 128`, which
+  currently runs in about `29s`
 - current multi-source CJK visual scores: Song13 `0.6339`, target `>=2`
   `0.9742`, target `==3` `0.8903`
 - it does not beat Stage25's rule baseline (`0.6409` visual)
@@ -1031,6 +1033,7 @@ Verification:
 .\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py
 .\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --jobs 4
 .\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
+.\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3 --eval-limit 256 --search-limit 128
 .\.venv\Scripts\python.exe -m unittest discover
 ```
 

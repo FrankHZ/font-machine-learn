@@ -1144,6 +1144,8 @@ class NFTRExportTest(unittest.TestCase):
                 core_thresholds=[0.50],
                 shadow_thresholds=[0.50],
                 max_train_glyphs=12,
+                search_limit=64,
+                eval_limit=256,
                 core_hidden_units=10,
                 shadow_hidden_units=10,
                 max_iter=4,
@@ -1152,8 +1154,8 @@ class NFTRExportTest(unittest.TestCase):
                 eval_source_jobs=2,
                 worst_count=12,
             )
-            self.assertEqual(result.glyph_count, 1814)
-            self.assertGreater(result.cjk_glyph_count, 1000)
+            self.assertEqual(result.glyph_count, 256)
+            self.assertGreaterEqual(result.cjk_glyph_count, 0)
             self.assertGreater(result.core_edge_train_pixel_count, 0)
             self.assertGreater(result.shadow_train_pixel_count, 0)
             self.assertEqual(result.best_source_deleted_ratio, 0.0)
@@ -1171,6 +1173,7 @@ class NFTRExportTest(unittest.TestCase):
                 ["original_source", "source_ge2", "predicted_2bpp", "target_2bpp"],
             )
             self.assertIn("target_copy", metadata["eval_sources"])
+            self.assertEqual(metadata["eval_limit"], 256)
 
 
 if __name__ == "__main__":

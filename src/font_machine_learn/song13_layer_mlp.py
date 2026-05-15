@@ -296,6 +296,7 @@ def export_target_quantized_source_metadata(
     *,
     out_dir: Path,
     mode: str,
+    glyph_limit: int | None = None,
 ) -> Path:
     if mode not in {"ge2", "eq3"}:
         raise ValueError(f"unsupported target quantized mode: {mode}")
@@ -304,7 +305,10 @@ def export_target_quantized_source_metadata(
     mask_dir.mkdir(parents=True, exist_ok=True)
     metadata_json = out_dir / f"target_{mode}_source_metadata.json"
     glyphs: list[dict] = []
-    for glyph in target["glyphs"]:
+    target_glyphs = list(target["glyphs"])
+    if glyph_limit is not None:
+        target_glyphs = target_glyphs[:glyph_limit]
+    for glyph in target_glyphs:
         index = int(glyph["index"])
         target_png = glyph["png"]
         target_levels = image_to_target_levels(Image.open(target_png).convert("RGBA"))
@@ -327,6 +331,8 @@ def export_target_quantized_source_metadata(
         "cell_width": int(target["cell_width"]),
         "cell_height": int(target["cell_height"]),
         "glyph_count": len(glyphs),
+        "source_target_glyph_count": int(target["glyph_count"]),
+        "glyph_limit": glyph_limit,
         "glyphs": glyphs,
     }
     metadata_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -574,6 +580,7 @@ def evaluate_layer_source(
     candidate_specs: dict[str, tuple[str, str, object, object, float, float]],
     patch_radius: int,
     search_limit: int | None,
+    eval_limit: int | None,
     candidate_jobs: int,
     out_dir: Path,
     metadata_json: Path,
@@ -584,7 +591,11 @@ def evaluate_layer_source(
     columns: int,
     pad: int,
 ) -> tuple[SourceEvaluation, dict]:
-    source_records = load_eval_glyphs(list(source_payload["glyphs"]))
+    source_glyphs = list(source_payload["glyphs"])
+    total_source_glyph_count = len(source_glyphs)
+    if eval_limit is not None:
+        source_glyphs = source_glyphs[:eval_limit]
+    source_records = load_eval_glyphs(source_glyphs)
     cell_width = int(source_payload["cell_width"])
     cell_height = int(source_payload["cell_height"])
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -647,6 +658,9 @@ def evaluate_layer_source(
     payload = {
         "source_name": source_name,
         "source_metadata": str(source_metadata),
+        "source_glyph_count": total_source_glyph_count,
+        "evaluated_glyph_count": len(source_records),
+        "eval_limit": eval_limit,
         "glyph_count": len(source_records),
         "cjk_glyph_count": len(cjk_records),
         "best_candidate": best_candidate,
@@ -687,6 +701,7 @@ def export_song13_layer_mlp(
     patch_radius: int = 4,
     max_train_glyphs: int | None = None,
     search_limit: int | None = 512,
+    eval_limit: int | None = None,
     jobs: int = 1,
     extra_eval_sources: dict[str, Path] | None = None,
     eval_source_jobs: int = 1,
@@ -806,6 +821,7 @@ def export_song13_layer_mlp(
             candidate_specs=candidate_specs,
             patch_radius=patch_radius,
             search_limit=search_limit,
+            eval_limit=eval_limit,
             candidate_jobs=max(1, jobs),
             out_dir=source_out,
             metadata_json=source_json,
@@ -843,6 +859,7 @@ def export_song13_layer_mlp(
         "core_thresholds": core_thresholds,
         "shadow_thresholds": shadow_thresholds,
         "search_limit": search_limit,
+        "eval_limit": eval_limit,
         "jobs": jobs,
         "eval_source_jobs": eval_source_jobs,
         "train_cjk_glyph_count": train_cjk,

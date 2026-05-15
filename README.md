@@ -898,6 +898,12 @@ Evaluate multiple sources after one shared training pass:
 python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
 ```
 
+For quick iteration, cap final evaluation/export to a subset:
+
+```powershell
+python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3 --eval-limit 256 --search-limit 128
+```
+
 This is the first learned stage after locking the Song13 shape. It trains two
 small heads on target-derived `ge2` masks:
 
@@ -940,6 +946,8 @@ Multi-source eval after one shared training pass:
 This run takes about `88s` with `--eval-target-quantized --eval-source-jobs 3`,
 so adding controlled target-derived eval sources is much cheaper than launching
 separate training runs.
+For quick checks, `--eval-limit 256 --search-limit 128` brings the same
+multi-source command down to about `29s` by limiting final eval/export.
 
 ## Next Milestones
 

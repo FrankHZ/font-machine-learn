@@ -1104,6 +1104,7 @@ Command:
 python scripts/train_song13_layer_mlp.py
 python scripts/train_song13_layer_mlp.py --jobs 4
 python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
+python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3 --eval-limit 256 --search-limit 128
 ```
 
 Setup:
@@ -1155,3 +1156,5 @@ multi-source CJK visual scores are:
 - Song13: `0.6339`
 - target `>=2`: `0.9742`
 - target `==3`: `0.8903`
+
+Use `--eval-limit` only for quick iteration; omit it for recorded full metrics.
