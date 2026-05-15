@@ -94,11 +94,12 @@ yet. Stage25 remains the Song13 quality reference.
 Stage31 is the tiny PyTorch CNN transfer harness:
 
 - command: `python scripts/run_song13_torch_cnn.py`
+- contact order: `original_source -> source_ge2 -> predicted_2bpp -> target_2bpp`
 - training source: target level `>=2`
 - eval source: Song13 1bpp render
 - source deleted ratio: `0.0000`
-- source level `2/3`: `0.1578 / 0.8422`
-- CJK visual: `0.6344`
+- source level `2/3`: `0.1805 / 0.8195`
+- CJK visual: `0.6332`
 
 Interpretation: Stage31 gives a real convolutional Song13 candidate while
 preserving source pixels. It is not a target-overlap improvement over Stage25,
@@ -156,7 +157,7 @@ the primary ranking signal.
 | 28 | target quantized calibration; `>=2` learned visual `0.9684` |
 | 29 | target `>=2` lightweight conv probe, visual `0.9604` |
 | 30 | target `>=2` tiny torch CNN, CUDA visual `0.9790` |
-| 31 | Song13 tiny torch CNN transfer, visual `0.6344`, no source deletion |
+| 31 | Song13 tiny torch CNN transfer, visual `0.6332`, no source deletion |
 
 ## Next Useful Targets
 

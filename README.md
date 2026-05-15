@@ -214,12 +214,14 @@ Stage30 trains a tiny PyTorch CNN on the same target `>=2` source mask:
 
 Interpretation: real convolution does beat the patch MLP on target-shaped source.
 
-Stage31 applies the Stage30-style CNN to Song13 source masks:
+Stage31 applies the Stage30-style CNN to Song13 source masks. Its contact sheet
+uses the Song13 review order `original_source -> source_ge2 -> predicted_2bpp
+-> target_2bpp`:
 
 - model: same 48-channel tiny CNN, trained on target `>=2`
-- CJK visual: `0.6344`
+- CJK visual: `0.6332`
 - source deletion: `0.0000`
-- source level `2/3`: `0.1578 / 0.8422`
+- source level `2/3`: `0.1805 / 0.8195`
 
 Interpretation: this is a useful CNN transfer harness, but it does not beat the
 human-reviewed Stage25/26 Song13 candidates by metric. Contact-sheet review is
@@ -281,7 +283,7 @@ Important stage folders:
 | 28 | target quantized calibration; `>=2` learned CJK visual `0.9684` |
 | 29 | target `>=2` lightweight conv probe; CJK visual `0.9604` |
 | 30 | target `>=2` tiny torch CNN; CUDA CJK visual `0.9790` |
-| 31 | Song13 tiny torch CNN transfer; CJK visual `0.6344`, source deletion `0.0000` |
+| 31 | Song13 tiny torch CNN transfer; CJK visual `0.6332`, source deletion `0.0000` |
 
 ## Notes
 

@@ -21,10 +21,10 @@ from font_machine_learn.paths import (
     STAGE31_SONG13_TORCH,
     TARGET_METADATA,
 )
-from font_machine_learn.song13_adapter import DEFAULT_SONG13_SOURCE_METADATA
+from font_machine_learn.song13_adapter import DEFAULT_SONG13_SOURCE_METADATA, make_adapter_contact_sheet
 from font_machine_learn.song13_source_locked import source_deleted_ratio, source_level_ratios
 from font_machine_learn.target_mask_compare import levels_to_threshold_mask
-from font_machine_learn.target_torch_cnn import TinyGlyphCNN, class_weights, make_contact_sheet, make_training_tensors, predict_levels
+from font_machine_learn.target_torch_cnn import TinyGlyphCNN, class_weights, make_training_tensors, predict_levels
 from font_machine_learn.visual_metrics import VisualMetrics, compare_visual
 
 
@@ -185,6 +185,7 @@ def export_song13_torch_cnn(
                 "codes": list(glyph["codes"]),
                 "chars": chars,
                 "char_class": char_class,
+                "original_source_png": str(glyph["source_png"]),
                 "source_png": str(source_png),
                 "predicted_png": str(predicted_png),
                 "target_png": str(glyph["target_png"]),
@@ -195,7 +196,7 @@ def export_song13_torch_cnn(
         )
 
     cjk_records = [record for record in records if record["char_class"] == "cjk"]
-    make_contact_sheet(
+    make_adapter_contact_sheet(
         cjk_records[:contact_count],
         out_path=contact_sheet,
         cell_width=cell_width,
@@ -205,7 +206,7 @@ def export_song13_torch_cnn(
         pad=pad,
     )
     worst_records = sorted(cjk_records, key=lambda record: float(record["visual"]["visual_score"]))[:worst_count]
-    make_contact_sheet(
+    make_adapter_contact_sheet(
         worst_records,
         out_path=error_contact_sheet,
         cell_width=cell_width,
@@ -253,7 +254,7 @@ def export_song13_torch_cnn(
         "groups": groups,
         "contact_sheet": str(contact_sheet),
         "error_contact_sheet": str(error_contact_sheet),
-        "contact_sheet_order": ["source_ge2", "predicted_2bpp", "target_2bpp"],
+        "contact_sheet_order": ["original_source", "source_ge2", "predicted_2bpp", "target_2bpp"],
         "glyphs": records,
         "interpretation_notes": [
             "Pixel overlap remains a weak proxy for Song13 because its shape differs from the target NFTR.",

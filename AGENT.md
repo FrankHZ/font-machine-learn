@@ -158,8 +158,8 @@ python scripts/run_song13_torch_cnn.py
 ```
 
 This trains the same target `>=2` tiny CNN and applies it to the Song13 1bpp
-source mask with source-locked inference. Current CUDA CJK visual is `0.6344`,
-source deletion `0.0000`, and source level `2/3` is about `0.1578 / 0.8422`.
+source mask with source-locked inference. Current CUDA CJK visual is `0.6332`,
+source deletion `0.0000`, and source level `2/3` is about `0.1805 / 0.8195`.
 Treat it as a CNN transfer harness and contact-sheet candidate, not a metric win
 over Stage25/26.
 

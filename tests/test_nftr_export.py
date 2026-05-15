@@ -1313,7 +1313,7 @@ class NFTRExportTest(unittest.TestCase):
             )
             self.assertEqual(
                 metadata["contact_sheet_order"],
-                ["source_ge2", "predicted_2bpp", "target_2bpp"],
+                ["original_source", "source_ge2", "predicted_2bpp", "target_2bpp"],
             )
 
 

@@ -251,7 +251,7 @@ Outputs:
 Image order:
 
 ```text
-source ge2 -> predicted 2bpp -> target 2bpp
+original source -> source ge2 -> predicted 2bpp -> target 2bpp
 ```
 
 Current CJK metrics:
@@ -261,10 +261,10 @@ Current CJK metrics:
 - eval source: Song13 1bpp render
 - epochs/LR: `200 / 0.003`
 - device: CUDA, RTX 3080 Ti
-- visual: `0.6344`
-- ink/shadow F1: `0.5681 / 0.5403`
+- visual: `0.6332`
+- ink/shadow F1: `0.5632 / 0.5420`
 - source deletion: `0.0000`
-- source level `2/3`: `0.1578 / 0.8422`
+- source level `2/3`: `0.1805 / 0.8195`
 
 Status: useful CNN transfer harness. It keeps the Song13 source intact and gives
 slightly more level-2 edge than Stage25/26, but it is not a metric win. Judge by
