@@ -33,9 +33,11 @@ from font_machine_learn.stage26_nftr import pack_2bpp_values
 
 
 GLYPH_SUBSTITUTIONS = {"…": "‥"}
-FORCE_REUSE_CHARS = set("一二三")
+# These tiny horizontal-stroke glyphs are very sensitive to vertical hinting.
+# The original NFTR versions match the target style better than rerendered Song13.
+SIMPLE_STROKE_REUSE_CHARS = set("一二三")
 VERTICAL_CENTER_CJK = set("一二三")
-FULLWIDTH_ADVANCE_CHARS = set("，；")
+PADDED_PUNCTUATION_ADVANCE = {"，": 6, "；": 6}
 
 
 @dataclass(frozen=True)
@@ -55,7 +57,7 @@ class FullStage26NFTRExport:
     bpp: int
     bytes_per_glyph: int
     start_code: int
-    punctuation_fullwidth_advance: list[str]
+    punctuation_padded_advance: dict[str, int]
 
 
 def is_cjk_char(char: str) -> bool:
@@ -283,19 +285,20 @@ def reusable_original(
     char_map: dict[str, tuple[bytes, WidthMetrics]],
     code_map: dict[int, tuple[bytes, WidthMetrics]],
 ) -> tuple[bytes, WidthMetrics] | None:
-    if char in FULLWIDTH_ADVANCE_CHARS:
+    if char in PADDED_PUNCTUATION_ADVANCE:
         return None
-    reusable = is_latin_digit_or_punct(char) or char in FORCE_REUSE_CHARS
+    reusable = is_latin_digit_or_punct(char) or char in SIMPLE_STROKE_REUSE_CHARS
     if not reusable:
         return None
     return code_map.get(code) or char_map.get(char) or char_map.get(GLYPH_SUBSTITUTIONS.get(char, ""))
 
 
 def width_from_levels(char: str, levels: list[list[int]], cell_width: int) -> WidthMetrics:
-    if char in FULLWIDTH_ADVANCE_CHARS:
-        return WidthMetrics(0, cell_width, cell_width)
     left, _top, right, _bottom = levels_bbox(levels)
     glyph_width = max(1, min(cell_width, right - left))
+    if char in PADDED_PUNCTUATION_ADVANCE:
+        advance = min(cell_width, max(PADDED_PUNCTUATION_ADVANCE[char], glyph_width + 3))
+        return WidthMetrics(0, advance, advance)
     return WidthMetrics(0, glyph_width, glyph_width)
 
 
@@ -460,7 +463,7 @@ def export_full_stage26_nftr(
         bpp=2,
         bytes_per_glyph=math.ceil(cell_width * cell_height * 2 / 8),
         start_code=start_code,
-        punctuation_fullwidth_advance=sorted(FULLWIDTH_ADVANCE_CHARS),
+        punctuation_padded_advance=PADDED_PUNCTUATION_ADVANCE,
     )
     payload = asdict(result) | {
         "stage26_candidate": "core_patch_mlp_shadow_logistic_balanced_c055_s045",
@@ -477,10 +480,10 @@ def export_full_stage26_nftr(
         "rules": [
             "Read CODE=char mappings from ds_nftr/a.txt when available; a plain char list falls back to sequential 0xE800 codes.",
             "Reuse original NFTR bitmap and CWDH for Latin/digits/punctuation when present.",
-            "Reuse original NFTR glyphs for 一二三.",
+            "Reuse original NFTR glyphs for 一二三 because rerendered tiny horizontal strokes are hinting-sensitive.",
             "Substitute … with original ‥ when reusable.",
             "Render new CJK from Song13 and align visible pixels to left-bottom.",
-            "Force ， and ； to full-cell advance so punctuation does not crowd following text.",
+            "Give ， and ； padded advance so punctuation does not crowd following text without taking a full cell.",
         ],
     }
     metadata_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

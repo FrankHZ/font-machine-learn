@@ -113,8 +113,8 @@ Build the current full-map candidate from `ds_nftr/a.txt`:
 This retrains the Stage26 layer heads, renders all `3296` chars from the
 `CODE=char` map, reuses original NFTR glyphs/widths for Latin, digits,
 punctuation, `一二三`, and `… -> ‥`, and writes a rebuilt NFTR with the original
-map codes. `，` and `；` are forced to full-cell advance so they do not crowd the
-following glyph.
+map codes. `，` and `；` receive padded advance (`6`) so they do not crowd the
+following glyph without taking a full cell.
 
 ## Current Findings
 
@@ -211,7 +211,7 @@ Important stage folders:
 - Do not judge Song13 only by target pixel overlap; the shapes differ.
 - Contact sheets remain the primary review artifact.
 - Use CJK as the primary split and non-CJK as a guard split.
-- For full-map NFTR builds, use `ds_nftr/a.txt` and preserve old `ds_nftr` rules: Latin/punct reuse,
-  `… -> ‥`, `一二三` reuse, CJK left-bottom alignment, and full advance for
-  `，；`.
+- For full-map NFTR builds, use `ds_nftr/a.txt` and preserve old `ds_nftr`
+  rules: Latin/punct reuse, `… -> ‥`, `一二三` simple-stroke reuse, CJK
+  left-bottom alignment, and padded advance for `，；`.
 - Keep generated artifacts disposable unless a stage explicitly promotes them.

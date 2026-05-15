@@ -138,7 +138,7 @@ class NFTRExportTest(unittest.TestCase):
         self.assertEqual(entries, [(0xE80B, "A"), (0xE80C, "B")])
 
         width = width_from_levels("，", [[0, 0, 0], [0, 3, 0], [0, 0, 0]], 15)
-        self.assertEqual((width.left, width.glyph_width, width.advance), (0, 15, 15))
+        self.assertEqual((width.left, width.glyph_width, width.advance), (0, 6, 6))
 
     def test_exports_target_glyph_dataset(self) -> None:
         source = ROOT / "a.NFTR"

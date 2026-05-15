@@ -110,7 +110,7 @@ python scripts/build_stage26_full_nftr.py
 This reads `ds_nftr/a.txt` (`CODE=char`), retrains the Stage26 heads, and
 rebuilds a `3296`-glyph NFTR. Preserve the old `ds_nftr` rules: reuse
 Latin/digits/punct and `一二三` from the original NFTR when present, substitute
-`… -> ‥`, left-bottom align generated CJK, and force `，；` to full-cell advance.
+`… -> ‥`, left-bottom align generated CJK, and give `，；` padded advance (`6`).
 
 Use `--eval-limit` only for quick iteration, not for recorded metrics.
 

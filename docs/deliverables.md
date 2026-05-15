@@ -100,8 +100,8 @@ Full-map NFTR export outputs:
 - `data/processed/glyphs/stage26_song13_layer_mlp/nftr/a-stage26-fullmap-preview.png`
 
 The full-map build consumes `ds_nftr/a.txt` (`CODE=char`) and currently produces
-`3296` glyphs. `，` and `；` are full-cell advance (`15`) even though their ink is
-small; this avoids punctuation crowding in-game.
+`3296` glyphs. `，` and `；` use padded advance (`6`) even though their ink is
+smaller; this avoids punctuation crowding without taking a full cell.
 
 Current Song13 CJK metrics:
 
