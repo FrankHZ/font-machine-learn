@@ -55,6 +55,7 @@ from font_machine_learn.wqy_alignment import export_wqy_alignment_diagnostic
 
 RUN_SLOW_TESTS = os.environ.get("FML_RUN_SLOW_TESTS") == "1"
 slow_test = unittest.skipUnless(RUN_SLOW_TESTS, "set FML_RUN_SLOW_TESTS=1 to run full stage export smoke tests")
+requires_nftr = unittest.skipUnless((ROOT / "a.NFTR").exists(), "a.NFTR is not distributed with the public repo")
 
 
 @contextmanager
@@ -79,6 +80,7 @@ class NFTRExportTest(unittest.TestCase):
         self.assertEqual(classify_glyph(["漢"]), "cjk")
         self.assertEqual(classify_glyph([]), "unmapped")
 
+    @requires_nftr
     def test_parses_source_nftr_metrics_and_mapping(self) -> None:
         font = parse_rtfn_font(ROOT / "a.NFTR")
         self.assertEqual(font.cell_width, 15)
@@ -90,9 +92,9 @@ class NFTRExportTest(unittest.TestCase):
         self.assertIn(0x97B9, [code for codes in font.index_to_codes.values() for code in codes])
         self.assertEqual(font.index_to_codes[1696], [0x97B9])
 
+    @requires_nftr
     def test_exports_source_nftr_atlas_and_metadata(self) -> None:
         source = ROOT / "a.NFTR"
-        self.assertTrue(source.exists(), "a.NFTR must be present for the smoke test")
 
         with workspace_tempdir() as tmp:
             out_png = Path(tmp) / "a_atlas.png"

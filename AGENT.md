@@ -163,10 +163,21 @@ source deletion `0.0000`, and source level `2/3` is about `0.1805 / 0.8195`.
 Treat it as a CNN transfer harness and contact-sheet candidate, not a metric win
 over Stage25/26.
 
+Stage32 public comparison contact:
+
+```powershell
+python scripts/build_public_comparison_contact.py
+```
+
+This writes `docs/assets/stage32_public_comparison.png` for README display. It
+uses rows `source`, `stage25`, `stage26`, and `stage32`; the `stage32` row is the
+Stage31 torch-transfer output. Do not include the target NFTR row in public
+README assets.
+
 ## Important Files
 
-- `a.NFTR`: decompressed target NFTR. Reversed Nitro tags: `RTFN`, `FNIF`,
-  `PLGC`, `HDWC`, `PAMC`.
+- `a.NFTR`: local-only decompressed target NFTR, ignored for public release.
+  Reversed Nitro tags: `RTFN`, `FNIF`, `PLGC`, `HDWC`, `PAMC`.
 - `src/font_machine_learn/nftr.py`: parser/exporter.
 - `src/font_machine_learn/paths.py`: canonical generated-output paths.
 - `src/font_machine_learn/song13_source_locked.py`: Stage25.
@@ -178,6 +189,8 @@ over Stage25/26.
 - `src/font_machine_learn/target_conv_calibration.py`: Stage29 lightweight conv probe.
 - `src/font_machine_learn/target_torch_cnn.py`: Stage30 tiny PyTorch CNN probe.
 - `src/font_machine_learn/song13_torch_cnn.py`: Stage31 target-trained CNN -> Song13 transfer.
+- `scripts/build_public_comparison_contact.py`: Stage32 public README comparison.
+- `docs/assets/stage32_public_comparison.png`: promoted public comparison image.
 - `tests/test_nftr_export.py`: fast tests plus slow stage smokes.
 - `docs/targets.md`: current target split and findings.
 - `docs/deliverables.md`: verification and stage checkpoint summary.
@@ -211,6 +224,7 @@ Important folders:
 | `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
 | `stage30_target_ge2_torch` | tiny PyTorch CNN target probe |
 | `stage31_song13_torch_cnn` | target-trained CNN transferred to Song13 |
+| `docs/assets` | promoted public README image assets |
 
 ## Working Rules
 
@@ -221,3 +235,5 @@ Important folders:
 - Treat target-shaped metrics as diagnostics for Song13, not the final truth.
 - Never delete source pixels in Song13 source-locked stages.
 - Use Stage27 sheets before judging a new Song13 model by target visual score.
+- Do not commit `a.NFTR`, generated NFTRs, or target glyph extraction artifacts.
+- Public README images should omit the target NFTR row.

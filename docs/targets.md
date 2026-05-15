@@ -105,6 +105,16 @@ Interpretation: Stage31 gives a real convolutional Song13 candidate while
 preserving source pixels. It is not a target-overlap improvement over Stage25,
 so judge it by contact sheet and in-game readability.
 
+Stage32 is the public comparison artifact:
+
+- command: `python scripts/build_public_comparison_contact.py`
+- output: `docs/assets/stage32_public_comparison.png`
+- rows: `source`, `stage25`, `stage26`, `stage32`
+- copyright posture: omit target NFTR glyphs from the public README image
+
+The `stage32` row uses the Stage31 torch-transfer output as the final comparison
+candidate.
+
 ### Target D: Speed Up Iteration Without Changing Metrics
 
 Full multi-source Stage26 eval:
@@ -158,6 +168,7 @@ the primary ranking signal.
 | 29 | target `>=2` lightweight conv probe, visual `0.9604` |
 | 30 | target `>=2` tiny torch CNN, CUDA visual `0.9790` |
 | 31 | Song13 tiny torch CNN transfer, visual `0.6332`, no source deletion |
+| 32 | public comparison contact sheet, no target NFTR row |
 
 ## Next Useful Targets
 
@@ -166,3 +177,4 @@ the primary ranking signal.
 - Compare new ideas against Stage25 by contact sheet first.
 - Keep target-derived `ge2` as a controlled upper-bound sanity check.
 - Keep full recorded metrics separate from subset iteration runs.
+- Keep proprietary target NFTR assets out of public git history when possible.

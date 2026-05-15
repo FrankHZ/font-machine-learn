@@ -20,6 +20,13 @@ the same `15x15` cell. The project no longer treats target glyphs as shapes to
 copy. Current Song13 work preserves source pixels first, then assigns style
 layers around that fixed source shape.
 
+![Stage32 public comparison](docs/assets/stage32_public_comparison.png)
+
+Rows: open-source WenQuanYi Song13 source, Stage25 rule output, Stage26 MLP
+output, and the Stage32 comparison row using the Stage31 torch-transfer output.
+The public comparison image intentionally omits the proprietary target NFTR
+glyph row.
+
 ## Quick Setup
 
 ```powershell
@@ -42,6 +49,10 @@ Fast verification:
 .\.venv\Scripts\python.exe -m unittest discover
 ```
 
+The target `a.NFTR` is not distributed with the public repository. Place your own
+decompressed 2bpp NFTR at the repo root before running target extraction or
+NFTR-export commands.
+
 Slow stage smokes:
 
 ```powershell
@@ -56,7 +67,7 @@ individual test time.
 
 ## Current Commands
 
-Export the target NFTR:
+Export a locally supplied target NFTR:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\extract_target_glyphs.py a.NFTR
@@ -122,6 +133,12 @@ Transfer the target-trained tiny CNN to Song13 source masks:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_song13_torch_cnn.py
+```
+
+Build the public README comparison contact sheet:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_public_comparison_contact.py
 ```
 
 Build a game-facing NFTR from the current Stage26 best candidate:
@@ -232,8 +249,8 @@ different glyph shapes.
 
 ```text
 .
-├── a.NFTR
 ├── fonts/
+├── docs/assets/
 ├── scripts/
 ├── src/font_machine_learn/
 ├── tests/
@@ -262,6 +279,7 @@ Important stage folders:
 | `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
 | `stage30_target_ge2_torch` | tiny PyTorch CNN target probe |
 | `stage31_song13_torch_cnn` | target-trained CNN transferred to Song13 |
+| `docs/assets/stage32_public_comparison.png` | public Stage25/26/32 comparison image |
 
 ## Stage Summary
 
@@ -284,6 +302,7 @@ Important stage folders:
 | 29 | target `>=2` lightweight conv probe; CJK visual `0.9604` |
 | 30 | target `>=2` tiny torch CNN; CUDA CJK visual `0.9790` |
 | 31 | Song13 tiny torch CNN transfer; CJK visual `0.6332`, source deletion `0.0000` |
+| 32 | public comparison contact: source, Stage25, Stage26, Stage32/torch-transfer row |
 
 ## Notes
 
@@ -295,3 +314,11 @@ Important stage folders:
   rules: Latin/punct reuse, `… -> ‥`, `一二三` simple-stroke reuse, CJK
   left-bottom alignment, and padded advance for `，；`.
 - Keep generated artifacts disposable unless a stage explicitly promotes them.
+
+## Copyright Notes
+
+- `a.NFTR` and generated NFTR files are intentionally ignored and not distributed.
+- Generated target glyph PNG/JSON artifacts under `data/processed/` are ignored.
+- The README comparison image uses WenQuanYi-derived source/predicted glyphs and
+  omits the target NFTR row.
+- WenQuanYi font files are kept in `fonts/` as open-source font resources.

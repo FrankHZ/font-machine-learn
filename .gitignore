@@ -4,6 +4,9 @@ __pycache__/
 .ruff_cache/
 .venv/
 .tmp/
+a.NFTR
+*.NFTR
+*.nftr
 data/processed/*.png
 data/processed/*.json
 data/processed/**/*.png

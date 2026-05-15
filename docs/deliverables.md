@@ -270,6 +270,28 @@ Status: useful CNN transfer harness. It keeps the Song13 source intact and gives
 slightly more level-2 edge than Stage25/26, but it is not a metric win. Judge by
 contact sheet before deciding whether to build a Stage31 NFTR.
 
+### Stage32: Public Comparison Contact
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_public_comparison_contact.py
+```
+
+Outputs:
+
+- `docs/assets/stage32_public_comparison.png`
+- `docs/assets/stage32_public_comparison.json`
+
+Image order:
+
+```text
+source -> stage25 -> stage26 -> stage32
+```
+
+Status: public README artifact. The `stage32` row uses Stage31 torch-transfer
+output, and the sheet intentionally omits the target NFTR row.
+
 ## Historical Checkpoints
 
 | stage | deliverable |
@@ -295,6 +317,7 @@ contact sheet before deciding whether to build a Stage31 NFTR.
 | 29 | target `>=2` lightweight conv probe |
 | 30 | target `>=2` tiny PyTorch CNN |
 | 31 | Song13 tiny PyTorch CNN transfer |
+| 32 | public Stage25/26/32 comparison contact |
 
 ## Commit Themes
 
