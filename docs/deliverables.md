@@ -302,11 +302,8 @@ Command:
 
 Outputs:
 
-- `release/font-machine-learn-stage32-bmfont/font-machine-learn-stage32.fnt`
-- `release/font-machine-learn-stage32-bmfont/font-machine-learn-stage32.png`
-- `release/font-machine-learn-stage32-bmfont/font-machine-learn-stage32.json`
-- `release/font-machine-learn-stage32-bmfont/glyphs/`
-- `release/font-machine-learn-stage32-bmfont.zip`
+- `release/font-machine-learn-stage32-song13-fullcmap.zip`
+- `release/font-machine-learn-stage32-song12-fullcmap.zip`
 
 Status: release artifact. It enumerates the selected WenQuanYi font cmap rather
 than `ds_nftr/a.txt`, so users do not need to regenerate a game-specific map.

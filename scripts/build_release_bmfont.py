@@ -25,7 +25,7 @@ from font_machine_learn.stage26_full_nftr import load_mapping_entries, render_ma
 from font_machine_learn.target_torch_cnn import predict_levels  # noqa: E402
 
 
-DEFAULT_OUT_DIR = Path("release/font-machine-learn-stage32-bmfont")
+DEFAULT_OUT_DIR = Path("release/font-machine-learn-stage32-song13-bmfont")
 CONTROL_CODES = set(range(0x00, 0x20)) | set(range(0x7F, 0xA0))
 
 
@@ -229,17 +229,21 @@ def build_release_bmfont(
     release_readme.write_text(
         "\n".join(
             [
-                "# Font Machine Learn Stage32 BMFont",
+                "# Font Machine Learn Stage32 BMFont 字体包",
                 "",
-                "Format: AngelCode BMFont text `.fnt` plus RGBA PNG atlas.",
+                "格式：AngelCode BMFont 文本 `.fnt` + RGBA PNG 图集。",
                 "",
-                "Files:",
-                f"- `{fnt_name}`: BMFont metrics and Unicode mapping",
-                f"- `{atlas_name}`: 2bpp-style RGBA glyph atlas",
-                f"- `{json_name}`: build metadata and per-glyph records",
-                "- `glyphs/`: individual glyph PNGs",
+                "文件：",
+                f"- `{fnt_name}`: BMFont metrics 和 Unicode 映射",
+                f"- `{atlas_name}`: 2bpp 风格 RGBA 字形图集",
+                f"- `{json_name}`: 构建参数和逐字记录",
+                "- `glyphs/`: 单字 PNG",
                 "",
-                "License: GPL-2.0-only. This package is derived from WenQuanYi fonts.",
+                "使用：读取 `.fnt` 中的 `char id/x/y/width/height/xadvance`，从 PNG 图集中裁出 glyph，按 `xadvance` 排版。",
+                "",
+                "渲染建议：使用 nearest-neighbor，不要重新抗锯齿或线性缩放。",
+                "",
+                "授权：GPL-2.0-only。本包由文泉驿字体生成。",
                 "",
             ]
         ),
@@ -278,7 +282,7 @@ def main() -> None:
     parser.add_argument("--charset-map", type=Path, default=None, help="Optional CODE=char map. Defaults to the selected font cmap.")
     parser.add_argument("--font", type=Path, default=Path("fonts/WenQuanYi.Bitmap.Song.13px.ttf"))
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
-    parser.add_argument("--package-name", default="font-machine-learn-stage32")
+    parser.add_argument("--package-name", default="font-machine-learn-stage32-song13")
     parser.add_argument("--font-index", type=int, default=0)
     parser.add_argument("--font-size", type=int, default=15)
     parser.add_argument("--font-mode", default="L")
