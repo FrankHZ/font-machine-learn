@@ -134,5 +134,7 @@
   ],
   "stage25_metadata": "data\\processed\\glyphs\\stage25_song13_source_locked\\song13_source_locked_metadata.json",
   "stage26_metadata": "data\\processed\\glyphs\\stage26_song13_layer_mlp\\song13_layer_mlp_metadata.json",
-  "stage31_metadata": "data\\processed\\glyphs\\stage31_song13_torch_cnn\\song13_torch_cnn_metadata.json"
+  "stage31_metadata": "data\\processed\\glyphs\\stage31_song13_torch_cnn\\song13_torch_cnn_metadata.json",
+  "target_metadata": "data\\processed\\glyphs\\stage1_target\\target_metadata.json",
+  "stage_rows_note": "Stage25, Stage26, and Stage32 rows are generated from each sheet's own source font."
 }

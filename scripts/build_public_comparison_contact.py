@@ -12,8 +12,15 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
+from font_machine_learn.baseline import levels_to_image  # noqa: E402
 from font_machine_learn.nftr import checkerboard  # noqa: E402
+from font_machine_learn.paths import TARGET_METADATA  # noqa: E402
+from font_machine_learn.song13_layer_mlp import predict_source_locked_levels  # noqa: E402
+from font_machine_learn.song13_source_locked import SourceLockedRule, source_locked_levels  # noqa: E402
+from font_machine_learn.song13_torch_cnn import train_target_ge2_cnn  # noqa: E402
 from font_machine_learn.source_font import quantize_mask_to_1bpp, render_mask  # noqa: E402
+from font_machine_learn.stage26_full_nftr import train_stage26_heads  # noqa: E402
+from font_machine_learn.target_torch_cnn import predict_levels  # noqa: E402
 
 
 DEFAULT_OUT_DIR = Path("docs/assets")
@@ -73,6 +80,19 @@ def render_source_image(
     return quantize_mask_to_1bpp(mask, threshold)
 
 
+def source_image_to_mask(image: Image.Image) -> list[list[bool]]:
+    alpha = image.convert("RGBA").getchannel("A")
+    width, height = alpha.size
+    return [[alpha.getpixel((x, y)) > 0 for x in range(width)] for y in range(height)]
+
+
+def mask_to_tensor(mask: list[list[bool]]):
+    import numpy as np
+    import torch
+
+    return torch.from_numpy(np.asarray(mask, dtype=np.float32)[None, :, :])
+
+
 def paste_image_scaled(sheet: Image.Image, image: Image.Image, xy: tuple[int, int], scale: int) -> None:
     scaled = image.convert("RGBA").resize((image.width * scale, image.height * scale), Image.Resampling.NEAREST)
     sheet.alpha_composite(scaled, xy)
@@ -89,8 +109,8 @@ def make_sheet(
     source_config: dict,
     indices: list[int],
     stage25: dict[int, dict],
-    stage26: dict[int, dict],
-    stage32: dict[int, dict],
+    stage26_models: tuple[object, object],
+    stage32_model: object,
     out_png: Path,
     glyph_count: int,
     columns: int,
@@ -119,27 +139,38 @@ def make_sheet(
         x = label_width + pad + col * (tile_w + pad)
         y = pad + group * (group_h + pad)
         char = first_char(list(stage25[index]["chars"]))
+        source_image = render_source_image(
+            char,
+            font=font,
+            cell_width=cell_width,
+            cell_height=cell_height,
+            **source_config,
+        )
+        source_mask = source_image_to_mask(source_image)
+        stage25_levels = source_locked_levels(
+            source_mask,
+            SourceLockedRule("edge_n1_diag_plus_right_from_source", 1, "diag_plus_right", "source"),
+        )
+        stage26_levels = predict_source_locked_levels(
+            stage26_models[0],
+            stage26_models[1],
+            source_mask,
+            patch_radius=4,
+            core_threshold=0.55,
+            shadow_threshold=0.45,
+        )
+        stage32_levels = predict_levels(stage32_model, mask_to_tensor(source_mask))
         row_images = {
-            "source": render_source_image(
-                char,
-                font=font,
-                cell_width=cell_width,
-                cell_height=cell_height,
-                **source_config,
-            ),
-            "stage25": stage25[index]["predicted_png"],
-            "stage26": stage26[index]["predicted_png"],
-            "stage32": stage32[index]["predicted_png"],
+            "source": source_image,
+            "stage25": levels_to_image(stage25_levels),
+            "stage26": levels_to_image(stage26_levels),
+            "stage32": levels_to_image(stage32_levels),
         }
         for row, label in enumerate(labels):
             row_y = y + row * (tile_h + pad)
             if col == 0:
                 draw.text((pad, row_y + max(0, (tile_h - 8) // 2)), label, fill=(0, 0, 0, 255), font=label_font)
-            image_or_path = row_images[label]
-            if isinstance(image_or_path, Image.Image):
-                paste_image_scaled(sheet, image_or_path, (x, row_y), scale)
-            else:
-                paste_path_scaled(sheet, image_or_path, (x, row_y), scale)
+            paste_image_scaled(sheet, row_images[label], (x, row_y), scale)
 
     out_png.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(out_png)
@@ -157,6 +188,7 @@ def build_public_comparison(
     stage25_metadata: Path,
     stage26_metadata: Path,
     stage31_metadata: Path,
+    target_metadata: Path,
     out_dir: Path,
     metadata_json: Path,
     glyph_count: int,
@@ -173,6 +205,24 @@ def build_public_comparison(
         raise ValueError("No shared CJK glyphs found across Stage25, Stage26, and Stage31 metadata")
 
     source_config = {"threshold": 96, "font_mode": "L", "x_offset": -1, "y_offset": 1}
+    target = json.loads(target_metadata.read_text(encoding="utf-8"))
+    stage26_models = train_stage26_heads(
+        target_metadata,
+        patch_radius=4,
+        max_train_glyphs=None,
+        core_hidden_units=64,
+        shadow_hidden_units=64,
+        max_iter=80,
+        random_seed=26,
+    )
+    stage32_model, _losses, _device, _cuda_device = train_target_ge2_cnn(
+        list(target["glyphs"]),
+        channels=48,
+        epochs=200,
+        batch_size=128,
+        learning_rate=0.003,
+        random_seed=32,
+    )
     sheets = [
         make_sheet(
             name="song13",
@@ -180,8 +230,8 @@ def build_public_comparison(
             source_config=source_config,
             indices=indices,
             stage25=stage25,
-            stage26=stage26,
-            stage32=stage32,
+            stage26_models=stage26_models,
+            stage32_model=stage32_model,
             out_png=out_dir / "stage32_public_comparison_song13.png",
             glyph_count=glyph_count,
             columns=columns,
@@ -195,8 +245,8 @@ def build_public_comparison(
             source_config=source_config,
             indices=indices,
             stage25=stage25,
-            stage26=stage26,
-            stage32=stage32,
+            stage26_models=stage26_models,
+            stage32_model=stage32_model,
             out_png=out_dir / "stage32_public_comparison_song12.png",
             glyph_count=glyph_count,
             columns=columns,
@@ -217,6 +267,8 @@ def build_public_comparison(
                 "stage25_metadata": str(stage25_metadata),
                 "stage26_metadata": str(stage26_metadata),
                 "stage31_metadata": str(stage31_metadata),
+                "target_metadata": str(target_metadata),
+                "stage_rows_note": "Stage25, Stage26, and Stage32 rows are generated from each sheet's own source font.",
             },
             ensure_ascii=False,
             indent=2,
@@ -231,6 +283,7 @@ def main() -> None:
     parser.add_argument("--stage25-metadata", type=Path, default=Path("data/processed/glyphs/stage25_song13_source_locked/song13_source_locked_metadata.json"))
     parser.add_argument("--stage26-metadata", type=Path, default=Path("data/processed/glyphs/stage26_song13_layer_mlp/song13_layer_mlp_metadata.json"))
     parser.add_argument("--stage31-metadata", type=Path, default=Path("data/processed/glyphs/stage31_song13_torch_cnn/song13_torch_cnn_metadata.json"))
+    parser.add_argument("--target-metadata", type=Path, default=TARGET_METADATA)
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT_DIR)
     parser.add_argument("--metadata", type=Path, default=DEFAULT_OUT_DIR / "stage32_public_comparison.json")
     parser.add_argument("--glyph-count", type=int, default=48)
@@ -243,6 +296,7 @@ def main() -> None:
         stage25_metadata=args.stage25_metadata,
         stage26_metadata=args.stage26_metadata,
         stage31_metadata=args.stage31_metadata,
+        target_metadata=args.target_metadata,
         out_dir=args.out_dir,
         metadata_json=args.metadata,
         glyph_count=args.glyph_count,
