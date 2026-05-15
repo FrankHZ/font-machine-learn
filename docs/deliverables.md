@@ -292,6 +292,25 @@ source -> stage25 -> stage26 -> stage32
 Status: public README artifact. The `stage32` row uses Stage31 torch-transfer
 output, and the sheet intentionally omits the target NFTR row.
 
+### Release Package: Full Font BMFont
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_release_bmfont.py
+```
+
+Outputs:
+
+- `release/font-machine-learn-stage32-bmfont/font-machine-learn-stage32.fnt`
+- `release/font-machine-learn-stage32-bmfont/font-machine-learn-stage32.png`
+- `release/font-machine-learn-stage32-bmfont/font-machine-learn-stage32.json`
+- `release/font-machine-learn-stage32-bmfont/glyphs/`
+- `release/font-machine-learn-stage32-bmfont.zip`
+
+Status: release artifact. It enumerates the selected WenQuanYi font cmap rather
+than `ds_nftr/a.txt`, so users do not need to regenerate a game-specific map.
+
 ## Historical Checkpoints
 
 | stage | deliverable |

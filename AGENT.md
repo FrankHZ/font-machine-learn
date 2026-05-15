@@ -174,6 +174,17 @@ uses rows `source`, `stage25`, `stage26`, and `stage32`; the `stage32` row is th
 Stage31 torch-transfer output. Do not include the target NFTR row in public
 README assets.
 
+Release package:
+
+```powershell
+python scripts/build_release_bmfont.py
+```
+
+This builds a full selected-font-cmap AngelCode BMFont package under `release/`.
+Do not use `ds_nftr/a.txt` for the default release package; that map is
+game-specific. The release format is `.fnt + RGBA PNG atlas + JSON`, not BDF/PCF,
+because the output needs shadow and edge levels.
+
 ## Important Files
 
 - `a.NFTR`: local-only decompressed target NFTR, ignored for public release.

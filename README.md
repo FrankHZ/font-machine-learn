@@ -141,6 +141,16 @@ Build the public README comparison contact sheet:
 .\.venv\Scripts\python.exe scripts\build_public_comparison_contact.py
 ```
 
+Build the full-font BMFont release package:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_release_bmfont.py
+```
+
+This enumerates the selected WenQuanYi font cmap, not `ds_nftr/a.txt`, and writes
+an AngelCode BMFont `.fnt`, RGBA PNG atlas, JSON metadata, individual glyph PNGs,
+and a zip under `release/`.
+
 Build a game-facing NFTR from the current Stage26 best candidate:
 
 ```powershell
@@ -322,3 +332,5 @@ Important stage folders:
 - The README comparison image uses WenQuanYi-derived source/predicted glyphs and
   omits the target NFTR row.
 - WenQuanYi font files are kept in `fonts/` as open-source font resources.
+- Public release packages are GPL-2.0-only; see `COPYRIGHT.md` and
+  `LICENSES/GPL-2.0.txt`.

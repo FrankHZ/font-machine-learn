@@ -5,11 +5,31 @@
   "columns": 24,
   "scale": 3,
   "rows": [
+    "sharp13",
+    "sharp14",
+    "song12",
     "source",
     "stage25",
     "stage26",
     "stage32"
   ],
+  "variant_rows": {
+    "sharp13": {
+      "font": "fonts/wqy-zenhei.ttc",
+      "font_index": 2,
+      "font_size": 13
+    },
+    "sharp14": {
+      "font": "fonts/wqy-zenhei.ttc",
+      "font_index": 2,
+      "font_size": 14
+    },
+    "song12": {
+      "font": "fonts/WenQuanYi.Bitmap.Song.12px.ttf",
+      "font_index": 0,
+      "font_size": 15
+    }
+  },
   "source_note": "No target NFTR glyph row is included in this public README asset.",
   "stage32_note": "The Stage32 comparison row uses the Stage31 Song13 torch-transfer output as the final candidate row.",
   "stage25_metadata": "data\\processed\\glyphs\\stage25_song13_source_locked\\song13_source_locked_metadata.json",
