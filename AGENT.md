@@ -99,7 +99,18 @@ python scripts/build_stage26_nftr.py
 
 This export keeps the original `a.NFTR` sections, widths, cmap, and `1814`
 glyph count. It only patches PLGC bitmap payloads from the Stage26 best
-candidate. Do not confuse this with a future expanded `a-chars.txt` build.
+candidate. Do not confuse this with the full-map `ds_nftr/a.txt` build.
+
+Stage26 full-map NFTR export:
+
+```powershell
+python scripts/build_stage26_full_nftr.py
+```
+
+This reads `ds_nftr/a.txt` (`CODE=char`), retrains the Stage26 heads, and
+rebuilds a `3296`-glyph NFTR. Preserve the old `ds_nftr` rules: reuse
+Latin/digits/punct and `一二三` from the original NFTR when present, substitute
+`… -> ‥`, left-bottom align generated CJK, and force `，；` to full-cell advance.
 
 Use `--eval-limit` only for quick iteration, not for recorded metrics.
 
@@ -112,6 +123,7 @@ Use `--eval-limit` only for quick iteration, not for recorded metrics.
 - `src/font_machine_learn/song13_source_locked.py`: Stage25.
 - `src/font_machine_learn/song13_layer_mlp.py`: Stage26.
 - `src/font_machine_learn/stage26_nftr.py`: Stage26 predicted PNGs -> original-layout NFTR.
+- `src/font_machine_learn/stage26_full_nftr.py`: Stage26 full-map NFTR builder.
 - `src/font_machine_learn/song13_review.py`: Stage27 human-review artifacts.
 - `tests/test_nftr_export.py`: fast tests plus slow stage smokes.
 - `docs/targets.md`: current target split and findings.

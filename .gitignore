@@ -12,3 +12,6 @@ data/processed/**/*.jsonl
 data/processed/**/*.csv
 data/processed/**/*.NFTR
 data/processed/**/*.nftr
+data/processed/**/*.compressed
+data/processed/**/*.nds
+data/processed/**/*.sav

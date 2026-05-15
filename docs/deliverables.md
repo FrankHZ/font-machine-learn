@@ -87,6 +87,22 @@ NFTR export outputs:
 This export preserves the original NFTR layout and patches only PLGC glyph
 payload bytes from the Stage26 predicted PNGs.
 
+Full-map NFTR export command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_stage26_full_nftr.py
+```
+
+Full-map NFTR export outputs:
+
+- `data/processed/glyphs/stage26_song13_layer_mlp/nftr/a-stage26-fullmap.NFTR`
+- `data/processed/glyphs/stage26_song13_layer_mlp/nftr/a-stage26-fullmap.json`
+- `data/processed/glyphs/stage26_song13_layer_mlp/nftr/a-stage26-fullmap-preview.png`
+
+The full-map build consumes `ds_nftr/a.txt` (`CODE=char`) and currently produces
+`3296` glyphs. `，` and `；` are full-cell advance (`15`) even though their ink is
+small; this avoids punctuation crowding in-game.
+
 Current Song13 CJK metrics:
 
 - best candidate: `core_patch_mlp_shadow_logistic_balanced_c055_s045`

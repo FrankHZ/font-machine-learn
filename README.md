@@ -102,7 +102,19 @@ Build a game-facing NFTR from the current Stage26 best candidate:
 
 This preserves the original `a.NFTR` sections, widths, cmap, and `1814` glyph
 count. It replaces only PLGC glyph bitmap payloads with Stage26 predicted 2bpp
-pixels. It does not yet build an expanded `a-chars.txt` font.
+pixels. Use the full-map command below for the `ds_nftr/a.txt` build.
+
+Build the current full-map candidate from `ds_nftr/a.txt`:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_stage26_full_nftr.py
+```
+
+This retrains the Stage26 layer heads, renders all `3296` chars from the
+`CODE=char` map, reuses original NFTR glyphs/widths for Latin, digits,
+punctuation, `一二三`, and `… -> ‥`, and writes a rebuilt NFTR with the original
+map codes. `，` and `；` are forced to full-cell advance so they do not crowd the
+following glyph.
 
 ## Current Findings
 
@@ -190,7 +202,7 @@ Important stage folders:
 | 22-23 | target-shaped adapters improved metrics but deleted strokes |
 | 24 | add-only adapter preserves strokes, visual `0.6508` |
 | 25 | source-locked rule baseline, visual `0.6409` |
-| 26 | source-locked learned layer harness, visual `0.6339`; NFTR export available |
+| 26 | source-locked learned layer harness, visual `0.6339`; original-layout and full-map NFTR exports available |
 | 27 | human-review package comparing Stage24/25/26 |
 
 ## Notes
@@ -199,4 +211,7 @@ Important stage folders:
 - Do not judge Song13 only by target pixel overlap; the shapes differ.
 - Contact sheets remain the primary review artifact.
 - Use CJK as the primary split and non-CJK as a guard split.
+- For full-map NFTR builds, use `ds_nftr/a.txt` and preserve old `ds_nftr` rules: Latin/punct reuse,
+  `… -> ‥`, `一二三` reuse, CJK left-bottom alignment, and full advance for
+  `，；`.
 - Keep generated artifacts disposable unless a stage explicitly promotes them.
