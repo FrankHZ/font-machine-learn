@@ -234,6 +234,42 @@ Current CJK metrics:
 Status: target-shaped source probe. It beats Stage28 `>=2` learned visual
 `0.9684` and Stage29 `0.9604`, so true convolution is worth carrying forward.
 
+### Stage31: Song13 Tiny PyTorch CNN Transfer
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_song13_torch_cnn.py
+```
+
+Outputs:
+
+- `data/processed/glyphs/stage31_song13_torch_cnn/song13_torch_cnn_metadata.json`
+- `data/processed/glyphs/stage31_song13_torch_cnn/song13_torch_cnn_contact.png`
+- `data/processed/glyphs/stage31_song13_torch_cnn/song13_torch_cnn_errors.png`
+
+Image order:
+
+```text
+source ge2 -> predicted 2bpp -> target 2bpp
+```
+
+Current CJK metrics:
+
+- model: Stage30-style 3 Conv3x3 ReLU blocks, 48 channels
+- training source: target level `>=2`
+- eval source: Song13 1bpp render
+- epochs/LR: `200 / 0.003`
+- device: CUDA, RTX 3080 Ti
+- visual: `0.6344`
+- ink/shadow F1: `0.5681 / 0.5403`
+- source deletion: `0.0000`
+- source level `2/3`: `0.1578 / 0.8422`
+
+Status: useful CNN transfer harness. It keeps the Song13 source intact and gives
+slightly more level-2 edge than Stage25/26, but it is not a metric win. Judge by
+contact sheet before deciding whether to build a Stage31 NFTR.
+
 ## Historical Checkpoints
 
 | stage | deliverable |
@@ -258,6 +294,7 @@ Status: target-shaped source probe. It beats Stage28 `>=2` learned visual
 | 28 | target quantized calibration |
 | 29 | target `>=2` lightweight conv probe |
 | 30 | target `>=2` tiny PyTorch CNN |
+| 31 | Song13 tiny PyTorch CNN transfer |
 
 ## Commit Themes
 

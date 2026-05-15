@@ -91,6 +91,19 @@ Stage26 is the learned source-locked harness:
 Interpretation: Stage26 is useful infrastructure but not a visual improvement
 yet. Stage25 remains the Song13 quality reference.
 
+Stage31 is the tiny PyTorch CNN transfer harness:
+
+- command: `python scripts/run_song13_torch_cnn.py`
+- training source: target level `>=2`
+- eval source: Song13 1bpp render
+- source deleted ratio: `0.0000`
+- source level `2/3`: `0.1578 / 0.8422`
+- CJK visual: `0.6344`
+
+Interpretation: Stage31 gives a real convolutional Song13 candidate while
+preserving source pixels. It is not a target-overlap improvement over Stage25,
+so judge it by contact sheet and in-game readability.
+
 ### Target D: Speed Up Iteration Without Changing Metrics
 
 Full multi-source Stage26 eval:
@@ -140,6 +153,10 @@ the primary ranking signal.
 | 25 | source-locked rule baseline, visual `0.6409` |
 | 26 | source-locked learned layer harness, visual `0.6339` |
 | 27 | human-review package for Stage24/25/26 |
+| 28 | target quantized calibration; `>=2` learned visual `0.9684` |
+| 29 | target `>=2` lightweight conv probe, visual `0.9604` |
+| 30 | target `>=2` tiny torch CNN, CUDA visual `0.9790` |
+| 31 | Song13 tiny torch CNN transfer, visual `0.6344`, no source deletion |
 
 ## Next Useful Targets
 

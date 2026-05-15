@@ -159,4 +159,9 @@ TARGET_TORCH_METADATA = STAGE30_TARGET_TORCH / "target_ge2_torch_metadata.json"
 TARGET_TORCH_CONTACT = STAGE30_TARGET_TORCH / "target_ge2_torch_contact.png"
 TARGET_TORCH_ERROR_CONTACT = STAGE30_TARGET_TORCH / "target_ge2_torch_errors.png"
 
+STAGE31_SONG13_TORCH = GLYPH_ROOT / "stage31_song13_torch_cnn"
+SONG13_TORCH_METADATA = STAGE31_SONG13_TORCH / "song13_torch_cnn_metadata.json"
+SONG13_TORCH_CONTACT = STAGE31_SONG13_TORCH / "song13_torch_cnn_contact.png"
+SONG13_TORCH_ERROR_CONTACT = STAGE31_SONG13_TORCH / "song13_torch_cnn_errors.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

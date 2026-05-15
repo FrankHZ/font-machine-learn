@@ -37,6 +37,7 @@ from font_machine_learn.song13_calibrated import export_song13_calibrated
 from font_machine_learn.song13_layer_mlp import export_song13_layer_mlp
 from font_machine_learn.song13_review import hole_mask, summarize_levels
 from font_machine_learn.song13_source_locked import export_song13_source_locked
+from font_machine_learn.song13_torch_cnn import export_song13_torch_cnn
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.stage26_full_nftr import assign_codes, load_char_sequence, load_mapping_entries, width_from_levels
 from font_machine_learn.stage26_nftr import pack_2bpp_values
@@ -1258,6 +1259,62 @@ class NFTRExportTest(unittest.TestCase):
             )
             self.assertIn("target_copy", metadata["eval_sources"])
             self.assertEqual(metadata["eval_limit"], 256)
+
+    @slow_test
+    def test_exports_song13_torch_cnn_smoke(self) -> None:
+        source = ROOT / "a.NFTR"
+        with workspace_tempdir() as tmp:
+            root = Path(tmp)
+            target = export_target_dataset(
+                source,
+                root / "target",
+                metadata_json=root / "target_metadata.json",
+                contact_sheet=root / "target_contact.png",
+            )
+            target_metadata = json.loads(Path(target.metadata_json).read_text(encoding="utf-8"))
+            fake_source = {
+                "cell_width": target_metadata["cell_width"],
+                "cell_height": target_metadata["cell_height"],
+                "glyphs": [
+                    {
+                        **glyph,
+                        "source_png": glyph["png"],
+                        "target_png": glyph["png"],
+                    }
+                    for glyph in target_metadata["glyphs"]
+                ],
+            }
+            fake_source_json = root / "fake_source.json"
+            fake_source_json.write_text(json.dumps(fake_source, ensure_ascii=False), encoding="utf-8")
+            result = export_song13_torch_cnn(
+                target_metadata=Path(target.metadata_json),
+                source_metadata=fake_source_json,
+                out_dir=root / "song13_torch_cnn",
+                metadata_json=root / "song13_torch_cnn.json",
+                contact_sheet=root / "song13_torch_cnn.png",
+                error_contact_sheet=root / "song13_torch_cnn_errors.png",
+                channels=8,
+                epochs=2,
+                batch_size=256,
+                eval_limit=256,
+                worst_count=12,
+            )
+            self.assertEqual(result.glyph_count, 256)
+            self.assertGreaterEqual(result.cjk_glyph_count, 0)
+            self.assertEqual(result.cjk_source_deleted_ratio, 0.0)
+            self.assertTrue(Path(result.metadata_json).exists())
+            self.assertTrue(Path(result.contact_sheet).exists())
+            self.assertTrue(Path(result.error_contact_sheet).exists())
+
+            metadata = json.loads(Path(result.metadata_json).read_text(encoding="utf-8"))
+            self.assertEqual(
+                metadata["task"],
+                "transfer target-trained source-locked tiny PyTorch CNN to Song13 source masks",
+            )
+            self.assertEqual(
+                metadata["contact_sheet_order"],
+                ["source_ge2", "predicted_2bpp", "target_2bpp"],
+            )
 
 
 if __name__ == "__main__":

@@ -118,6 +118,12 @@ Train the tiny PyTorch CNN target probe:
 .\.venv\Scripts\python.exe scripts\run_target_torch_cnn.py
 ```
 
+Transfer the target-trained tiny CNN to Song13 source masks:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_song13_torch_cnn.py
+```
+
 Build a game-facing NFTR from the current Stage26 best candidate:
 
 ```powershell
@@ -207,7 +213,18 @@ Stage30 trains a tiny PyTorch CNN on the same target `>=2` source mask:
 - ink/shadow F1: `0.9824 / 0.9640`
 
 Interpretation: real convolution does beat the patch MLP on target-shaped source.
-Next useful model step is applying the same source-locked CNN to Song13/fullmap.
+
+Stage31 applies the Stage30-style CNN to Song13 source masks:
+
+- model: same 48-channel tiny CNN, trained on target `>=2`
+- CJK visual: `0.6344`
+- source deletion: `0.0000`
+- source level `2/3`: `0.1578 / 0.8422`
+
+Interpretation: this is a useful CNN transfer harness, but it does not beat the
+human-reviewed Stage25/26 Song13 candidates by metric. Contact-sheet review is
+more important than target overlap here because Song13 and the target NFTR have
+different glyph shapes.
 
 ## Repository Layout
 
@@ -242,6 +259,7 @@ Important stage folders:
 | `stage28_target_quantized_calibration` | target 1bpp quantization calibration |
 | `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
 | `stage30_target_ge2_torch` | tiny PyTorch CNN target probe |
+| `stage31_song13_torch_cnn` | target-trained CNN transferred to Song13 |
 
 ## Stage Summary
 
@@ -263,6 +281,7 @@ Important stage folders:
 | 28 | target quantized calibration; `>=2` learned CJK visual `0.9684` |
 | 29 | target `>=2` lightweight conv probe; CJK visual `0.9604` |
 | 30 | target `>=2` tiny torch CNN; CUDA CJK visual `0.9790` |
+| 31 | Song13 tiny torch CNN transfer; CJK visual `0.6344`, source deletion `0.0000` |
 
 ## Notes
 

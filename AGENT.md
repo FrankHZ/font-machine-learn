@@ -151,6 +151,18 @@ CUDA install used in this workspace:
 
 Use `--eval-limit` only for quick iteration, not for recorded metrics.
 
+Stage31 Song13 PyTorch CNN transfer:
+
+```powershell
+python scripts/run_song13_torch_cnn.py
+```
+
+This trains the same target `>=2` tiny CNN and applies it to the Song13 1bpp
+source mask with source-locked inference. Current CUDA CJK visual is `0.6344`,
+source deletion `0.0000`, and source level `2/3` is about `0.1578 / 0.8422`.
+Treat it as a CNN transfer harness and contact-sheet candidate, not a metric win
+over Stage25/26.
+
 ## Important Files
 
 - `a.NFTR`: decompressed target NFTR. Reversed Nitro tags: `RTFN`, `FNIF`,
@@ -165,6 +177,7 @@ Use `--eval-limit` only for quick iteration, not for recorded metrics.
 - `src/font_machine_learn/target_quantized_calibration.py`: Stage28 target mask calibration.
 - `src/font_machine_learn/target_conv_calibration.py`: Stage29 lightweight conv probe.
 - `src/font_machine_learn/target_torch_cnn.py`: Stage30 tiny PyTorch CNN probe.
+- `src/font_machine_learn/song13_torch_cnn.py`: Stage31 target-trained CNN -> Song13 transfer.
 - `tests/test_nftr_export.py`: fast tests plus slow stage smokes.
 - `docs/targets.md`: current target split and findings.
 - `docs/deliverables.md`: verification and stage checkpoint summary.
@@ -197,6 +210,7 @@ Important folders:
 | `stage28_target_quantized_calibration` | target 1bpp quantization calibration |
 | `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
 | `stage30_target_ge2_torch` | tiny PyTorch CNN target probe |
+| `stage31_song13_torch_cnn` | target-trained CNN transferred to Song13 |
 
 ## Working Rules
 
