@@ -106,6 +106,12 @@ Probe lightweight convolution features on target `>=2` source masks:
 .\.venv\Scripts\python.exe scripts\run_target_conv_calibration.py
 ```
 
+Train the tiny PyTorch CNN target probe:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_target_torch_cnn.py
+```
+
 Build a game-facing NFTR from the current Stage26 best candidate:
 
 ```powershell
@@ -188,6 +194,15 @@ Stage29 tests a small convolution-feature probe on the target `>=2` source mask:
 Interpretation: this is below Stage28 `>=2` learned visual `0.9684`. Small
 hand-built convolution features are not enough to beat the wider patch MLP.
 
+Stage30 trains a tiny PyTorch CNN on the same target `>=2` source mask:
+
+- model: 3 Conv3x3 ReLU blocks, 48 channels, source-locked inference
+- CJK visual: `0.9784`
+- ink/shadow F1: `0.9825 / 0.9627`
+
+Interpretation: real convolution does beat the patch MLP on target-shaped source.
+Next useful model step is applying the same source-locked CNN to Song13/fullmap.
+
 ## Repository Layout
 
 ```text
@@ -220,6 +235,7 @@ Important stage folders:
 | `stage27_song13_review` | human-review sheets for Stage24/25/26 |
 | `stage28_target_quantized_calibration` | target 1bpp quantization calibration |
 | `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
+| `stage30_target_ge2_torch` | tiny PyTorch CNN target probe |
 
 ## Stage Summary
 
@@ -240,6 +256,7 @@ Important stage folders:
 | 27 | human-review package comparing Stage24/25/26 |
 | 28 | target quantized calibration; `>=2` learned CJK visual `0.9684` |
 | 29 | target `>=2` lightweight conv probe; CJK visual `0.9604` |
+| 30 | target `>=2` tiny torch CNN; CJK visual `0.9784` |
 
 ## Notes
 

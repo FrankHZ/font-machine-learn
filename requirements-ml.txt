@@ -7,3 +7,5 @@ scikit-image>=0.24
 scikit-learn>=1.5
 matplotlib>=3.9
 tqdm>=4.66
+# Stage30+ optional deep-learning experiments.
+torch>=2.12

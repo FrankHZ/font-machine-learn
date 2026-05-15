@@ -203,6 +203,36 @@ Status: probe stage. It does not beat Stage28 `>=2` learned visual `0.9684`;
 small hand-built convolution features lose some information versus wider patch
 features.
 
+### Stage30: Target GE2 Tiny PyTorch CNN
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_target_torch_cnn.py
+```
+
+Outputs:
+
+- `data/processed/glyphs/stage30_target_ge2_torch/target_ge2_torch_metadata.json`
+- `data/processed/glyphs/stage30_target_ge2_torch/target_ge2_torch_contact.png`
+- `data/processed/glyphs/stage30_target_ge2_torch/target_ge2_torch_errors.png`
+
+Image order:
+
+```text
+source ge2 -> predicted 2bpp -> target 2bpp
+```
+
+Current CJK metrics:
+
+- model: 3 Conv3x3 ReLU blocks, 48 channels, source-locked inference
+- epochs/LR: `200 / 0.003`
+- visual: `0.9784`
+- ink/shadow F1: `0.9825 / 0.9627`
+
+Status: target-shaped source probe. It beats Stage28 `>=2` learned visual
+`0.9684` and Stage29 `0.9604`, so true convolution is worth carrying forward.
+
 ## Historical Checkpoints
 
 | stage | deliverable |
@@ -226,6 +256,7 @@ features.
 | 27 | Song13 human-review package |
 | 28 | target quantized calibration |
 | 29 | target `>=2` lightweight conv probe |
+| 30 | target `>=2` tiny PyTorch CNN |
 
 ## Commit Themes
 

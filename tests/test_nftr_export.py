@@ -44,6 +44,7 @@ from font_machine_learn.style_dataset import export_1bpp_style_dataset
 from font_machine_learn.style_mlp import export_style_mlp
 from font_machine_learn.target_conv_calibration import conv_features
 from font_machine_learn.target_quantized_calibration import mask_to_flat_levels
+from font_machine_learn.target_torch_cnn import TinyGlyphCNN
 from font_machine_learn.target_mask_compare import export_target_mask_compare
 from font_machine_learn.target_mask_compare import levels_to_threshold_mask
 from font_machine_learn.trainable_baseline import export_mlp_baseline
@@ -152,6 +153,13 @@ class NFTRExportTest(unittest.TestCase):
         self.assertEqual(len(features), 18)
         self.assertEqual(features[0], 1.0)
         self.assertGreater(features[1], 0.0)
+
+    def test_tiny_glyph_cnn_output_shape(self) -> None:
+        import torch
+
+        model = TinyGlyphCNN(channels=4)
+        logits = model(torch.zeros((2, 1, 15, 15), dtype=torch.float32))
+        self.assertEqual(tuple(logits.shape), (2, 4, 15, 15))
 
     def test_exports_target_glyph_dataset(self) -> None:
         source = ROOT / "a.NFTR"

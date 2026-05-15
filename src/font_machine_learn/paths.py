@@ -154,4 +154,9 @@ TARGET_CONV_METADATA = STAGE29_TARGET_CONV / "target_ge2_conv_metadata.json"
 TARGET_CONV_CONTACT = STAGE29_TARGET_CONV / "target_ge2_conv_contact.png"
 TARGET_CONV_ERROR_CONTACT = STAGE29_TARGET_CONV / "target_ge2_conv_errors.png"
 
+STAGE30_TARGET_TORCH = GLYPH_ROOT / "stage30_target_ge2_torch"
+TARGET_TORCH_METADATA = STAGE30_TARGET_TORCH / "target_ge2_torch_metadata.json"
+TARGET_TORCH_CONTACT = STAGE30_TARGET_TORCH / "target_ge2_torch_contact.png"
+TARGET_TORCH_ERROR_CONTACT = STAGE30_TARGET_TORCH / "target_ge2_torch_errors.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"
