@@ -1,963 +1,183 @@
 # Font Machine Learn
 
-This project is an experiment for learning the visual style of a Nintendo DS
-bitmap font: small 15 x 15 px glyphs with 2bpp levels for transparent,
-shadow, edge transition, and main stroke pixels.
+This project learns the style of a Nintendo DS `15x15` 2bpp bitmap font.
 
-The core task is **not** to invent or correct glyph shapes. The intended
-pipeline is:
+The task is:
 
 ```text
 complete 1bpp bitmap glyph set -> NFTR-style 2bpp layered glyphs
 ```
 
-The model/rules should learn style layering:
+Layer semantics:
 
-- `3`: main stroke core
-- `2`: edge/anti-alias transition around the core
-- `1`: right-down shadow
 - `0`: transparent/background
+- `1`: right-down shadow
+- `2`: edge or anti-alias transition
+- `3`: main stroke core
 
-`fonts/wqy-zenhei.ttc` is the future real input font source and a useful validation
-asset. The current `a.NFTR` target can also be quantized to 1bpp to create the
-cleanest paired training data for learning the 1bpp-to-2bpp style transform.
+The current production-facing source is WenQuanYi Bitmap Song 13px rendered into
+the same `15x15` cell. The project no longer treats target glyphs as shapes to
+copy. Current Song13 work preserves source pixels first, then assigns style
+layers around that fixed source shape.
 
-The first milestones were intentionally small:
-
-1. read the available `a.NFTR` font asset;
-2. export a PNG atlas for visual inspection;
-3. keep enough metadata around to make later dataset extraction repeatable.
-
-## Current Layout
-
-```text
-.
-├── a.NFTR                         # Source font file currently available
-├── AGENT.md                       # Working notes for coding agents
-├── README.md
-├── fonts/                         # Local source font assets
-├── pyproject.toml                 # Python project metadata and tool config
-├── requirements.txt               # Minimal runtime dependency list
-├── docs/
-│   └── targets.md                 # Milestones and dataset boundaries
-│   └── deliverables.md            # Stage deliverables and verification
-├── requirements-ml.txt            # CPU-friendly ML/data dependencies
-├── scripts/
-│   ├── check_env.py               # Python/package environment check
-│   ├── extract_target_glyphs.py    # Split NFTR into per-glyph target dataset
-│   ├── render_source_glyphs.py     # Render WQY Sharp source glyph dataset
-│   ├── run_shadow_baseline.py      # Rule-based source-to-shadow baseline
-│   ├── train_mlp_baseline.py       # Small trainable pixel-level MLP baseline
-│   ├── tune_shadow_baseline.py      # Visual-score-oriented shadow rule search
-│   ├── build_review_report.py       # Side-by-side baseline review artifacts
-│   ├── run_binary_diagnostic.py     # Quantize target to 1bpp and score masks
-│   ├── search_weight_baseline.py     # Search source weight/offset before shadow
-│   ├── run_cjk_style_baseline.py     # CJK-focused fixed-style baseline
-│   ├── run_cjk_edges_baseline.py     # CJK level-2 edge transition refinement
-│   ├── build_1bpp_style_dataset.py   # Formal 1bpp-mask to 2bpp-style dataset
-│   ├── compare_target_masks_to_source.py # Compare target >=2/==3 masks to WQY
-│   ├── run_wqy_alignment_diagnostic.py # Search WQY alignment/weight by mask mode
-│   ├── train_style_mlp.py        # Controlled 1bpp-to-2bpp style MLP
-│   ├── run_boundary_rules.py     # Explainable ge2 level-2/3 boundary rules
-│   ├── build_patch_readiness.py  # Stage 18 patch/error dataset for next model
-│   ├── train_patch_classifier.py # Stage 19 patch-only ge2 2/3 classifiers
-│   ├── train_shadow_classifier.py # Stage 20 learned 0/1 shadow classifier
-│   ├── eval_external_sources.py  # Stage 21 external source-mask transfer eval
-│   ├── train_song13_adapter.py   # Stage 22 source-mask adapter experiment
-│   ├── train_song13_calibrated.py # Stage 23 calibrated adapter threshold sweep
-│   ├── train_song13_add_only.py  # Stage 24 source-preserving add-only adapter
-│   ├── run_song13_source_locked.py # Stage 25 source-locked style rule sweep
-│   ├── train_song13_layer_mlp.py # Stage 26 source-locked learned layerer
-│   └── export_nftr.py             # CLI wrapper for exporting an atlas
-├── src/
-│   └── font_machine_learn/
-│       ├── __init__.py
-│       └── nftr.py                # RTFN/NFTR parser and PNG exporter
-├── tests/
-│   └── test_nftr_export.py        # Smoke-test harness
-└── data/
-    ├── raw/                       # Put original extracted assets here later
-    ├── interim/                   # Parsed glyph metadata, debug artifacts
-    └── processed/
-        └── glyphs/                # Stage-sorted generated glyph artifacts
-```
-
-`a.NFTR` is kept at the repository root for now because it is the only real
-asset. Once more assets exist, move originals into `data/raw/`.
-
-## Python Setup
-
-Python 3.13 is known to run in this workspace. Create a virtual environment if
-you want isolation:
+## Quick Setup
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
-```
-
-Pillow is the only runtime dependency for the first milestone.
-
-Install the CPU-friendly data/ML stack when preparing datasets or baselines:
-
-```powershell
 python -m pip install -r requirements-ml.txt
 python scripts/check_env.py
 ```
 
-## Harness
-
-Run the smoke-test harness with:
+Fast verification:
 
 ```powershell
-python -m unittest discover
+.\.venv\Scripts\python.exe -m unittest discover
 ```
 
-The default harness is intentionally fast. It verifies parser invariants and
-small pure functions without rebuilding every historical stage.
-
-Run full stage-export smoke tests only when changing stage exporters:
+Slow stage smokes:
 
 ```powershell
-$env:FML_RUN_SLOW_TESTS = "1"
-python -m unittest discover
+.\.venv\Scripts\python.exe scripts\run_slow_smokes.py --jobs 4
+.\.venv\Scripts\python.exe scripts\run_slow_smokes.py --jobs 3 --pattern song13
 ```
 
-The slow tests export generated artifacts into `.tmp/tests/`, which is ignored
-by Git.
+The parallel runner launches each `@slow_test` as a separate `python -B -m
+unittest` process with isolated temp directories. The `song13` subset currently
+runs in about `79s` with `--jobs 3`, compared with about `189s` summed
+individual test time.
 
-To split slow smoke tests across worker processes:
+## Current Commands
+
+Export the target NFTR:
 
 ```powershell
-python scripts/run_slow_smokes.py --jobs 4
-python scripts/run_slow_smokes.py --jobs 2 --pattern song13
+.\.venv\Scripts\python.exe scripts\extract_target_glyphs.py a.NFTR
 ```
 
-The runner launches each `@slow_test` method as its own `python -B -m unittest`
-process with `FML_RUN_SLOW_TESTS=1`, so tests keep isolated temp directories and
-avoid shared `__pycache__` writes.
-
-Current sanity check: the five `song13` slow smoke tests completed in about
-`79s` with `--jobs 3`, versus about `189s` total individual test time.
-
-## Export the Font Atlas
-
-Run:
+Render the current Song13 source baseline:
 
 ```powershell
-python scripts/export_nftr.py a.NFTR --out data/processed/a_atlas.png
+.\.venv\Scripts\python.exe scripts\render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.13px.ttf --font-index 0 --font-size 15 --font-mode L --threshold 96 --x-offset -1 --y-offset 1 --out-dir data/processed/glyphs/stage21_external_eval_sources/song13/source --metadata data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song13/source_target_contact.png
 ```
 
-The command writes:
-
-- `data/processed/a_atlas.png`
-- `data/processed/a_atlas.json`
-
-The JSON records the detected format and glyph layout. The current `a.NFTR`
-is a game-compatible Nitro NFTR variant with reversed section tags:
-
-- header: `RTFN`
-- info: `FNIF`
-- glyph bitmap: `PLGC`
-- width table: `HDWC`
-- character map: `PAMC`
-
-Known fields from the source font:
-
-- cell size: `15x15`
-- bpp: `2`
-- bytes per glyph: `57`
-- baseline: `15`
-- glyph count: `1814`
-
-## Notes on Pixel Levels
-
-The pixels are not ordinary anti-aliased grayscale. Treat the four levels as
-semantic bitmap layers:
-
-- `0`: transparent/background
-- `1`: right-down shadow
-- `2`: edge/anti-alias transition around the main stroke
-- `3`: main stroke
-
-The exporter also has a raw fallback for diagnostic work with incorrectly
-extracted or compressed files:
+Run the clean source-locked rule baseline:
 
 ```powershell
-python scripts/export_nftr.py some.raw --cell-width 15 --cell-height 15 --bpp 2 --offset 0
+.\.venv\Scripts\python.exe scripts\run_song13_source_locked.py
 ```
 
-## Glyph Output Layout
+Run the learned source-locked layer model:
 
-Generated glyph artifacts are grouped by stage under `data/processed/glyphs/`.
-Keep the root of `glyphs/` for stage folders only; old flat outputs may be moved
-under `legacy_flat/`.
+```powershell
+.\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --jobs 4
+```
+
+Run one training pass and evaluate Song13 plus target-derived controls:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
+```
+
+Quick iteration version:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3 --eval-limit 256 --search-limit 128
+```
+
+Use `--eval-limit` only for quick checks. Omit it for recorded metrics.
+
+## Current Findings
+
+Song13 render contract:
+
+- font: `fonts/WenQuanYi.Bitmap.Song.13px.ttf`
+- size: `15`
+- mode: `L`
+- threshold: `96`
+- offset: `x=-1`, `y=+1`
+- the face is Song/Ming style; serif feet are expected
+
+Stage25 is the current Song13 quality baseline:
+
+- rule: `edge_n1_diag_plus_right_from_source`
+- source deleted ratio: `0.0000`
+- source level `2/3`: `0.1220 / 0.8780`
+- CJK visual: `0.6409`
+- ink/shadow F1: `0.5721 / 0.5483`
+
+Stage26 is the learned harness, not a quality win yet:
+
+- best Song13 candidate: `core_patch_mlp_shadow_logistic_balanced_c055_s045`
+- source deleted ratio: `0.0000`
+- source level `2/3`: `0.1179 / 0.8821`
+- CJK visual: `0.6339`
+- ink/shadow F1: `0.5759 / 0.5315`
+
+Stage26 multi-source controls after one shared training pass:
+
+| source | CJK visual |
+|---|---:|
+| Song13 | `0.6339` |
+| target `>=2` | `0.9742` |
+| target `==3` | `0.8903` |
+
+Interpretation: the layer model works very well when the source shape is the
+target `>=2` mask. Song13 remains lower because its glyph shape differs from the
+NFTR target. Target `==3` is too thin because it discards the level-2 edge
+information.
+
+## Repository Layout
 
 ```text
-data/processed/glyphs/
-├── stage1_target/          # target PNGs, metadata, contact sheet
-├── stage2_source/          # WQY source PNGs and source/target contact sheet
-├── stage3_shadow/          # first rule-based shadow baseline
-├── stage4_mlp/             # trainable MLP baseline
-├── stage5_tuned_shadow/    # visual-score shadow search
-├── stage6_review/          # side-by-side human review artifacts
-├── stage7_binary/          # 1bpp target diagnostic
-├── stage8_weight/          # source weight/offset search
-├── stage9_cjk_style/       # CJK-first fixed-style baseline
-├── stage10_cjk_edges/      # CJK level-2 edge transition refinement
-├── stage11_1bpp_style/     # formal 1bpp-mask to 2bpp-style dataset
-├── stage12_target_masks/   # compare target >=2 and ==3 masks to WQY source
-├── stage13_wqy_alignment/  # WQY offset/weight search by target mask mode
-├── stage15_style_mlp/      # controlled target-derived style-learning baseline
-├── stage16_style_mlp_tuning/ # small capacity/feature tuning over Stage 15
-├── stage17_boundary_rules/ # explainable ge2 level-2/3 boundary search
-├── stage18_patch_readiness/ # CJK ge2 patch/error index for next model choice
-├── stage19_patch_classifier/ # patch-only ge2 level-2/3 classifier outputs
-├── stage20_shadow_classifier/ # learned shadow + patch MLP combined output
-├── stage21_external_eval/ # Stage20 two-head model on external source masks
-├── stage22_song13_adapter/ # Song13 mask adapter feeding Stage20 style heads
-├── stage23_song13_calibrated/ # threshold-calibrated Song13 adapter sweep
-├── stage24_song13_add_only/ # source-preserving add-only Song13 adapter
-├── stage25_song13_source_locked/ # source-locked Song13 2bpp style rules
-├── stage26_song13_layer_mlp/ # source-locked learned Song13 layer assignment
-└── legacy_flat/            # archived outputs from the old flat layout
+.
+├── a.NFTR
+├── fonts/
+├── scripts/
+├── src/font_machine_learn/
+├── tests/
+├── docs/
+└── data/processed/glyphs/
 ```
 
-When adding a new stage, add a `stageN_name/` directory and put that stage's
-PNG directories, metadata, search reports, and contact sheets inside it.
-
-## Extract Target Glyphs
-
-Run:
-
-```powershell
-python scripts/extract_target_glyphs.py a.NFTR
-```
-
-The command writes disposable dataset artifacts under
-`data/processed/glyphs/stage1_target/`:
-
-- `target/*.png`
-- `target_metadata.json`
-- `target_contact.png`
-
-The metadata is the important contract for later stages: glyph index, Shift-JIS
-codes, decoded characters where possible, width metrics, and per-level 2bpp
-histograms.
-
-## Render WQY Source Glyphs
-
-Run:
-
-```powershell
-python scripts/render_source_glyphs.py
-```
-
-Default settings match the previous visual research:
-
-- font: `fonts/wqy-zenhei.ttc`
-- face: `WenQuanYi Zen Hei Sharp`, TTC index `2`
-- size: `13`
-- cell: `15x15`
-
-The command writes disposable paired-source artifacts under
-`data/processed/glyphs/stage2_source/`:
-
-- `source/*.png`
-- `source_metadata.json`
-- `source_target_contact.png`
-
-Most rendered CJK ink boxes should land around `12-13px` wide, which keeps them
-close to the original NFTR cells. WQY is a candidate production input font, but
-it is not the only or preferred training source. For style learning, the
-strongest paired dataset comes from target glyphs quantized to 1bpp as input and
-the original target 2bpp glyphs as labels.
-
-## Run the Shadow Baseline
-
-Run:
-
-```powershell
-python scripts/run_shadow_baseline.py
-```
-
-This creates a simple, explainable baseline from the WQY source glyphs:
-
-- source ink becomes level `3`;
-- right and down neighbors become level `2`;
-- down-right shadow becomes level `1`.
-
-The command writes:
-
-- `baseline_shadow/*.png`
-- `baseline_shadow_metadata.json`
-- `baseline_shadow_contact.png`
-
-The contact sheet stacks source, baseline prediction, and target glyphs. Metadata
-includes pixel accuracy, mean absolute error, and foreground IoU per glyph plus
-dataset means.
-
-## Train the MLP Baseline
-
-Run:
-
-```powershell
-python scripts/train_mlp_baseline.py
-```
-
-This keeps the dependency stack light by using `scikit-learn` instead of a heavy
-deep-learning framework. It trains a small pixel-level MLP classifier:
-
-- features: `3x3` source patch, normalized pixel coordinates, and edge distance
-  hints;
-- label: target 2bpp level `0..3`;
-- prediction: full 1814-glyph baseline output.
-
-The command writes:
-
-- `baseline_mlp/*.png`
-- `baseline_mlp_metadata.json`
-- `baseline_mlp_contact.png`
-
-## Tune Visual Shadow Rules
-
-Run:
-
-```powershell
-python scripts/tune_shadow_baseline.py
-```
-
-The MLP baseline is useful as a training harness, but plain pixel accuracy can
-reward bland background predictions. The tuned shadow baseline scores rules with
-more visual terms:
-
-- level-3 ink F1
-- level-1/2 shadow F1
-- foreground IoU
-- target-weighted level similarity
-- isolated foreground noise
-
-The command writes:
-
-- `baseline_tuned_shadow/*.png`
-- `baseline_tuned_shadow_metadata.json`
-- `baseline_tuned_shadow_search.json`
-- `baseline_tuned_shadow_contact.png`
-
-## Build Review Artifacts
-
-Run:
-
-```powershell
-python scripts/build_review_report.py
-```
-
-The review sheet stacks each selected glyph horizontally in this order:
-source, rule shadow, tuned shadow, MLP, target. The selected rows are the worst
-cases by visual score, so they are useful for human inspection before changing
-the next model.
-
-The command writes:
-
-- `review_report.json`
-- `review_worst_cases.json`
-- `review_contact.png`
-
-## Run 1bpp Diagnostics
-
-Run:
-
-```powershell
-python scripts/run_binary_diagnostic.py
-```
-
-This quantizes target glyphs to foreground/background and scores baselines as
-binary masks. It also provides the canonical paired input for the main learning
-task: target-derived 1bpp masks as source, original target 2bpp glyphs as label.
-
-The command writes:
-
-- `target_1bpp/*.png`
-- `binary_diagnostic_metadata.json`
-- `binary_diagnostic_contact.png`
-
-## Search WQY Source Weight
-
-Run:
-
-```powershell
-python scripts/search_weight_baseline.py
-```
-
-This searches small WQY source-glyph offsets and dilation kernels against the
-1bpp target mask, then applies the tuned shadow rule to the best weighted source.
-These stages are diagnostic for using WQY as a real input font; they should not
-replace the main 1bpp-to-2bpp style-learning objective.
-
-The command writes:
-
-- `source_weighted/*.png`
-- `baseline_weighted_shadow/*.png`
-- `weight_search.json`
-- `weight_search_metadata.json`
-- `baseline_weighted_shadow_contact.png`
-
-## Run the CJK Style Baseline
-
-Run:
-
-```powershell
-python scripts/run_cjk_style_baseline.py
-```
-
-This stage focuses ranking on CJK glyphs. The style rule is constrained:
-
-- source core pixels are level `3`
-- source-adjacent edge transition pixels are level `2`
-- right-down `(1, 1)` shadow pixels are level `1`
-
-The command writes:
-
-- `stage9_cjk_style/baseline_cjk_style/*.png`
-- `stage9_cjk_style/cjk_style_metadata.json`
-- `stage9_cjk_style/cjk_style_search.json`
-- `stage9_cjk_style/cjk_style_contact.png`
-- `stage9_cjk_style/cjk_style_worst_contact.png`
-
-## Refine CJK Edge Transitions
-
-Run:
-
-```powershell
-python scripts/run_cjk_edges_baseline.py
-```
-
-This keeps level `3` as the source-derived core and level `1` as the fixed
-right-down shadow, then searches where level `2` edge/anti-alias pixels may be
-placed around the core. Candidate edge pixels are constrained by nearby core
-neighbor count so dense CJK glyphs do not get filled in.
-
-The command writes:
-
-- `stage10_cjk_edges/baseline_cjk_edges/*.png`
-- `stage10_cjk_edges/cjk_edges_metadata.json`
-- `stage10_cjk_edges/cjk_edges_search.json`
-- `stage10_cjk_edges/cjk_edges_contact.png`
-- `stage10_cjk_edges/cjk_edges_worst_contact.png`
-
-## Build the 1bpp Style Dataset
-
-Run:
-
-```powershell
-python scripts/build_1bpp_style_dataset.py
-```
-
-This is the formal training direction. It uses target-derived 1bpp masks as the
-input side and the original NFTR 2bpp glyphs as labels. Later, any complete 1bpp
-font, including WQY Sharp, should be able to pass through the same style
-pipeline.
-
-Important: the 1bpp input is the visible glyph silhouette, not a pre-labeled
-level-3 core. The Stage 11 baseline keeps that silhouette fixed, then searches a
-simple decomposition into level `3` core, level `2` edge/transition pixels, and
-level `1` right-down shadow pixels.
-
-Outputs:
-
-- `stage11_1bpp_style/input_1bpp/*.png`
-- `stage11_1bpp_style/baseline_2bpp/*.png`
-- `stage11_1bpp_style/style_pairs_metadata.json`
-- `stage11_1bpp_style/style_baseline_search.json`
-- `stage11_1bpp_style/style_baseline_contact.png`
-- `stage11_1bpp_style/style_baseline_worst_contact.png`
-
-Current baseline:
-
-- best rule: `core_n3_right_down_dx-1_dy-1`
-- glyphs: `1814`, CJK glyphs: `1528`
-- CJK foreground F1/IoU: `1.0000` / `1.0000`
-- CJK visual score: `0.8170`
-- all visual score: `0.8257`
-- non-CJK visual score: `0.8718`
-
-## Compare Target 1bpp Mask Choices
-
-Run:
-
-```powershell
-python scripts/compare_target_masks_to_source.py
-```
-
-This compares two target-derived 1bpp masks against the WQY Sharp source glyphs:
-
-- `ge2`: target level `>= 2`, meaning main stroke plus edge/transition pixels
-- `eq3`: target level `== 3`, meaning main stroke core only
-
-The contact sheet stacks each glyph vertically as WQY source, `ge2`, `eq3`, and
-original 2bpp target.
-
-Current result:
-
-- CJK `ge2` F1/IoU: `0.4141` / `0.2657`
-- CJK `eq3` F1/IoU: `0.3903` / `0.2517`
-- CJK source-nonempty winner: `ge2`
-
-Interpretation: target `>=2` is slightly closer to WQY Sharp than `==3`, mostly
-because WQY Sharp is a little heavier than the NFTR level-3 core. Both scores
-remain low because WQY and NFTR differ in glyph shape, placement, and stroke
-weight. This does not make either binary mask a perfect training source:
-quantizing level `2` upward or downward discards the anti-alias/edge role that
-gives the target font its look.
-
-## Diagnose WQY Alignment and Weight
-
-Run:
-
-```powershell
-python scripts/run_wqy_alignment_diagnostic.py
-```
-
-This searches small WQY source offsets and dilation kernels separately against
-three target mask views:
-
-- `visible`: target level `> 0`
-- `ge2`: target level `>= 2`
-- `eq3`: target level `== 3`
-
-The contact sheet stacks each glyph as WQY source, aligned/target `visible`,
-aligned/target `ge2`, aligned/target `eq3`, and original 2bpp target.
-
-Current CJK source-nonempty result:
-
-- `visible`: best `cardinal_dx+0_dy+1`, F1/IoU `0.8282` / `0.7111`
-- `ge2`: best `right_down_dx-1_dy+0`, F1/IoU `0.6388` / `0.4674`
-- `eq3`: best `right_down_dx-1_dy+0`, F1/IoU `0.5861` / `0.4232`
-
-Interpretation: WQY can be made fairly close to the full visible NFTR
-silhouette only by adding weight. It remains much less aligned with `>=2` and
-`==3`, so WQY adaptation should be separated from 2bpp style-layer learning.
-
-For tiny bitmap fonts, do not treat dilation/boldening as a normal production
-fix. A better first check is the native bitmap strike size. Rendering WQY Sharp
-at size `14` in the same `15x15` cell improved raw CJK source alignment without
-synthetic thickening:
-
-- size `13` raw CJK `>=2` F1/IoU: `0.4141` / `0.2657`
-- size `13` raw CJK `==3` F1/IoU: `0.3903` / `0.2517`
-- size `14` raw CJK `>=2` F1/IoU: `0.5590` / `0.4078`
-- size `14` raw CJK `==3` F1/IoU: `0.5326` / `0.3815`
-
-The size-14 diagnostic output is under `stage14_wqy_size14/`.
-
-## Train the Controlled Style MLP
-
-Run:
-
-```powershell
-python scripts/train_style_mlp.py
-```
-
-This is the first trainable baseline for the corrected task. It trains the same
-small pixel-level MLP on three target-derived 1bpp inputs:
-
-- `visible`: target level `> 0`
-- `ge2`: target level `>= 2`
-- `eq3`: target level `== 3`
-
-Labels are always the original NFTR 2bpp levels `0..3`. WQY 13/14 are evaluated
-as external inputs only and do not choose the best controlled mode.
-
-Current CJK result:
-
-- controlled `visible` visual score: `0.9031`
-- controlled `ge2` visual score: `0.9651`
-- controlled `eq3` visual score: `0.9633`
-- external WQY13 visual score: `0.4707`
-- external WQY14 visual score: `0.6029`
-
-Interpretation: controlled 1bpp-to-2bpp style learning works. WQY14 transfers
-better than WQY13, but both remain source-adaptation problems rather than style
-learning failures.
-
-## Tune the Controlled Style MLP
-
-Run:
-
-```powershell
-python scripts/train_style_mlp.py --hidden-units 128 --max-iter 100 --random-seed 17 --out-dir data/processed/glyphs/stage16_style_mlp_tuning --metadata data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_metadata.json --contact-sheet data/processed/glyphs/stage16_style_mlp_tuning/style_mlp_tuning_contact.png
-```
-
-This keeps the Stage 15 model family and only checks whether extra capacity can
-improve the `ge2` controlled result. A separate edge-feature/class-weight
-prototype did not beat Stage 15, so it was kept as an ablation result rather
-than promoted into the main code.
-
-Current CJK result:
-
-- Stage 15 `ge2` visual score: `0.9651`
-- Stage 16 tuned `ge2` visual score: `0.9654`
-- Stage 16 tuned `eq3` visual score: `0.9649`
-- Stage 16 WQY13 external visual score: `0.4677`
-- Stage 16 WQY14 external visual score: `0.5995`
-
-Interpretation: this is a marginal controlled improvement, not a new
-breakthrough. Remaining gains likely need a better formulation for level `2`
-edge pixels or source adaptation, not just more MLP capacity.
-
-## Explain Level-2 Boundaries
-
-Run:
-
-```powershell
-python scripts/run_boundary_rules.py
-```
-
-This searches simple rules for the main remaining controlled error: deciding
-whether a `ge2` source pixel should be target level `2` or `3`. The best rule is
-selected by CJK visual score.
-
-Current result:
-
-- best rule: `n2_band0_plain`
-- CJK visual score: `0.9361`
-- CJK ink F1: `0.9355`
-- CJK shadow F1: `0.8877`
-
-Interpretation: a simple rule explains much of the target style, but it remains
-well below Stage 15/16 MLP scores. Level `2` is mostly a ge2 boundary pixel:
-`16567 / 16576` CJK level-2 pixels are distance `1` from outside the `ge2` mask.
-However, many level-3 pixels are also near that boundary, so the remaining
-decision needs richer local context than a single neighbor-count rule.
-
-## Build Patch Readiness Dataset
-
-Run:
-
-```powershell
-python scripts/build_patch_readiness.py
-```
-
-This does not train a CNN yet. It compares the Stage 15 `ge2` MLP output against
-the Stage 17 explainable boundary rule and writes a CJK-focused pixel patch
-index:
-
-- `data/processed/glyphs/stage18_patch_readiness/patch_readiness_metadata.json`
-- `data/processed/glyphs/stage18_patch_readiness/patch_readiness_patches.jsonl`
-- `data/processed/glyphs/stage18_patch_readiness/patch_readiness_contact.png`
-
-Each JSONL row is a CJK target level `2` or `3` pixel with a compact 9x9
-`ge2` source patch, target label, MLP label, rule label, and error category.
-
-Current result:
-
-- CJK ge2 patch records: `98954`
-- MLP ge2 2/3 pixel accuracy: `0.9380`
-- boundary-rule ge2 2/3 pixel accuracy: `0.8905`
-- `rule_wrong_mlp_right`: `6177`
-- `mlp_wrong_rule_right`: `1474`
-- `both_wrong`: `4660`
-
-Interpretation: the MLP's improvement over the explainable rule is real and is
-mostly on level-2 edge pixels, so the next useful model should be patch-aware
-rather than just another scalar boundary rule.
-
-## Train Patch Classifier
-
-Run:
-
-```powershell
-python scripts/train_patch_classifier.py
-```
-
-This trains two CJK-focused classifiers for the `ge2` source mask:
-
-- `logistic_balanced`: a linear 9x9 patch-only baseline
-- `patch_mlp`: a small MLP over the same 9x9 patch bits
-
-Both models only decide whether a `ge2` source pixel is target level `2` or
-`3`. Pixels outside `ge2` still use the fixed right-down shadow rule.
-
-Current result:
-
-- best model: `patch_mlp`
-- CJK visual score: `0.9590`
-- CJK ge2 2/3 pixel accuracy: `0.9530`
-- `patch_mlp` confusion: level `2` correct `13619`, level `2 -> 3` `2957`;
-  level `3 -> 2` `1693`, level `3` correct `80685`
-- `logistic_balanced` CJK visual score: `0.8990`
-
-Interpretation: patch MLP improves the core/edge split beyond Stage 15's ge2
-2/3 accuracy, but the full visual score is lower than Stage 15 because Stage 19
-keeps shadow as a fixed rule. The next split should treat `2/3` and `0/1`
-shadow placement as separate subproblems.
-
-## Train Shadow Classifier
-
-Run:
-
-```powershell
-python scripts/train_shadow_classifier.py
-```
-
-This stage combines two learned patch heads over the target-derived `ge2` mask:
-
-- a Stage19-style MLP for level `2` versus `3` inside `ge2`
-- a shadow classifier for level `0` versus `1` outside `ge2`
-
-Current result:
-
-- best shadow model: `shadow_patch_mlp`
-- CJK visual score: `0.9739`
-- CJK ink F1: `0.9738`
-- CJK shadow F1: `0.9557`
-- CJK foreground IoU: `0.9768`
-- shadow 0/1 accuracy: `0.9831`
-- shadow F1 from 0/1 confusion: `0.9735`
-
-Interpretation: learned shadow placement fixes the main Stage19 weakness and
-beats the earlier controlled MLP baselines. The next useful work is to package
-this as the current controlled best baseline, then test how it behaves on real
-WQY-derived source masks.
-
-## Evaluate External Sources
-
-Run:
-
-```powershell
-python scripts/eval_external_sources.py
-```
-
-This retrains the Stage20 two-head patch model on target-derived `ge2` masks,
-then evaluates it on the current external source baseline. By default that is
-only `song13`:
-
-- `song13`: `data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json`, if present
-
-For WenQuanYi Bitmap Song 13px, keep the real bitmap strike as the baseline and
-align it down-left to match the NFTR cells. The face is Song/Ming-style with
-serifs, so serif feet such as the one on `一` are expected:
-
-```powershell
-python scripts/render_source_glyphs.py --font fonts/WenQuanYi.Bitmap.Song.13px.ttf --font-index 0 --font-size 15 --font-mode L --threshold 96 --x-offset -1 --y-offset 1 --out-dir data/processed/glyphs/stage21_external_eval_sources/song13/source --metadata data/processed/glyphs/stage21_external_eval_sources/song13/source_metadata.json --contact-sheet data/processed/glyphs/stage21_external_eval_sources/song13/source_target_contact.png
-```
-
-Current CJK result:
-
-- Song13 source mask vs target ge2 F1: `0.5953`
-- Song13 source mask vs target ge2 IoU: `0.4442`
-- Song13 visual score after Stage20 style model: `0.6320`
-- Song13 ink F1 after Stage20 style model: `0.5775`
-- Song13 shadow F1 after Stage20 style model: `0.5257`
-
-Interpretation: transfer is dominated by source mask quality. Stage20 has a
-strong controlled style transform, but external source masks still need to align
-with target `ge2` structure for the style model to shine. Down-left alignment
-improves Song13 substantially compared with centered rendering. Historical
-WQY/Song12 comparisons should be run only with explicit `--source` arguments.
-
-## Train the Song13 Source Adapter
-
-Run:
-
-```powershell
-python scripts/train_song13_adapter.py
-```
-
-This keeps the current Song13 render fixed and trains a small adapter that maps
-the Song13 1bpp source mask toward target `ge2` before applying the existing
-Stage20 two-head style model.
-
-The Stage22 contact sheet has four rows per glyph:
-
-```text
-original Song13 source -> adapted ge2 -> predicted 2bpp -> target 2bpp
-```
-
-The `adapted_ge2` row is still a binary mask, but foreground pixels are drawn as
-NFTR level `2` gray so it is visually distinct from the original black source
-row.
-
-Current CJK result:
-
-- raw Song13 mask vs target ge2 F1/IoU: `0.5953` / `0.4442`
-- adapted mask vs target ge2 F1/IoU: `0.6844` / `0.5304`
-- best adapter: `adapter_patch_mlp`
-- visual score after Stage20 style heads: `0.6809`
-- ink F1 / shadow F1: `0.6371` / `0.5615`
-- foreground IoU / pixel accuracy / MAE: `0.7481` / `0.6987` / `0.5277`
-
-Interpretation: source adaptation helps, but the contact sheets still show
-local over-connection and lost small counters in complex Song-style CJK glyphs.
-The next useful direction is to constrain or regularize the adapter so it
-improves alignment without collapsing tiny white spaces.
-
-## Calibrate the Song13 Adapter
-
-Run:
-
-```powershell
-python scripts/train_song13_calibrated.py
-```
-
-This keeps the Stage22 model family but sweeps adapter probability thresholds.
-Selection uses a CJK quality score that includes visual score, adapted-mask F1,
-precision, ink F1, and a penalty for adapted-mask foreground ratio drifting away
-from target `ge2`.
-
-Current CJK result:
-
-- best candidate: `adapter_patch_mlp_t055`
-- threshold: `0.55`
-- adapted mask vs target ge2 F1/IoU: `0.6705` / `0.5156`
-- adapted foreground ratio: `0.2994`
-- target ge2 foreground ratio: `0.2878`
-- visual score after Stage20 style heads: `0.6696`
-- ink F1 / shadow F1: `0.6199` / `0.5657`
-
-Interpretation: Stage23 is visually less over-inked than Stage22 because the
-adapted mask is much closer to the target `ge2` ink ratio. It also lowers raw
-F1 and visual score, so this should be read as a readability/calibration
-diagnostic rather than a new best model.
-
-## Run the Add-Only Song13 Adapter
-
-Run:
-
-```powershell
-python scripts/train_song13_add_only.py
-```
-
-This stage tests whether target-shape supervision is erasing useful Song13
-strokes. It forbids deletion:
-
-```text
-adapted_ge2 = original Song13 source OR learned outside-source additions
-```
-
-Current CJK result:
-
-- best candidate: `add_patch_mlp_t075`
-- source deleted ratio: `0.0000`
-- adapted foreground ratio: `0.2805`
-- target ge2 foreground ratio: `0.2878`
-- adapted mask vs target ge2 F1/IoU: `0.6302` / `0.4769`
-- visual score after Stage20 style heads: `0.6508`
-- ink F1 / shadow F1: `0.6014` / `0.5390`
-
-Interpretation: Stage24 keeps Song13 strokes intact and is more faithful to the
-source font, but scores lower because it refuses to reshape Song13 into the
-target glyph. This confirms Stage22/23 were too influenced by target glyph shape.
-
-## Run the Source-Locked Style Sweep
-
-Run:
-
-```powershell
-python scripts/run_song13_source_locked.py
-```
-
-This stage stops adapting Song13 shape. It treats the Song13 1bpp mask as the
-fixed glyph contract and only assigns style layers:
-
-- source pixels become level `2` or `3`
-- outside-source pixels may become level `1` shadow
-- source pixels are never deleted
-
-Current CJK result:
-
-- best rule: `edge_n1_diag_plus_right_from_source`
-- source deleted ratio: `0.0000`
-- source level-2 / level-3 ratio: `0.1220` / `0.8780`
-- predicted foreground ratio: `0.4975`
-- target visible foreground ratio: `0.5139`
-- visual score: `0.6409`
-- ink F1 / shadow F1: `0.5721` / `0.5483`
-
-Interpretation: this is the clean source-preserving baseline. It is more
-mechanical than the learned stages, but it avoids the central failure of
-target-shaped adapters: erasing Song13 strokes.
-
-## Train the Source-Locked Layer MLP
-
-Run:
-
-```powershell
-python scripts/train_song13_layer_mlp.py
-```
-
-Use CPU parallel candidate scoring when desired:
-
-```powershell
-python scripts/train_song13_layer_mlp.py --jobs 4
-```
-
-Evaluate multiple sources after one shared training pass:
-
-```powershell
-python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
-```
-
-For quick iteration, cap final evaluation/export to a subset:
-
-```powershell
-python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3 --eval-limit 256 --search-limit 128
-```
-
-This is the first learned stage after locking the Song13 shape. It trains two
-small heads on target-derived `ge2` masks:
-
-- source/ge2 pixels learn level `2` versus level `3`;
-- outside-source pixels learn level `0` versus right-down-ish level `1`.
-
-At inference time the heads are applied to the Song13 source mask without
-changing shape: Song13 pixels are never deleted, source pixels can only become
-`2/3`, and outside pixels can only become shadow `1`.
-
-Outputs:
-
-- `stage26_song13_layer_mlp/*/source_ge2/*.png`
-- `stage26_song13_layer_mlp/*/predicted_2bpp/*.png`
-- `stage26_song13_layer_mlp/song13_layer_mlp_metadata.json`
-- `stage26_song13_layer_mlp/song13_layer_mlp_contact.png`
-- `stage26_song13_layer_mlp/song13_layer_mlp_error_contact.png`
-
-Current CJK result:
-
-- best candidate: `core_patch_mlp_shadow_logistic_balanced_c055_s045`
-- source deleted ratio: `0.0000`
-- source level-2 / level-3 ratio: `0.1179` / `0.8821`
-- visual score: `0.6339`
-- ink F1 / shadow F1: `0.5759` / `0.5315`
-
-Interpretation: Stage26 proves the source-locked learned-layer harness works,
-but it does not beat Stage25's rule baseline (`0.6409` visual). The learned
-shadow head is more conservative and scores lower by both metric and contact
-sheet, so Stage25 remains the current Song13 quality baseline. The exporter
-preloads evaluation glyphs and caches model probability grids; on this machine
-the full default run is about `45s` with `--jobs 4`.
-
-Multi-source eval after one shared training pass:
-
-- `song13`: visual `0.6339`
-- `target_ge2`: visual `0.9742`
-- `target_eq3`: visual `0.8903`
-
-This run takes about `88s` with `--eval-target-quantized --eval-source-jobs 3`,
-so adding controlled target-derived eval sources is much cheaper than launching
-separate training runs.
-For quick checks, `--eval-limit 256 --search-limit 128` brings the same
-multi-source command down to about `29s` by limiting final eval/export.
-
-## Next Milestones
-
-See `docs/targets.md` for the working target split.
-See `docs/deliverables.md` for stage deliverables and commit checkpoints.
-
-1. Keep Stage 20 as the controlled best style baseline.
-2. Keep Song13 as the default external source and avoid broad font comparisons.
-3. Treat Stage25/26 as the Song13 contract: preserve source shape first, then
-   compare rule-based and learned 2/3 core-edge plus 0/1 shadow assignment.
-4. Keep CJK as the primary split and non-CJK as a guard split.
-5. Compare model outputs by contact sheet first, then by level-aware visual
-   metrics.
+Generated glyph artifacts live under stage folders in
+`data/processed/glyphs/`. Keep generated PNG/JSON out of the stage root; each
+stage owns its own directory.
+
+Important stage folders:
+
+| stage | purpose |
+|---|---|
+| `stage1_target` | split NFTR target glyphs |
+| `stage12_target_masks` | target `>=2` and `==3` masks |
+| `stage20_shadow_classifier` | current controlled target-derived best |
+| `stage21_external_eval_sources/song13` | current Song13 source render |
+| `stage24_song13_add_only` | source-preserving adapter diagnostic |
+| `stage25_song13_source_locked` | current rule quality baseline |
+| `stage26_song13_layer_mlp` | learned source-locked layer harness |
+
+## Stage Summary
+
+| stage | result |
+|---|---|
+| 1 | NFTR target glyph dataset exported |
+| 2-10 | early WQY-shaped baselines and visual metrics |
+| 11 | formal 1bpp-visible to 2bpp dataset |
+| 12-13 | target mask and WQY alignment diagnostics |
+| 15-16 | controlled style MLP; `ge2` around `0.965` visual |
+| 17-19 | explainable and patch-based `2/3` core-edge split |
+| 20 | controlled two-head patch model, CJK visual `0.9739` |
+| 21 | Song13 external transfer, CJK visual `0.6320` |
+| 22-23 | target-shaped adapters improved metrics but deleted strokes |
+| 24 | add-only adapter preserves strokes, visual `0.6508` |
+| 25 | source-locked rule baseline, visual `0.6409` |
+| 26 | source-locked learned layer harness, visual `0.6339` |
+
+## Notes
+
+- Do not use synthetic boldening as a default for tiny bitmap fonts.
+- Do not judge Song13 only by target pixel overlap; the shapes differ.
+- Contact sheets remain the primary review artifact.
+- Use CJK as the primary split and non-CJK as a guard split.
+- Keep generated artifacts disposable unless a stage explicitly promotes them.
