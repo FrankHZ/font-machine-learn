@@ -76,8 +76,9 @@ def class_weights(labels: torch.Tensor) -> torch.Tensor:
 
 def predict_levels(model: nn.Module, source: torch.Tensor) -> list[list[int]]:
     model.eval()
+    device = next(model.parameters()).device
     with torch.no_grad():
-        logits = model(source.unsqueeze(0))[0].cpu().numpy()
+        logits = model(source.unsqueeze(0).to(device))[0].cpu().numpy()
     source_mask = source[0].cpu().numpy() > 0.5
     height, width = source_mask.shape
     predicted = np.zeros((height, width), dtype=np.int64)
@@ -139,6 +140,7 @@ def export_target_torch_cnn(
     if not target_metadata.exists():
         export_target_dataset(Path("a.NFTR"))
     torch.manual_seed(random_seed)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     target = json.loads(target_metadata.read_text(encoding="utf-8"))
     target_glyphs = list(target["glyphs"])
     cell_width = int(target["cell_width"])
@@ -151,15 +153,17 @@ def export_target_torch_cnn(
     inputs, labels = make_training_tensors(target_glyphs)
     dataset = TensorDataset(inputs, labels)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    model = TinyGlyphCNN(channels=channels)
+    model = TinyGlyphCNN(channels=channels).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    loss_fn = nn.CrossEntropyLoss(weight=class_weights(labels))
+    loss_fn = nn.CrossEntropyLoss(weight=class_weights(labels).to(device))
     losses: list[float] = []
     for _epoch in range(epochs):
         model.train()
         total_loss = 0.0
         total_count = 0
         for batch_x, batch_y in loader:
+            batch_x = batch_x.to(device)
+            batch_y = batch_y.to(device)
             optimizer.zero_grad()
             logits = model(batch_x)
             loss = loss_fn(logits, batch_y)
@@ -243,6 +247,8 @@ def export_target_torch_cnn(
             "batch_size": batch_size,
             "learning_rate": learning_rate,
             "random_seed": random_seed,
+            "device": str(device),
+            "cuda_device": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "",
             "losses": losses,
             "final_loss": losses[-1] if losses else 0.0,
             "class_weights": class_weights(labels).tolist(),

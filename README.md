@@ -30,6 +30,12 @@ python -m pip install -r requirements-ml.txt
 python scripts/check_env.py
 ```
 
+For CUDA PyTorch on this Windows/NVIDIA setup:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu130
+```
+
 Fast verification:
 
 ```powershell
@@ -197,8 +203,8 @@ hand-built convolution features are not enough to beat the wider patch MLP.
 Stage30 trains a tiny PyTorch CNN on the same target `>=2` source mask:
 
 - model: 3 Conv3x3 ReLU blocks, 48 channels, source-locked inference
-- CJK visual: `0.9784`
-- ink/shadow F1: `0.9825 / 0.9627`
+- CJK visual: `0.9790`
+- ink/shadow F1: `0.9824 / 0.9640`
 
 Interpretation: real convolution does beat the patch MLP on target-shaped source.
 Next useful model step is applying the same source-locked CNN to Song13/fullmap.
@@ -256,7 +262,7 @@ Important stage folders:
 | 27 | human-review package comparing Stage24/25/26 |
 | 28 | target quantized calibration; `>=2` learned CJK visual `0.9684` |
 | 29 | target `>=2` lightweight conv probe; CJK visual `0.9604` |
-| 30 | target `>=2` tiny torch CNN; CJK visual `0.9784` |
+| 30 | target `>=2` tiny torch CNN; CUDA CJK visual `0.9790` |
 
 ## Notes
 

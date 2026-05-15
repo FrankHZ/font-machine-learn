@@ -139,8 +139,15 @@ python scripts/run_target_torch_cnn.py
 ```
 
 Current config is 48 channels, 200 epochs, LR `0.003`, source-locked inference.
-CJK visual is `0.9784`, ink/shadow F1 `0.9825 / 0.9627`, beating Stage28 and
-Stage29 on target-shaped source masks.
+On CUDA (`torch 2.12.0+cu130`, RTX 3080 Ti), CJK visual is `0.9790`,
+ink/shadow F1 `0.9824 / 0.9640`, beating Stage28 and Stage29 on target-shaped
+source masks.
+
+CUDA install used in this workspace:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install --force-reinstall torch --index-url https://download.pytorch.org/whl/cu130
+```
 
 Use `--eval-limit` only for quick iteration, not for recorded metrics.
 

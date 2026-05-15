@@ -227,8 +227,9 @@ Current CJK metrics:
 
 - model: 3 Conv3x3 ReLU blocks, 48 channels, source-locked inference
 - epochs/LR: `200 / 0.003`
-- visual: `0.9784`
-- ink/shadow F1: `0.9825 / 0.9627`
+- device: CUDA, `torch 2.12.0+cu130`, RTX 3080 Ti
+- visual: `0.9790`
+- ink/shadow F1: `0.9824 / 0.9640`
 
 Status: target-shaped source probe. It beats Stage28 `>=2` learned visual
 `0.9684` and Stage29 `0.9604`, so true convolution is worth carrying forward.
