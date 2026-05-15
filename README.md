@@ -126,6 +126,20 @@ python -m unittest discover
 The slow tests export generated artifacts into `.tmp/tests/`, which is ignored
 by Git.
 
+To split slow smoke tests across worker processes:
+
+```powershell
+python scripts/run_slow_smokes.py --jobs 4
+python scripts/run_slow_smokes.py --jobs 2 --pattern song13
+```
+
+The runner launches each `@slow_test` method as its own `python -B -m unittest`
+process with `FML_RUN_SLOW_TESTS=1`, so tests keep isolated temp directories and
+avoid shared `__pycache__` writes.
+
+Current sanity check: the five `song13` slow smoke tests completed in about
+`79s` with `--jobs 3`, versus about `189s` total individual test time.
+
 ## Export the Font Atlas
 
 Run:

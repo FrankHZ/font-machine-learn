@@ -246,6 +246,19 @@ python scripts/train_song13_layer_mlp.py
 python -m unittest discover
 ```
 
+For faster slow-smoke verification, prefer the parallel runner:
+
+```powershell
+python scripts/run_slow_smokes.py --jobs 4
+python scripts/run_slow_smokes.py --jobs 2 --pattern song13
+```
+
+It runs each `@slow_test` method in a separate `python -B -m unittest` process
+with `FML_RUN_SLOW_TESTS=1` and `PYTHONDONTWRITEBYTECODE=1`.
+The `song13` subset has been checked with `--jobs 3`: five slow smoke tests
+completed in about `79s`, compared with about `189s` summed individual test
+time.
+
 Expected result:
 
 - command exits successfully;

@@ -33,6 +33,16 @@ Default `unittest discover` is a fast harness. Full stage-export smoke tests are
 behind `FML_RUN_SLOW_TESTS=1` so normal verification does not rebuild every
 historical artifact.
 
+Parallel slow-smoke verification:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_slow_smokes.py --jobs 4
+```
+
+The runner splits `@slow_test` methods across separate worker processes.
+The `song13` subset currently completes in about `79s` with `--jobs 3`, compared
+with about `189s` summed individual test time.
+
 Commit theme:
 
 ```text
