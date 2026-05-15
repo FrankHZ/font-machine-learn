@@ -146,4 +146,7 @@ STAGE27_SONG13_REVIEW = GLYPH_ROOT / "stage27_song13_review"
 SONG13_REVIEW_METADATA = STAGE27_SONG13_REVIEW / "song13_review_metadata.json"
 SONG13_REVIEW_OVERVIEW_CONTACT = STAGE27_SONG13_REVIEW / "song13_review_overview.png"
 
+STAGE28_TARGET_QUANTIZED = GLYPH_ROOT / "stage28_target_quantized_calibration"
+TARGET_QUANTIZED_METADATA = STAGE28_TARGET_QUANTIZED / "target_quantized_calibration_metadata.json"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"

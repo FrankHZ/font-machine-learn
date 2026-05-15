@@ -94,6 +94,12 @@ Build Song13 human-review artifacts:
 .\.venv\Scripts\python.exe scripts\build_song13_review.py
 ```
 
+Calibrate target 1bpp quantization before larger models:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_target_quantized_calibration.py
+```
+
 Build a game-facing NFTR from the current Stage26 best candidate:
 
 ```powershell
@@ -156,6 +162,17 @@ target `>=2` mask. Song13 remains lower because its glyph shape differs from the
 NFTR target. Target `==3` is too thin because it discards the level-2 edge
 information.
 
+Stage28 makes that target-quantized control explicit. CJK learned visual scores:
+
+| target source mask | flat3 | learned |
+|---|---:|---:|
+| `visible` | `0.5835` | `0.6125` |
+| `>=2` | `0.6091` | `0.9684` |
+| `==3` | `0.6183` | `0.8873` |
+
+Interpretation: `>=2` is the useful 1bpp target source. `visible` bakes shadow
+into the source, and `==3` throws away too much edge information.
+
 ## Repository Layout
 
 ```text
@@ -186,6 +203,7 @@ Important stage folders:
 | `stage26_song13_layer_mlp` | learned source-locked layer harness |
 | `stage26_song13_layer_mlp/nftr` | Stage26 original-layout NFTR export |
 | `stage27_song13_review` | human-review sheets for Stage24/25/26 |
+| `stage28_target_quantized_calibration` | target 1bpp quantization calibration |
 
 ## Stage Summary
 
@@ -204,6 +222,7 @@ Important stage folders:
 | 25 | source-locked rule baseline, visual `0.6409` |
 | 26 | source-locked learned layer harness, visual `0.6339`; original-layout and full-map NFTR exports available |
 | 27 | human-review package comparing Stage24/25/26 |
+| 28 | target quantized calibration; `>=2` learned CJK visual `0.9684` |
 
 ## Notes
 

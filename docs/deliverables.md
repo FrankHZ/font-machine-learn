@@ -144,6 +144,35 @@ source -> stage24 adapted -> stage24 predicted -> stage25 predicted -> stage26 p
 
 Status: review/eval artifact, not a training stage.
 
+### Stage28: Target Quantized Calibration
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_target_quantized_calibration.py
+```
+
+Outputs:
+
+- `data/processed/glyphs/stage28_target_quantized_calibration/target_quantized_calibration_metadata.json`
+- per-mode folders for `visible`, `ge2`, and `eq3`
+- per-mode contact sheets with image order:
+
+```text
+source mask -> flat3 -> learned 2bpp -> target 2bpp
+```
+
+Current CJK visual scores:
+
+| target source mask | flat3 | learned |
+|---|---:|---:|
+| `visible` | `0.5835` | `0.6125` |
+| `>=2` | `0.6091` | `0.9684` |
+| `==3` | `0.6183` | `0.8873` |
+
+Status: calibration stage. `>=2` remains the source-shape upper bound to use
+before trying convolutional models.
+
 ## Historical Checkpoints
 
 | stage | deliverable |
@@ -165,6 +194,7 @@ Status: review/eval artifact, not a training stage.
 | 25 | source-locked rule baseline |
 | 26 | source-locked learned layer harness |
 | 27 | Song13 human-review package |
+| 28 | target quantized calibration |
 
 ## Commit Themes
 

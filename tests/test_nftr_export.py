@@ -42,6 +42,7 @@ from font_machine_learn.stage26_full_nftr import assign_codes, load_char_sequenc
 from font_machine_learn.stage26_nftr import pack_2bpp_values
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
 from font_machine_learn.style_mlp import export_style_mlp
+from font_machine_learn.target_quantized_calibration import mask_to_flat_levels
 from font_machine_learn.target_mask_compare import export_target_mask_compare
 from font_machine_learn.target_mask_compare import levels_to_threshold_mask
 from font_machine_learn.trainable_baseline import export_mlp_baseline
@@ -191,6 +192,13 @@ class NFTRExportTest(unittest.TestCase):
             [
                 [False, False, False, True],
                 [True, False, False, False],
+            ],
+        )
+        self.assertEqual(
+            mask_to_flat_levels(levels_to_threshold_mask(levels, "ge2"), level=3),
+            [
+                [0, 0, 3, 3],
+                [3, 3, 0, 0],
             ],
         )
 
