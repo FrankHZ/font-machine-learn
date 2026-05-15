@@ -122,6 +122,16 @@ This tests target-derived `visible`, `>=2`, and `==3` 1bpp source masks. Current
 CJK learned visual scores are `0.6125`, `0.9684`, and `0.8873`; `>=2` is the
 right target-shaped source mask before trying convolutional models.
 
+Stage29 lightweight convolution-feature probe:
+
+```powershell
+python scripts/run_target_conv_calibration.py
+```
+
+Current best is `core_conv_mlp_shadow_conv_mlp_c055_s045`, CJK visual `0.9604`
+with ink/shadow F1 `0.9623 / 0.9315`. This is below Stage28 `>=2` learned
+`0.9684`, so hand-built small convolution features are not enough by themselves.
+
 Use `--eval-limit` only for quick iteration, not for recorded metrics.
 
 ## Important Files
@@ -136,6 +146,7 @@ Use `--eval-limit` only for quick iteration, not for recorded metrics.
 - `src/font_machine_learn/stage26_full_nftr.py`: Stage26 full-map NFTR builder.
 - `src/font_machine_learn/song13_review.py`: Stage27 human-review artifacts.
 - `src/font_machine_learn/target_quantized_calibration.py`: Stage28 target mask calibration.
+- `src/font_machine_learn/target_conv_calibration.py`: Stage29 lightweight conv probe.
 - `tests/test_nftr_export.py`: fast tests plus slow stage smokes.
 - `docs/targets.md`: current target split and findings.
 - `docs/deliverables.md`: verification and stage checkpoint summary.
@@ -166,6 +177,7 @@ Important folders:
 | `stage26_song13_layer_mlp/nftr` | Stage26 original-layout NFTR export |
 | `stage27_song13_review` | Stage24/25/26 review contact sheets |
 | `stage28_target_quantized_calibration` | target 1bpp quantization calibration |
+| `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
 
 ## Working Rules
 

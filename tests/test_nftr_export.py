@@ -42,6 +42,7 @@ from font_machine_learn.stage26_full_nftr import assign_codes, load_char_sequenc
 from font_machine_learn.stage26_nftr import pack_2bpp_values
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
 from font_machine_learn.style_mlp import export_style_mlp
+from font_machine_learn.target_conv_calibration import conv_features
 from font_machine_learn.target_quantized_calibration import mask_to_flat_levels
 from font_machine_learn.target_mask_compare import export_target_mask_compare
 from font_machine_learn.target_mask_compare import levels_to_threshold_mask
@@ -140,6 +141,17 @@ class NFTRExportTest(unittest.TestCase):
 
         width = width_from_levels("，", [[0, 0, 0], [0, 3, 0], [0, 0, 0]], 15)
         self.assertEqual((width.left, width.glyph_width, width.advance), (0, 6, 6))
+
+    def test_conv_features_include_local_shape_signals(self) -> None:
+        mask = [
+            [False, True, False],
+            [False, True, True],
+            [False, False, True],
+        ]
+        features = conv_features(mask, 1, 1)
+        self.assertEqual(len(features), 18)
+        self.assertEqual(features[0], 1.0)
+        self.assertGreater(features[1], 0.0)
 
     def test_exports_target_glyph_dataset(self) -> None:
         source = ROOT / "a.NFTR"

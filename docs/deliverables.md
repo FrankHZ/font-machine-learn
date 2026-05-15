@@ -173,6 +173,36 @@ Current CJK visual scores:
 Status: calibration stage. `>=2` remains the source-shape upper bound to use
 before trying convolutional models.
 
+### Stage29: Target GE2 Lightweight Conv Probe
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_target_conv_calibration.py
+```
+
+Outputs:
+
+- `data/processed/glyphs/stage29_target_ge2_conv/target_ge2_conv_metadata.json`
+- `data/processed/glyphs/stage29_target_ge2_conv/target_ge2_conv_contact.png`
+- `data/processed/glyphs/stage29_target_ge2_conv/target_ge2_conv_errors.png`
+
+Image order:
+
+```text
+source ge2 -> predicted 2bpp -> target 2bpp
+```
+
+Current CJK metrics:
+
+- best candidate: `core_conv_mlp_shadow_conv_mlp_c055_s045`
+- visual: `0.9604`
+- ink/shadow F1: `0.9623 / 0.9315`
+
+Status: probe stage. It does not beat Stage28 `>=2` learned visual `0.9684`;
+small hand-built convolution features lose some information versus wider patch
+features.
+
 ## Historical Checkpoints
 
 | stage | deliverable |
@@ -195,6 +225,7 @@ before trying convolutional models.
 | 26 | source-locked learned layer harness |
 | 27 | Song13 human-review package |
 | 28 | target quantized calibration |
+| 29 | target `>=2` lightweight conv probe |
 
 ## Commit Themes
 

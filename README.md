@@ -100,6 +100,12 @@ Calibrate target 1bpp quantization before larger models:
 .\.venv\Scripts\python.exe scripts\run_target_quantized_calibration.py
 ```
 
+Probe lightweight convolution features on target `>=2` source masks:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_target_conv_calibration.py
+```
+
 Build a game-facing NFTR from the current Stage26 best candidate:
 
 ```powershell
@@ -173,6 +179,15 @@ Stage28 makes that target-quantized control explicit. CJK learned visual scores:
 Interpretation: `>=2` is the useful 1bpp target source. `visible` bakes shadow
 into the source, and `==3` throws away too much edge information.
 
+Stage29 tests a small convolution-feature probe on the target `>=2` source mask:
+
+- best candidate: `core_conv_mlp_shadow_conv_mlp_c055_s045`
+- CJK visual: `0.9604`
+- ink/shadow F1: `0.9623 / 0.9315`
+
+Interpretation: this is below Stage28 `>=2` learned visual `0.9684`. Small
+hand-built convolution features are not enough to beat the wider patch MLP.
+
 ## Repository Layout
 
 ```text
@@ -204,6 +219,7 @@ Important stage folders:
 | `stage26_song13_layer_mlp/nftr` | Stage26 original-layout NFTR export |
 | `stage27_song13_review` | human-review sheets for Stage24/25/26 |
 | `stage28_target_quantized_calibration` | target 1bpp quantization calibration |
+| `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
 
 ## Stage Summary
 
@@ -223,6 +239,7 @@ Important stage folders:
 | 26 | source-locked learned layer harness, visual `0.6339`; original-layout and full-map NFTR exports available |
 | 27 | human-review package comparing Stage24/25/26 |
 | 28 | target quantized calibration; `>=2` learned CJK visual `0.9684` |
+| 29 | target `>=2` lightweight conv probe; CJK visual `0.9604` |
 
 ## Notes
 

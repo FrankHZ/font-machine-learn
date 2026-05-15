@@ -149,4 +149,9 @@ SONG13_REVIEW_OVERVIEW_CONTACT = STAGE27_SONG13_REVIEW / "song13_review_overview
 STAGE28_TARGET_QUANTIZED = GLYPH_ROOT / "stage28_target_quantized_calibration"
 TARGET_QUANTIZED_METADATA = STAGE28_TARGET_QUANTIZED / "target_quantized_calibration_metadata.json"
 
+STAGE29_TARGET_CONV = GLYPH_ROOT / "stage29_target_ge2_conv"
+TARGET_CONV_METADATA = STAGE29_TARGET_CONV / "target_ge2_conv_metadata.json"
+TARGET_CONV_CONTACT = STAGE29_TARGET_CONV / "target_ge2_conv_contact.png"
+TARGET_CONV_ERROR_CONTACT = STAGE29_TARGET_CONV / "target_ge2_conv_errors.png"
+
 LEGACY_FLAT = GLYPH_ROOT / "legacy_flat"
