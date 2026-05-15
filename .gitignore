@@ -10,3 +10,5 @@ data/processed/**/*.png
 data/processed/**/*.json
 data/processed/**/*.jsonl
 data/processed/**/*.csv
+data/processed/**/*.NFTR
+data/processed/**/*.nftr

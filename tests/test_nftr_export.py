@@ -38,6 +38,7 @@ from font_machine_learn.song13_layer_mlp import export_song13_layer_mlp
 from font_machine_learn.song13_review import hole_mask, summarize_levels
 from font_machine_learn.song13_source_locked import export_song13_source_locked
 from font_machine_learn.source_font import export_source_dataset
+from font_machine_learn.stage26_nftr import pack_2bpp_values
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
 from font_machine_learn.style_mlp import export_style_mlp
 from font_machine_learn.target_mask_compare import export_target_mask_compare
@@ -108,6 +109,14 @@ class NFTRExportTest(unittest.TestCase):
             with Image.open(out_png) as image:
                 self.assertGreater(image.width, 0)
                 self.assertGreater(image.height, 0)
+
+    def test_packs_2bpp_values_in_nftr_bit_order(self) -> None:
+        payload = pack_2bpp_values([0, 1, 2, 3, 3, 2, 1, 0])
+        self.assertEqual(payload, bytes([0x1B, 0xE4]))
+
+        from font_machine_learn.nftr import decode_linear_2bpp
+
+        self.assertEqual(decode_linear_2bpp(payload, 4, 2), [0, 1, 2, 3, 3, 2, 1, 0])
 
     def test_exports_target_glyph_dataset(self) -> None:
         source = ROOT / "a.NFTR"

@@ -94,6 +94,16 @@ Build Song13 human-review artifacts:
 .\.venv\Scripts\python.exe scripts\build_song13_review.py
 ```
 
+Build a game-facing NFTR from the current Stage26 best candidate:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_stage26_nftr.py
+```
+
+This preserves the original `a.NFTR` sections, widths, cmap, and `1814` glyph
+count. It replaces only PLGC glyph bitmap payloads with Stage26 predicted 2bpp
+pixels. It does not yet build an expanded `a-chars.txt` font.
+
 ## Current Findings
 
 Song13 render contract:
@@ -162,6 +172,7 @@ Important stage folders:
 | `stage24_song13_add_only` | source-preserving adapter diagnostic |
 | `stage25_song13_source_locked` | current rule quality baseline |
 | `stage26_song13_layer_mlp` | learned source-locked layer harness |
+| `stage26_song13_layer_mlp/nftr` | Stage26 original-layout NFTR export |
 | `stage27_song13_review` | human-review sheets for Stage24/25/26 |
 
 ## Stage Summary
@@ -179,7 +190,7 @@ Important stage folders:
 | 22-23 | target-shaped adapters improved metrics but deleted strokes |
 | 24 | add-only adapter preserves strokes, visual `0.6508` |
 | 25 | source-locked rule baseline, visual `0.6409` |
-| 26 | source-locked learned layer harness, visual `0.6339` |
+| 26 | source-locked learned layer harness, visual `0.6339`; NFTR export available |
 | 27 | human-review package comparing Stage24/25/26 |
 
 ## Notes

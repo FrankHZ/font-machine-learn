@@ -91,6 +91,16 @@ Stage26 quick multi-source eval:
 python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3 --eval-limit 256 --search-limit 128
 ```
 
+Stage26 original-layout NFTR export:
+
+```powershell
+python scripts/build_stage26_nftr.py
+```
+
+This export keeps the original `a.NFTR` sections, widths, cmap, and `1814`
+glyph count. It only patches PLGC bitmap payloads from the Stage26 best
+candidate. Do not confuse this with a future expanded `a-chars.txt` build.
+
 Use `--eval-limit` only for quick iteration, not for recorded metrics.
 
 ## Important Files
@@ -101,6 +111,7 @@ Use `--eval-limit` only for quick iteration, not for recorded metrics.
 - `src/font_machine_learn/paths.py`: canonical generated-output paths.
 - `src/font_machine_learn/song13_source_locked.py`: Stage25.
 - `src/font_machine_learn/song13_layer_mlp.py`: Stage26.
+- `src/font_machine_learn/stage26_nftr.py`: Stage26 predicted PNGs -> original-layout NFTR.
 - `src/font_machine_learn/song13_review.py`: Stage27 human-review artifacts.
 - `tests/test_nftr_export.py`: fast tests plus slow stage smokes.
 - `docs/targets.md`: current target split and findings.
@@ -129,6 +140,7 @@ Important folders:
 | `stage21_external_eval_sources/song13` | current Song13 source |
 | `stage25_song13_source_locked` | rule quality baseline |
 | `stage26_song13_layer_mlp` | learned source-locked layer harness |
+| `stage26_song13_layer_mlp/nftr` | Stage26 original-layout NFTR export |
 | `stage27_song13_review` | Stage24/25/26 review contact sheets |
 
 ## Working Rules
