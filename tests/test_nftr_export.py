@@ -35,6 +35,7 @@ from font_machine_learn.song13_adapter import export_song13_adapter
 from font_machine_learn.song13_add_only import export_song13_add_only
 from font_machine_learn.song13_calibrated import export_song13_calibrated
 from font_machine_learn.song13_layer_mlp import export_song13_layer_mlp
+from font_machine_learn.song13_review import hole_mask, summarize_levels
 from font_machine_learn.song13_source_locked import export_song13_source_locked
 from font_machine_learn.source_font import export_source_dataset
 from font_machine_learn.style_dataset import export_1bpp_style_dataset
@@ -161,6 +162,30 @@ class NFTRExportTest(unittest.TestCase):
                 [True, False, False, False],
             ],
         )
+
+    def test_song13_review_hole_metrics(self) -> None:
+        source_mask = [
+            [True, True, True],
+            [True, False, True],
+            [True, True, True],
+        ]
+        levels = [
+            [3, 3, 3],
+            [3, 1, 3],
+            [3, 3, 3],
+        ]
+        self.assertEqual(
+            hole_mask(source_mask),
+            [
+                [False, False, False],
+                [False, True, False],
+                [False, False, False],
+            ],
+        )
+        summary = summarize_levels(source_mask, levels)
+        self.assertEqual(summary["hole_pixels"], 1)
+        self.assertEqual(summary["hole_fill_ratio"], 1.0)
+        self.assertEqual(summary["source_deleted_ratio"], 0.0)
 
     @slow_test
     def test_exports_wqy_source_dataset(self) -> None:

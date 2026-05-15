@@ -90,6 +90,29 @@ Current controlled CJK metrics:
 
 Status: useful learned harness, not a quality win over Stage25 yet.
 
+### Stage27: Song13 Human Review Package
+
+Command:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_song13_review.py
+```
+
+Outputs:
+
+- `data/processed/glyphs/stage27_song13_review/song13_review_metadata.json`
+- `data/processed/glyphs/stage27_song13_review/song13_review_overview.png`
+- category sheets for representative, simple, complex, disagreement, heavy
+  shadow, high gray2, and hole-fill-risk glyphs
+
+Image order:
+
+```text
+source -> stage24 adapted -> stage24 predicted -> stage25 predicted -> stage26 predicted -> target
+```
+
+Status: review/eval artifact, not a training stage.
+
 ## Historical Checkpoints
 
 | stage | deliverable |
@@ -110,6 +133,7 @@ Status: useful learned harness, not a quality win over Stage25 yet.
 | 24 | add-only source-preserving adapter |
 | 25 | source-locked rule baseline |
 | 26 | source-locked learned layer harness |
+| 27 | Song13 human-review package |
 
 ## Commit Themes
 

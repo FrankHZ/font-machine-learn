@@ -101,6 +101,7 @@ Use `--eval-limit` only for quick iteration, not for recorded metrics.
 - `src/font_machine_learn/paths.py`: canonical generated-output paths.
 - `src/font_machine_learn/song13_source_locked.py`: Stage25.
 - `src/font_machine_learn/song13_layer_mlp.py`: Stage26.
+- `src/font_machine_learn/song13_review.py`: Stage27 human-review artifacts.
 - `tests/test_nftr_export.py`: fast tests plus slow stage smokes.
 - `docs/targets.md`: current target split and findings.
 - `docs/deliverables.md`: verification and stage checkpoint summary.
@@ -128,6 +129,7 @@ Important folders:
 | `stage21_external_eval_sources/song13` | current Song13 source |
 | `stage25_song13_source_locked` | rule quality baseline |
 | `stage26_song13_layer_mlp` | learned source-locked layer harness |
+| `stage27_song13_review` | Stage24/25/26 review contact sheets |
 
 ## Working Rules
 
@@ -137,3 +139,4 @@ Important folders:
 - Track CJK as the primary split and non-CJK as a guard split.
 - Treat target-shaped metrics as diagnostics for Song13, not the final truth.
 - Never delete source pixels in Song13 source-locked stages.
+- Use Stage27 sheets before judging a new Song13 model by target visual score.

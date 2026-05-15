@@ -113,6 +113,15 @@ Parallel slow smokes:
 python scripts/run_slow_smokes.py --jobs 4
 ```
 
+Stage27 review artifacts:
+
+```powershell
+python scripts/build_song13_review.py
+```
+
+This compares Stage24, Stage25, and Stage26 without making target visual score
+the primary ranking signal.
+
 ## Historical Stage Summary
 
 | stage | summary |
@@ -130,6 +139,7 @@ python scripts/run_slow_smokes.py --jobs 4
 | 24 | add-only adapter preserved strokes, visual `0.6508` |
 | 25 | source-locked rule baseline, visual `0.6409` |
 | 26 | source-locked learned layer harness, visual `0.6339` |
+| 27 | human-review package for Stage24/25/26 |
 
 ## Next Useful Targets
 

@@ -88,6 +88,12 @@ Quick iteration version:
 
 Use `--eval-limit` only for quick checks. Omit it for recorded metrics.
 
+Build Song13 human-review artifacts:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\build_song13_review.py
+```
+
 ## Current Findings
 
 Song13 render contract:
@@ -156,6 +162,7 @@ Important stage folders:
 | `stage24_song13_add_only` | source-preserving adapter diagnostic |
 | `stage25_song13_source_locked` | current rule quality baseline |
 | `stage26_song13_layer_mlp` | learned source-locked layer harness |
+| `stage27_song13_review` | human-review sheets for Stage24/25/26 |
 
 ## Stage Summary
 
@@ -173,6 +180,7 @@ Important stage folders:
 | 24 | add-only adapter preserves strokes, visual `0.6508` |
 | 25 | source-locked rule baseline, visual `0.6409` |
 | 26 | source-locked learned layer harness, visual `0.6339` |
+| 27 | human-review package comparing Stage24/25/26 |
 
 ## Notes
 
