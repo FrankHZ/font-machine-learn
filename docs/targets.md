@@ -108,7 +108,8 @@ so judge it by contact sheet and in-game readability.
 Stage32 is the public comparison artifact:
 
 - command: `python scripts/build_public_comparison_contact.py`
-- output: `docs/assets/stage32_public_comparison.png`
+- output: `docs/assets/stage32_public_comparison_song13.png`
+- output: `docs/assets/stage32_public_comparison_song12.png`
 - rows: `source`, `stage25`, `stage26`, `stage32`
 - copyright posture: omit target NFTR glyphs from the public README image
 

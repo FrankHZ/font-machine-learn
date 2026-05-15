@@ -20,12 +20,12 @@ the same `15x15` cell. The project no longer treats target glyphs as shapes to
 copy. Current Song13 work preserves source pixels first, then assigns style
 layers around that fixed source shape.
 
-![Stage32 public comparison](docs/assets/stage32_public_comparison.png)
+![Stage32 Song13 comparison](docs/assets/stage32_public_comparison_song13.png)
 
-Rows: open-source WenQuanYi Song13 source, Stage25 rule output, Stage26 MLP
-output, and the Stage32 comparison row using the Stage31 torch-transfer output.
-The public comparison image intentionally omits the proprietary target NFTR
-glyph row.
+![Stage32 Song12 comparison](docs/assets/stage32_public_comparison_song12.png)
+
+Each sheet uses rows `source`, `stage25`, `stage26`, and `stage32`. The public
+comparison images intentionally omit the proprietary target NFTR glyph row.
 
 ## Quick Setup
 
@@ -290,7 +290,8 @@ Important stage folders:
 | `stage29_target_ge2_conv` | lightweight convolution-feature target probe |
 | `stage30_target_ge2_torch` | tiny PyTorch CNN target probe |
 | `stage31_song13_torch_cnn` | target-trained CNN transferred to Song13 |
-| `docs/assets/stage32_public_comparison.png` | public Stage25/26/32 comparison image |
+| `docs/assets/stage32_public_comparison_song13.png` | public Song13 Stage25/26/32 comparison image |
+| `docs/assets/stage32_public_comparison_song12.png` | public Song12 Stage25/26/32 comparison image |
 
 ## Stage Summary
 

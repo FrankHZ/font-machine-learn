@@ -280,7 +280,8 @@ Command:
 
 Outputs:
 
-- `docs/assets/stage32_public_comparison.png`
+- `docs/assets/stage32_public_comparison_song13.png`
+- `docs/assets/stage32_public_comparison_song12.png`
 - `docs/assets/stage32_public_comparison.json`
 
 Image order:

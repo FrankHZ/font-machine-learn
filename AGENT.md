@@ -169,10 +169,10 @@ Stage32 public comparison contact:
 python scripts/build_public_comparison_contact.py
 ```
 
-This writes `docs/assets/stage32_public_comparison.png` for README display. It
-uses rows `source`, `stage25`, `stage26`, and `stage32`; the `stage32` row is the
-Stage31 torch-transfer output. Do not include the target NFTR row in public
-README assets.
+This writes Song13 and Song12 README comparison sheets under `docs/assets/`.
+Each uses rows `source`, `stage25`, `stage26`, and `stage32`; the `stage32` row
+is the Stage31 torch-transfer output. Do not include the target NFTR row in
+public README assets.
 
 Release package:
 
@@ -201,7 +201,8 @@ because the output needs shadow and edge levels.
 - `src/font_machine_learn/target_torch_cnn.py`: Stage30 tiny PyTorch CNN probe.
 - `src/font_machine_learn/song13_torch_cnn.py`: Stage31 target-trained CNN -> Song13 transfer.
 - `scripts/build_public_comparison_contact.py`: Stage32 public README comparison.
-- `docs/assets/stage32_public_comparison.png`: promoted public comparison image.
+- `docs/assets/stage32_public_comparison_song13.png`: promoted public Song13 comparison image.
+- `docs/assets/stage32_public_comparison_song12.png`: promoted public Song12 comparison image.
 - `tests/test_nftr_export.py`: fast tests plus slow stage smokes.
 - `docs/targets.md`: current target split and findings.
 - `docs/deliverables.md`: verification and stage checkpoint summary.

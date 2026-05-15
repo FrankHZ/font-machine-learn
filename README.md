@@ -15,9 +15,11 @@
 
 当前默认源字体是文泉驿点阵宋体 13px。项目会尽量保留源字形，只学习目标字模的分层风格。
 
-![Stage32 public comparison](docs/assets/stage32_public_comparison.png)
+![Stage32 Song13 comparison](docs/assets/stage32_public_comparison_song13.png)
 
-图中行顺序：`sharp13`、`sharp14`、`song12`、`source/song13`、`stage25`、`stage26`、`stage32`。公开图不包含原始目标 NFTR 字模行。
+![Stage32 Song12 comparison](docs/assets/stage32_public_comparison_song12.png)
+
+两张图分别是 Song13 和 Song12。每张图行顺序都是：`source`、`stage25`、`stage26`、`stage32`。公开图不包含原始目标 NFTR 字模行。
 
 ## 下载字体
 
