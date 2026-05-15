@@ -183,7 +183,11 @@ Current external-source direction:
   `0.0000`, but CJK visual `0.6339` is below Stage25's `0.6409`; treat it as a
   working learned harness, not a quality win. The script supports
   `--jobs N` for CPU-threaded candidate scoring and caches probability grids;
-  prefer `--jobs 4` for local full runs.
+  prefer `--jobs 4` for local full runs. It also supports multi-source eval
+  after one shared training pass: use `--eval-target-quantized
+  --eval-source-jobs 3` to evaluate Song13, target `>=2`, and target `==3`.
+  Current multi-source CJK visual scores are Song13 `0.6339`, target_ge2
+  `0.9742`, and target_eq3 `0.8903`.
 
 ## Target Split
 

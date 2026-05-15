@@ -78,6 +78,22 @@ class EvalGlyph:
     target_mask: Mask
 
 
+@dataclass(frozen=True)
+class SourceEvaluation:
+    name: str
+    source_metadata: str
+    out_dir: str
+    metadata_json: str
+    contact_sheet: str
+    error_contact_sheet: str
+    glyph_count: int
+    cjk_glyph_count: int
+    best_candidate: str
+    best_cjk_quality_score: float
+    best_cjk_visual_score: float
+    best_source_deleted_ratio: float
+
+
 def local_features(mask: Mask, x: int, y: int, radius: int) -> list[float]:
     height = len(mask)
     width = len(mask[0]) if height else 0
@@ -273,6 +289,48 @@ def load_eval_glyphs(source_glyphs: list[dict]) -> list[EvalGlyph]:
             )
         )
     return records
+
+
+def export_target_quantized_source_metadata(
+    target_metadata: Path,
+    *,
+    out_dir: Path,
+    mode: str,
+) -> Path:
+    if mode not in {"ge2", "eq3"}:
+        raise ValueError(f"unsupported target quantized mode: {mode}")
+    target = json.loads(target_metadata.read_text(encoding="utf-8"))
+    mask_dir = out_dir / f"target_{mode}_source"
+    mask_dir.mkdir(parents=True, exist_ok=True)
+    metadata_json = out_dir / f"target_{mode}_source_metadata.json"
+    glyphs: list[dict] = []
+    for glyph in target["glyphs"]:
+        index = int(glyph["index"])
+        target_png = glyph["png"]
+        target_levels = image_to_target_levels(Image.open(target_png).convert("RGBA"))
+        mask = levels_to_threshold_mask(target_levels, mode)
+        source_png = mask_dir / f"glyph_{index:04d}.png"
+        ge2_mask_to_image(mask).save(source_png)
+        glyphs.append(
+            {
+                "index": index,
+                "codes": list(glyph["codes"]),
+                "chars": list(glyph["chars"]),
+                "source_png": str(source_png),
+                "target_png": str(target_png),
+            }
+        )
+    payload = {
+        "source_name": f"target_{mode}",
+        "source_kind": "target_quantized",
+        "target_quantized_mode": mode,
+        "cell_width": int(target["cell_width"]),
+        "cell_height": int(target["cell_height"]),
+        "glyph_count": len(glyphs),
+        "glyphs": glyphs,
+    }
+    metadata_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return metadata_json
 
 
 def predict_source_locked_levels_from_probabilities(
@@ -505,119 +563,45 @@ def evaluate_candidate_specs(
         return dict(executor.map(run_spec, specs))
 
 
-def export_song13_layer_mlp(
-    target_metadata: Path = TARGET_METADATA,
-    source_metadata: Path = DEFAULT_SONG13_SOURCE_METADATA,
+def evaluate_layer_source(
     *,
-    out_dir: Path = STAGE26_SONG13_LAYER_MLP,
-    metadata_json: Path = SONG13_LAYER_MLP_METADATA,
-    contact_sheet: Path = SONG13_LAYER_MLP_CONTACT,
-    error_contact_sheet: Path = SONG13_LAYER_MLP_ERROR_CONTACT,
-    core_thresholds: list[float] | None = None,
-    shadow_thresholds: list[float] | None = None,
-    patch_radius: int = 4,
-    max_train_glyphs: int | None = None,
-    search_limit: int | None = 512,
-    jobs: int = 1,
-    core_hidden_units: int = 64,
-    shadow_hidden_units: int = 64,
-    max_iter: int = 80,
-    random_seed: int = 26,
-    worst_count: int = 160,
-    scale: int = 4,
-    columns: int = 32,
-    pad: int = 1,
-) -> Song13LayerMlpExport:
-    if core_thresholds is None:
-        core_thresholds = [0.45, 0.50, 0.55, 0.65]
-    if shadow_thresholds is None:
-        shadow_thresholds = [0.45, 0.55, 0.65, 0.75]
-    if not target_metadata.exists():
-        export_target_dataset(Path("a.NFTR"))
-    if not source_metadata.exists():
-        raise FileNotFoundError(
-            f"Source metadata not found: {source_metadata}. "
-            "Render the Song13 baseline with scripts/render_source_glyphs.py first."
-        )
-
-    target = json.loads(target_metadata.read_text(encoding="utf-8"))
-    source = json.loads(source_metadata.read_text(encoding="utf-8"))
-    target_glyphs = list(target["glyphs"])
-    source_glyphs = list(source["glyphs"])
-    source_records = load_eval_glyphs(source_glyphs)
-    cell_width = int(source["cell_width"])
-    cell_height = int(source["cell_height"])
+    source_name: str,
+    source_metadata: Path,
+    source_payload: dict,
+    core_models: dict[str, object],
+    shadow_models: dict[str, object],
+    specs: list[tuple[str, str, str, object, object, float, float]],
+    candidate_specs: dict[str, tuple[str, str, object, object, float, float]],
+    patch_radius: int,
+    search_limit: int | None,
+    candidate_jobs: int,
+    out_dir: Path,
+    metadata_json: Path,
+    contact_sheet: Path,
+    error_contact_sheet: Path,
+    worst_count: int,
+    scale: int,
+    columns: int,
+    pad: int,
+) -> tuple[SourceEvaluation, dict]:
+    source_records = load_eval_glyphs(list(source_payload["glyphs"]))
+    cell_width = int(source_payload["cell_width"])
+    cell_height = int(source_payload["cell_height"])
     out_dir.mkdir(parents=True, exist_ok=True)
     metadata_json.parent.mkdir(parents=True, exist_ok=True)
     contact_sheet.parent.mkdir(parents=True, exist_ok=True)
     error_contact_sheet.parent.mkdir(parents=True, exist_ok=True)
 
-    x_core, y_core, x_shadow, y_shadow, train_cjk = build_target_ge2_training_rows(
-        target_glyphs,
-        patch_radius=patch_radius,
-        max_train_glyphs=max_train_glyphs,
-    )
-    core_models = train_binary_models(
-        x_core,
-        y_core,
-        prefix="core",
-        hidden_units=core_hidden_units,
-        max_iter=max_iter,
-        random_seed=random_seed,
-        negative_ratio=3,
-    )
-    shadow_models = train_binary_models(
-        x_shadow,
-        y_shadow,
-        prefix="shadow",
-        hidden_units=shadow_hidden_units,
-        max_iter=max_iter,
-        random_seed=random_seed,
-        negative_ratio=3,
-    )
-
     search_records = source_records[:search_limit] if search_limit is not None else source_records
     core_probability_cache = build_probability_cache(source_records, core_models, patch_radius=patch_radius)
     shadow_probability_cache = build_probability_cache(source_records, shadow_models, patch_radius=patch_radius)
-
-    specs: list[tuple[str, str, str, object, object, float, float]] = []
-    candidate_specs: dict[str, tuple[str, str, object, object, float, float]] = {}
-    for core_model_name, core_model in core_models.items():
-        for shadow_model_name, shadow_model in shadow_models.items():
-            for core_threshold in core_thresholds:
-                for shadow_threshold in shadow_thresholds:
-                    candidate_name = (
-                        f"{core_model_name}_{shadow_model_name}"
-                        f"_c{int(round(core_threshold * 100)):03d}"
-                        f"_s{int(round(shadow_threshold * 100)):03d}"
-                    )
-                    candidate_specs[candidate_name] = (
-                        core_model_name,
-                        shadow_model_name,
-                        core_model,
-                        shadow_model,
-                        float(core_threshold),
-                        float(shadow_threshold),
-                    )
-                    specs.append(
-                        (
-                        candidate_name,
-                        core_model_name,
-                        shadow_model_name,
-                        core_model,
-                        shadow_model,
-                        float(core_threshold),
-                        float(shadow_threshold),
-                        )
-                    )
-
     candidates = evaluate_candidate_specs(
         specs,
         search_records,
         patch_radius=patch_radius,
         core_probability_cache=core_probability_cache,
         shadow_probability_cache=shadow_probability_cache,
-        jobs=max(1, jobs),
+        jobs=max(1, candidate_jobs),
     )
     best_candidate = max(candidates, key=lambda name: float(candidates[name]["cjk_quality_score"]))
     best_core_name, best_shadow_name, best_core_model, best_shadow_model, best_core_threshold, best_shadow_threshold = (
@@ -661,10 +645,195 @@ def export_song13_layer_mlp(
     )
 
     payload = {
+        "source_name": source_name,
+        "source_metadata": str(source_metadata),
+        "glyph_count": len(source_records),
+        "cjk_glyph_count": len(cjk_records),
+        "best_candidate": best_candidate,
+        "contact_sheet": str(contact_sheet),
+        "error_contact_sheet": str(error_contact_sheet),
+        "contact_sheet_candidate": best_candidate,
+        "contact_sheet_order": ["original_source", "source_ge2", "predicted_2bpp", "target_2bpp"],
+        "candidates": candidates,
+    }
+    metadata_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    result = SourceEvaluation(
+        name=source_name,
+        source_metadata=str(source_metadata),
+        out_dir=str(out_dir),
+        metadata_json=str(metadata_json),
+        contact_sheet=str(contact_sheet),
+        error_contact_sheet=str(error_contact_sheet),
+        glyph_count=len(source_records),
+        cjk_glyph_count=len(cjk_records),
+        best_candidate=best_candidate,
+        best_cjk_quality_score=float(best_payload["cjk_quality_score"]),
+        best_cjk_visual_score=float(best_payload["groups"]["cjk"]["visual_score"]),
+        best_source_deleted_ratio=float(best_payload["source_contract"]["cjk"]["source_deleted_ratio"]),
+    )
+    return result, payload
+
+
+def export_song13_layer_mlp(
+    target_metadata: Path = TARGET_METADATA,
+    source_metadata: Path = DEFAULT_SONG13_SOURCE_METADATA,
+    *,
+    out_dir: Path = STAGE26_SONG13_LAYER_MLP,
+    metadata_json: Path = SONG13_LAYER_MLP_METADATA,
+    contact_sheet: Path = SONG13_LAYER_MLP_CONTACT,
+    error_contact_sheet: Path = SONG13_LAYER_MLP_ERROR_CONTACT,
+    core_thresholds: list[float] | None = None,
+    shadow_thresholds: list[float] | None = None,
+    patch_radius: int = 4,
+    max_train_glyphs: int | None = None,
+    search_limit: int | None = 512,
+    jobs: int = 1,
+    extra_eval_sources: dict[str, Path] | None = None,
+    eval_source_jobs: int = 1,
+    core_hidden_units: int = 64,
+    shadow_hidden_units: int = 64,
+    max_iter: int = 80,
+    random_seed: int = 26,
+    worst_count: int = 160,
+    scale: int = 4,
+    columns: int = 32,
+    pad: int = 1,
+) -> Song13LayerMlpExport:
+    if core_thresholds is None:
+        core_thresholds = [0.45, 0.50, 0.55, 0.65]
+    if shadow_thresholds is None:
+        shadow_thresholds = [0.45, 0.55, 0.65, 0.75]
+    if not target_metadata.exists():
+        export_target_dataset(Path("a.NFTR"))
+    if not source_metadata.exists():
+        raise FileNotFoundError(
+            f"Source metadata not found: {source_metadata}. "
+            "Render the Song13 baseline with scripts/render_source_glyphs.py first."
+        )
+
+    target = json.loads(target_metadata.read_text(encoding="utf-8"))
+    source = json.loads(source_metadata.read_text(encoding="utf-8"))
+    target_glyphs = list(target["glyphs"])
+    out_dir.mkdir(parents=True, exist_ok=True)
+    metadata_json.parent.mkdir(parents=True, exist_ok=True)
+    contact_sheet.parent.mkdir(parents=True, exist_ok=True)
+    error_contact_sheet.parent.mkdir(parents=True, exist_ok=True)
+
+    x_core, y_core, x_shadow, y_shadow, train_cjk = build_target_ge2_training_rows(
+        target_glyphs,
+        patch_radius=patch_radius,
+        max_train_glyphs=max_train_glyphs,
+    )
+    core_models = train_binary_models(
+        x_core,
+        y_core,
+        prefix="core",
+        hidden_units=core_hidden_units,
+        max_iter=max_iter,
+        random_seed=random_seed,
+        negative_ratio=3,
+    )
+    shadow_models = train_binary_models(
+        x_shadow,
+        y_shadow,
+        prefix="shadow",
+        hidden_units=shadow_hidden_units,
+        max_iter=max_iter,
+        random_seed=random_seed,
+        negative_ratio=3,
+    )
+
+    specs: list[tuple[str, str, str, object, object, float, float]] = []
+    candidate_specs: dict[str, tuple[str, str, object, object, float, float]] = {}
+    for core_model_name, core_model in core_models.items():
+        for shadow_model_name, shadow_model in shadow_models.items():
+            for core_threshold in core_thresholds:
+                for shadow_threshold in shadow_thresholds:
+                    candidate_name = (
+                        f"{core_model_name}_{shadow_model_name}"
+                        f"_c{int(round(core_threshold * 100)):03d}"
+                        f"_s{int(round(shadow_threshold * 100)):03d}"
+                    )
+                    candidate_specs[candidate_name] = (
+                        core_model_name,
+                        shadow_model_name,
+                        core_model,
+                        shadow_model,
+                        float(core_threshold),
+                        float(shadow_threshold),
+                    )
+                    specs.append(
+                        (
+                            candidate_name,
+                            core_model_name,
+                            shadow_model_name,
+                            core_model,
+                            shadow_model,
+                            float(core_threshold),
+                            float(shadow_threshold),
+                        )
+                    )
+
+    primary_source_name = str(source.get("source_name", "song13"))
+    source_configs: list[tuple[str, Path, dict, Path, Path, Path, Path]] = [
+        (primary_source_name, source_metadata, source, out_dir, metadata_json, contact_sheet, error_contact_sheet)
+    ]
+    if extra_eval_sources:
+        for name, extra_metadata in extra_eval_sources.items():
+            extra_source = json.loads(extra_metadata.read_text(encoding="utf-8"))
+            source_root = out_dir / "eval_sources" / name
+            source_configs.append(
+                (
+                    name,
+                    extra_metadata,
+                    extra_source,
+                    source_root,
+                    source_root / f"{name}_metadata.json",
+                    source_root / f"{name}_contact.png",
+                    source_root / f"{name}_errors.png",
+                )
+            )
+
+    def run_source(config: tuple[str, Path, dict, Path, Path, Path, Path]) -> tuple[str, SourceEvaluation, dict]:
+        name, metadata_path, source_payload, source_out, source_json, source_contact, source_errors = config
+        result, source_result_payload = evaluate_layer_source(
+            source_name=name,
+            source_metadata=metadata_path,
+            source_payload=source_payload,
+            core_models=core_models,
+            shadow_models=shadow_models,
+            specs=specs,
+            candidate_specs=candidate_specs,
+            patch_radius=patch_radius,
+            search_limit=search_limit,
+            candidate_jobs=max(1, jobs),
+            out_dir=source_out,
+            metadata_json=source_json,
+            contact_sheet=source_contact,
+            error_contact_sheet=source_errors,
+            worst_count=worst_count,
+            scale=scale,
+            columns=columns,
+            pad=pad,
+        )
+        return name, result, source_result_payload
+
+    if eval_source_jobs > 1 and len(source_configs) > 1:
+        with ThreadPoolExecutor(max_workers=eval_source_jobs) as executor:
+            source_results = list(executor.map(run_source, source_configs))
+    else:
+        source_results = [run_source(config) for config in source_configs]
+
+    source_result_by_name = {name: result for name, result, _payload in source_results}
+    source_payload_by_name = {name: payload for name, _result, payload in source_results}
+    primary_result = source_result_by_name[primary_source_name]
+    primary_payload = source_payload_by_name[primary_source_name]
+
+    payload = {
         "target_metadata": str(target_metadata),
         "source_metadata": str(source_metadata),
-        "glyph_count": len(source_glyphs),
-        "cjk_glyph_count": len(cjk_records),
+        "glyph_count": primary_result.glyph_count,
+        "cjk_glyph_count": primary_result.cjk_glyph_count,
         "task": "source-locked Song13 1bpp mask -> learned NFTR-style 2bpp layer assignment",
         "training_contract": "Train core/edge and shadow heads on target-derived ge2 masks; apply them to Song13 without changing source shape.",
         "source_contract": "Song13 source pixels are never deleted; source pixels become level 2 or 3, and outside-source pixels can only become level 1 shadow.",
@@ -675,6 +844,7 @@ def export_song13_layer_mlp(
         "shadow_thresholds": shadow_thresholds,
         "search_limit": search_limit,
         "jobs": jobs,
+        "eval_source_jobs": eval_source_jobs,
         "train_cjk_glyph_count": train_cjk,
         "train_pixel_count": {
             "core_edge": int(len(y_core)),
@@ -693,12 +863,18 @@ def export_song13_layer_mlp(
             "formula": "0.42*visual + 0.22*ink + 0.22*shadow + 0.14*foreground_iou - source_deletion_penalty - overfill_penalty",
             "reason": "Stage26 should improve layer assignment while keeping Stage25's source-preservation contract.",
         },
-        "best_candidate": best_candidate,
+        "best_candidate": primary_result.best_candidate,
         "contact_sheet": str(contact_sheet),
         "error_contact_sheet": str(error_contact_sheet),
-        "contact_sheet_candidate": best_candidate,
+        "contact_sheet_candidate": primary_result.best_candidate,
         "contact_sheet_order": ["original_source", "source_ge2", "predicted_2bpp", "target_2bpp"],
-        "candidates": candidates,
+        "primary_source": asdict(primary_result),
+        "eval_sources": {
+            name: asdict(result)
+            for name, result in source_result_by_name.items()
+            if name != primary_source_name
+        },
+        "candidates": primary_payload["candidates"],
         "interpretation_notes": [
             "This stage deliberately does not predict a new ge2 mask for Song13.",
             "Low target-overlap scores can still be acceptable because Song13 and the NFTR target have different glyph shapes.",
@@ -714,12 +890,12 @@ def export_song13_layer_mlp(
         metadata_json=str(metadata_json),
         contact_sheet=str(contact_sheet),
         error_contact_sheet=str(error_contact_sheet),
-        glyph_count=len(source_glyphs),
-        cjk_glyph_count=len(cjk_records),
+        glyph_count=primary_result.glyph_count,
+        cjk_glyph_count=primary_result.cjk_glyph_count,
         core_edge_train_pixel_count=int(len(y_core)),
         shadow_train_pixel_count=int(len(y_shadow)),
-        best_candidate=best_candidate,
-        best_cjk_quality_score=float(best_payload["cjk_quality_score"]),
-        best_cjk_visual_score=float(best_payload["groups"]["cjk"]["visual_score"]),
-        best_source_deleted_ratio=float(best_payload["source_contract"]["cjk"]["source_deleted_ratio"]),
+        best_candidate=primary_result.best_candidate,
+        best_cjk_quality_score=primary_result.best_cjk_quality_score,
+        best_cjk_visual_score=primary_result.best_cjk_visual_score,
+        best_source_deleted_ratio=primary_result.best_source_deleted_ratio,
     )

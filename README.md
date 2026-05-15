@@ -878,6 +878,12 @@ Use CPU parallel candidate scoring when desired:
 python scripts/train_song13_layer_mlp.py --jobs 4
 ```
 
+Evaluate multiple sources after one shared training pass:
+
+```powershell
+python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
+```
+
 This is the first learned stage after locking the Song13 shape. It trains two
 small heads on target-derived `ge2` masks:
 
@@ -910,6 +916,16 @@ shadow head is more conservative and scores lower by both metric and contact
 sheet, so Stage25 remains the current Song13 quality baseline. The exporter
 preloads evaluation glyphs and caches model probability grids; on this machine
 the full default run is about `45s` with `--jobs 4`.
+
+Multi-source eval after one shared training pass:
+
+- `song13`: visual `0.6339`
+- `target_ge2`: visual `0.9742`
+- `target_eq3`: visual `0.8903`
+
+This run takes about `88s` with `--eval-target-quantized --eval-source-jobs 3`,
+so adding controlled target-derived eval sources is much cheaper than launching
+separate training runs.
 
 ## Next Milestones
 

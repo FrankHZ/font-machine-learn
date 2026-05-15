@@ -1148,6 +1148,8 @@ class NFTRExportTest(unittest.TestCase):
                 shadow_hidden_units=10,
                 max_iter=4,
                 jobs=2,
+                extra_eval_sources={"target_copy": fake_source_json},
+                eval_source_jobs=2,
                 worst_count=12,
             )
             self.assertEqual(result.glyph_count, 1814)
@@ -1168,6 +1170,7 @@ class NFTRExportTest(unittest.TestCase):
                 metadata["contact_sheet_order"],
                 ["original_source", "source_ge2", "predicted_2bpp", "target_2bpp"],
             )
+            self.assertIn("target_copy", metadata["eval_sources"])
 
 
 if __name__ == "__main__":

@@ -1006,6 +1006,11 @@ Current interpretation:
 
 - the Stage26 harness is now usable and runs in about a minute with the cached
   probability/search-limit path
+- multi-source eval shares one training pass; `--eval-target-quantized
+  --eval-source-jobs 3` evaluates Song13, target `>=2`, and target `==3` in
+  about `88s`
+- current multi-source CJK visual scores: Song13 `0.6339`, target `>=2`
+  `0.9742`, target `==3` `0.8903`
 - it does not beat Stage25's rule baseline (`0.6409` visual)
 - learned shadow placement is currently too conservative on Song13, so Stage25
   remains the quality reference
@@ -1015,6 +1020,7 @@ Verification:
 ```powershell
 .\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py
 .\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --jobs 4
+.\.venv\Scripts\python.exe scripts\train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
 .\.venv\Scripts\python.exe -m unittest discover
 ```
 

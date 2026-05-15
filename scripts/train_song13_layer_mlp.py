@@ -19,7 +19,10 @@ from font_machine_learn.paths import (  # noqa: E402
     TARGET_METADATA,
 )
 from font_machine_learn.song13_adapter import DEFAULT_SONG13_SOURCE_METADATA  # noqa: E402
-from font_machine_learn.song13_layer_mlp import export_song13_layer_mlp  # noqa: E402
+from font_machine_learn.song13_layer_mlp import (  # noqa: E402
+    export_song13_layer_mlp,
+    export_target_quantized_source_metadata,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -36,6 +39,19 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-train-glyphs", type=int, default=None)
     parser.add_argument("--search-limit", type=int, default=512)
     parser.add_argument("--jobs", type=int, default=1)
+    parser.add_argument("--eval-source-jobs", type=int, default=1)
+    parser.add_argument(
+        "--eval-source",
+        action="append",
+        default=[],
+        metavar="NAME=PATH",
+        help="Evaluate an additional source metadata file with the same trained models.",
+    )
+    parser.add_argument(
+        "--eval-target-quantized",
+        action="store_true",
+        help="Also evaluate target-derived ge2 and eq3 source masks.",
+    )
     parser.add_argument("--core-hidden-units", type=int, default=64)
     parser.add_argument("--shadow-hidden-units", type=int, default=64)
     parser.add_argument("--max-iter", type=int, default=80)
@@ -45,6 +61,24 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    extra_eval_sources: dict[str, Path] = {}
+    for item in args.eval_source:
+        if "=" not in item:
+            raise SystemExit(f"--eval-source must be NAME=PATH, got: {item}")
+        name, path = item.split("=", 1)
+        extra_eval_sources[name] = Path(path)
+    if args.eval_target_quantized:
+        quantized_root = args.out_dir / "eval_sources" / "_target_quantized_sources"
+        extra_eval_sources["target_ge2"] = export_target_quantized_source_metadata(
+            args.target_metadata,
+            out_dir=quantized_root,
+            mode="ge2",
+        )
+        extra_eval_sources["target_eq3"] = export_target_quantized_source_metadata(
+            args.target_metadata,
+            out_dir=quantized_root,
+            mode="eq3",
+        )
     result = export_song13_layer_mlp(
         target_metadata=args.target_metadata,
         source_metadata=args.source_metadata,
@@ -58,6 +92,8 @@ def main(argv: list[str] | None = None) -> int:
         max_train_glyphs=args.max_train_glyphs,
         search_limit=args.search_limit,
         jobs=args.jobs,
+        extra_eval_sources=extra_eval_sources or None,
+        eval_source_jobs=args.eval_source_jobs,
         core_hidden_units=args.core_hidden_units,
         shadow_hidden_units=args.shadow_hidden_units,
         max_iter=args.max_iter,

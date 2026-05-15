@@ -1103,6 +1103,7 @@ Command:
 ```powershell
 python scripts/train_song13_layer_mlp.py
 python scripts/train_song13_layer_mlp.py --jobs 4
+python scripts/train_song13_layer_mlp.py --eval-target-quantized --eval-source-jobs 3
 ```
 
 Setup:
@@ -1148,3 +1149,9 @@ This first learned version does not beat Stage25's rule baseline (`0.6409`
 visual); keep Stage25 as the quality reference while Stage26 remains the learned
 harness to improve. The implementation preloads evaluation glyphs, caches model
 probability grids, and supports `--jobs N` for CPU-threaded candidate scoring.
+It can also evaluate several sources after one shared training pass. Current
+multi-source CJK visual scores are:
+
+- Song13: `0.6339`
+- target `>=2`: `0.9742`
+- target `==3`: `0.8903`
